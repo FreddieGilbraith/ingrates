@@ -1,4 +1,4 @@
-import { mountRoot, defineActor } from "../src";
+import { createSystem, defineActor } from "../src";
 
 describe("heirarchy", () => {
 	function createActors() {
@@ -6,7 +6,7 @@ describe("heirarchy", () => {
 
 		const rootActor = defineActor(
 			"root",
-			(msg, { dispatch, spawn, children }) => {
+			(msg, { parent, dispatch, spawn, children }) => {
 				const logger =
 					children.get("logger") ?? spawn("logger", loggerActor);
 				const calculator =
@@ -28,6 +28,8 @@ describe("heirarchy", () => {
 							type: "LOG",
 							payload: `result: "${msg.result}"`,
 						});
+
+						dispatch(parent, { type: "DONE" });
 						break;
 				}
 			},
@@ -46,7 +48,7 @@ describe("heirarchy", () => {
 				switch (msg.type) {
 					case "INTRO":
 						const { logger } = msg;
-						friends.add("logger", logger);
+						friends.set("logger", logger);
 						break;
 
 					case "ADD":
@@ -72,9 +74,9 @@ describe("heirarchy", () => {
 	it("will log correct outputs", async () => {
 		const { rootActor, mockConsole } = createActors();
 
-		const system = mountRoot(rootActor);
+		const system = createSystem({ root: rootActor });
 
-		await new Promise((done) => setImmediate(done));
+		await new Promise((done) => setTimeout(done, 100));
 
 		expect(mockConsole).toHaveBeenCalledWith(
 			'message from calculator : lhs: "2"',

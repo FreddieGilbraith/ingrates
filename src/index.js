@@ -10,10 +10,12 @@ export function defineActor(name, fnOrState, maybeFn) {
 
 	const nameGenerator = typeof name === "function" ? name : () => name;
 
-	return function createActorInstance(system, ...args) {
+	return function createActorInstance(parent, system, ...args) {
 		const id = nanoid();
 		const name = nameGenerator(...args);
 		const postbox = [];
+		const children = new Map();
+		const friends = new Map();
 
 		let state = initialState;
 		let running = false;
@@ -27,17 +29,33 @@ export function defineActor(name, fnOrState, maybeFn) {
 			const { src, msg, snk } = postbox.shift();
 
 			const ctx = {
+				parent,
+				children,
+				friends,
+
+				getName: system.getName,
 				dispatch: (snk, msg) => system.dispatch({ src: id, msg, snk }),
+
+				spawn: (name, actor) => {
+					const childId = actor(id, system);
+					children.set(name, childId);
+					return childId;
+				},
 
 				get sender() {
 					return src;
 				},
-				get parent() {
-					return system.getParentOf(id);
-				},
 			};
 
-			state = await fn(state, msg, ctx);
+			try {
+				if (stateful) {
+					state = await fn(state, msg, ctx);
+				} else {
+					await fn(msg, ctx);
+				}
+			} catch (e) {
+				console.error(e);
+			}
 
 			running = false;
 
@@ -51,7 +69,7 @@ export function defineActor(name, fnOrState, maybeFn) {
 			checkPostbox();
 		}
 
-		system.addSelf(id, submitEnvelope);
+		system.addSelf(id, { name, submitEnvelope });
 
 		return id;
 	};
@@ -59,7 +77,7 @@ export function defineActor(name, fnOrState, maybeFn) {
 
 export function createSystem({ root }) {
 	const world = new Map();
-	const parent = new Map();
+	const names = new Map();
 
 	const externalSubscriptions = new Set();
 
@@ -69,6 +87,10 @@ export function createSystem({ root }) {
 
 	function next() {
 		return new Promise((done) => subscribe(done));
+	}
+
+	function getName(id) {
+		return names.get(id);
 	}
 
 	function dispatch({ src, msg, snk }) {
@@ -86,17 +108,19 @@ export function createSystem({ root }) {
 		});
 	}
 
-	function getParentOf(id) {
-		return parent.get(id);
-	}
-
-	const rootActorAddr = root({
+	const rootActorAddr = root("__EXTERNAL__", {
 		dispatch,
-		getParentOf,
-		addSelf: (id, submitEnvelope) => {
+		getName,
+		addSelf: (id, { submitEnvelope, name }) => {
 			world.set(id, submitEnvelope);
-			parent.set(id, "__EXTERNAL__");
+			names.set(id, name);
 		},
+	});
+
+	dispatch({
+		src: "__INTERNAL__",
+		msg: { type: "__INIT__" },
+		snk: rootActorAddr,
 	});
 
 	return {
