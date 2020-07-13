@@ -67,6 +67,10 @@ export function createSystem({ root }) {
 		externalSubscriptions.add(listener);
 	}
 
+	function next() {
+		return new Promise((done) => subscribe(done));
+	}
+
 	function dispatch({ src, msg, snk }) {
 		if (snk === "__EXTERNAL__") {
 			for (const listener of externalSubscriptions) {
@@ -97,6 +101,7 @@ export function createSystem({ root }) {
 
 	return {
 		subscribe,
+		next,
 		dispatch: (msg) => {
 			dispatch({
 				src: "__EXTERNAL__",

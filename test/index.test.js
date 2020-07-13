@@ -36,21 +36,4 @@ describe("basic api", () => {
 			type: "TEST_MSG",
 		});
 	});
-
-	it("can return a stream of output msgs", async () => {
-		const system = createSystem({ root: rootActor });
-
-		system.dispatch({ type: "TEST_MSG" });
-		system.dispatch({ type: "TEST_MSG" });
-		system.dispatch({ type: "TEST_MSG" });
-
-		let count = 0;
-
-		for await (const msg of system.stream()) {
-			count++;
-			expect(msg).toEqual({ type: "TEST_RESPONSE" });
-		}
-
-		expect(count).toBe(3);
-	});
 });
