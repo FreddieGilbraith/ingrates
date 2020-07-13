@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-import * as R from "ramda";
 
 //envelope: { src, msg, snk }
 
@@ -49,7 +48,17 @@ export function defineActor(name, fnOrState, maybeFn) {
 
 			try {
 				if (stateful) {
-					state = await fn(state, msg, ctx);
+					const response = await fn(state, msg, ctx);
+					switch (typeof response) {
+						case "function":
+							state = response(state);
+							break;
+						case "undefined":
+							break;
+						default:
+							state = response;
+							break;
+					}
 				} else {
 					await fn(msg, ctx);
 				}

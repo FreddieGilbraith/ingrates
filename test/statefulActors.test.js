@@ -1,9 +1,12 @@
-import { mountRoot, defineActor } from "../src";
+import * as R from "ramda";
+
+import { createSystem, defineActor } from "../src";
 
 describe("stateful actors", () => {
 	const counterActor = defineActor(
 		"counter",
-		(state = { count: 0 }, msg, { dispatch, sender }) => {
+		{ count: 0 },
+		(state, msg, { dispatch, sender }) => {
 			switch (msg.type) {
 				case "INC":
 					return {
@@ -26,50 +29,50 @@ describe("stateful actors", () => {
 	);
 
 	it("will use default state", async () => {
-		const system = mountRoot(counterActor);
+		const system = createSystem({ root: counterActor });
 
 		system.dispatch({ type: "QUERY" });
 
-		const { value: response } = await system.stream().next();
+		const response = await system.next();
 
 		expect(response).toEqual({ type: "STORED_VALUE", count: 0 });
 	});
 
 	it("will update state from a returned value", async () => {
-		const system = mountRoot(counterActor);
+		const system = createSystem({ root: counterActor });
 
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "QUERY" });
 
-		const { value: response } = await system.stream().next();
+		const response = await system.next();
 
 		expect(response).toEqual({ type: "STORED_VALUE", count: 3 });
 	});
 
 	it("will update state from a returned update function", async () => {
-		const system = mountRoot(counterActor);
+		const system = createSystem({ root: counterActor });
 
 		system.dispatch({ type: "DEC" });
 		system.dispatch({ type: "DEC" });
 		system.dispatch({ type: "DEC" });
 		system.dispatch({ type: "QUERY" });
 
-		const { value: response } = await system.stream().next();
+		const response = await system.next();
 
 		expect(response).toEqual({ type: "STORED_VALUE", count: -3 });
 	});
 
 	it("will maintain state if undefined is returned", async () => {
-		const system = mountRoot(counterActor);
+		const system = createSystem({ root: counterActor });
 
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "NOOP" });
 		system.dispatch({ type: "QUERY" });
 
-		const { value: response } = await system.stream().next();
+		const response = await system.next();
 
 		expect(response).toEqual({ type: "STORED_VALUE", count: 2 });
 	});
