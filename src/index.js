@@ -31,12 +31,15 @@ export function defineActor(name, fnOrState, maybeFn) {
 				parent,
 				children,
 				friends,
+				args,
+				self: id,
 
 				getName: system.getName,
 				dispatch: (snk, msg) => system.dispatch({ src: id, msg, snk }),
+				forward: (snk) => system.dispatch({ src, msg, snk }),
 
-				spawn: (name, actor) => {
-					const childId = actor(id, system);
+				spawn: (name, actor, ...args) => {
+					const childId = actor(id, system, ...args);
 					children.set(name, childId);
 					return childId;
 				},

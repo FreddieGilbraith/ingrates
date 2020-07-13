@@ -1,8 +1,9 @@
-import { mountRoot, defineActor } from "../src";
+import { createSystem, defineActor } from "../src";
 
 describe("async", () => {
 	it("runs each message one at a time", async () => {
 		let currentlyRunning = 0;
+
 		const upDownActor = defineActor(
 			"Up Down",
 			async (msg, { dispatch, sender }) => {
@@ -16,7 +17,7 @@ describe("async", () => {
 			},
 		);
 
-		const system = mountRoot(upDownActor);
+		const system = createSystem({ root: upDownActor });
 
 		expect(currentlyRunning).toBe(0);
 
@@ -24,9 +25,13 @@ describe("async", () => {
 		system.dispatch({ type: "RUN" });
 		system.dispatch({ type: "RUN" });
 
-		for await (const msg of system.stream()) {
-			expect(currentlyRunning).toBe(1);
-		}
+		await new Promise((done) => setTimeout(done), 10);
+		expect(currentlyRunning).toBe(1);
+		await new Promise((done) => setTimeout(done), 10);
+		expect(currentlyRunning).toBe(1);
+		await new Promise((done) => setTimeout(done), 10);
+		expect(currentlyRunning).toBe(1);
+		await new Promise((done) => setTimeout(done), 10);
 
 		expect(currentlyRunning).toBe(0);
 	});

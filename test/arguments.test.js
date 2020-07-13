@@ -1,4 +1,4 @@
-import { mountRoot, defineActor } from "../src";
+import { createSystem, defineActor } from "../src";
 
 describe("arguments -> name", () => {
 	const myNameActor = defineActor(
@@ -6,7 +6,7 @@ describe("arguments -> name", () => {
 		(msg, { sender, dispatch, self, getName, args }) => {
 			if (msg.type === "QUERY") {
 				dispatch(sender, {
-					type: "REPONSE",
+					type: "RESPONSE",
 					name: getName(self),
 					args,
 				});
@@ -23,11 +23,11 @@ describe("arguments -> name", () => {
 	});
 
 	it("responds with its name and arguments", async () => {
-		const system = mountRoot(rootActor);
+		const system = createSystem({ root: rootActor });
 
 		system.dispatch({ type: "QUERY" });
 
-		const { value: response } = await system.stream().next();
+		const response = await system.next();
 
 		expect(response).toEqual({
 			type: "RESPONSE",

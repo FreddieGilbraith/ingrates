@@ -1,8 +1,8 @@
-import { mountRoot, defineActor } from "../src";
+import { createSystem, defineActor } from "../src";
 
-describe("externalResolvers", () => {
+describe.skip("externalResolvers", () => {
 	const apiCallingActor = defineActor(
-		"apiCaller",
+		"Api Caller",
 		(msg, { sender, parent, getName, dispatch }) => {
 			if (msg.type === "PLEASE_CALL_API") {
 				dispatch("api-actor-addr", {
@@ -23,14 +23,15 @@ describe("externalResolvers", () => {
 
 	it("will pass messages to actors I don't manage to externalResolvers", async () => {
 		const mockFetch = jest.fn();
-		const { apiCallingActor, mockConsole } = createActors();
+		let incoming;
 
-		const system = mountRoot(apiCallingActor);
-
-		const incoming = system.addExternaResolver({
-			addr: "api-actor-addr",
-			name: "Api Actor",
-			outgoing: (msg) => mockFetch(msg),
+		const system = createSystem({
+			root: apiCallingActor,
+			transports: [
+				(createTransport) => {
+					incoming = createTransport((msg) => mockFetch(msg));
+				},
+			],
 		});
 
 		system.dispatch({ type: "PLEASE_CALL_API" });
