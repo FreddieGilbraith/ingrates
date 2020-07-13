@@ -1,0 +1,61 @@
+{
+	"name": "ingrates",
+	"version": "1.0.0",
+	"description": "",
+	"main": "lib/index.js",
+	"scripts": {
+		"test": "NODE_ENV=test jest --coverage true src test",
+		"build": "NODE_ENV=production babel src --out-dir lib",
+		"format": "prettier --write src/**/*",
+		"prepushOnly": "npm run format && && npm run test && npm run build",
+		"test_watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
+		"watch": "NODE_ENV=staging babel src --out-dir lib --watch"
+	},
+	"author": "",
+	"license": "ISC",
+	"eslintConfig": {
+		"extends": "react-app"
+	},
+	"files": [
+		null,
+		"/lib",
+		"/main.js"
+	],
+	"prettier": {
+		"tabWidth": 4,
+		"trailingComma": "all",
+		"useTabs": true
+	},
+	"babel": {
+		"presets": [
+			[
+				"@babel/preset-env",
+				{
+					"targets": {
+						"node": "current"
+					}
+				}
+			]
+		]
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.10.4",
+		"@babel/core": "^7.10.4",
+		"@babel/plugin-proposal-async-generator-functions": "^7.10.4",
+		"@babel/preset-env": "^7.10.4",
+		"babel-eslint": "^10.1.0",
+		"babel-jest": "^26.1.0",
+		"eslint": "^7.4.0",
+		"eslint-config-react-app": "^5.2.1",
+		"eslint-plugin-flowtype": "^5.2.0",
+		"eslint-plugin-import": "^2.22.0",
+		"eslint-plugin-jsx-a11y": "^6.3.1",
+		"eslint-plugin-react": "^7.20.3",
+		"jest-cli": "^26.1.0",
+		"prettier": "^2.0.5",
+		"ramda": "^0.27.0"
+	},
+	"dependencies": {
+		"nanoid": "^3.1.10"
+	}
+}
