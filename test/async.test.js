@@ -1,5 +1,7 @@
 import { createSystem, defineActor } from "../src";
 
+jest.useFakeTimers();
+
 describe("async", () => {
 	it("runs each message one at a time", async () => {
 		let currentlyRunning = 0;
@@ -7,12 +9,11 @@ describe("async", () => {
 		const upDownActor = defineActor(
 			"Up Down",
 			async (msg, { dispatch, sender }) => {
-				switch (msg.type) {
-					case "RUN":
-						currentlyRunning++;
-						await new Promise((done) => setTimeout(done), 10);
-						currentlyRunning--;
-						dispatch(sender, { type: "DONE" });
+				if (msg.type === "RUN") {
+					currentlyRunning++;
+					await new Promise((done) => setTimeout(done), 10);
+					currentlyRunning--;
+					dispatch(sender, { type: "DONE" });
 				}
 			},
 		);
@@ -22,17 +23,22 @@ describe("async", () => {
 		expect(currentlyRunning).toBe(0);
 
 		system.dispatch({ type: "RUN" });
+		await new Promise((done) => setImmediate(done));
+		expect(currentlyRunning).toBe(1);
+
+		jest.advanceTimersByTime(5);
+		expect(currentlyRunning).toBe(1);
+
 		system.dispatch({ type: "RUN" });
 		system.dispatch({ type: "RUN" });
+		await new Promise((done) => setImmediate(done));
 
-		await new Promise((done) => setTimeout(done), 10);
+		jest.advanceTimersByTime(10);
+		await new Promise((done) => setImmediate(done));
 		expect(currentlyRunning).toBe(1);
-		await new Promise((done) => setTimeout(done), 10);
-		expect(currentlyRunning).toBe(1);
-		await new Promise((done) => setTimeout(done), 10);
-		expect(currentlyRunning).toBe(1);
-		await new Promise((done) => setTimeout(done), 10);
 
+		jest.advanceTimersByTime(10);
+		await new Promise((done) => setImmediate(done));
 		expect(currentlyRunning).toBe(0);
 	});
 });

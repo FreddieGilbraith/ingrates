@@ -19,8 +19,8 @@ export function defineActor(name, fnOrState, maybeFn) {
 		let state = initialState;
 		let running = false;
 
-		async function checkPostbox() {
-			if (running) {
+		async function checkPostbox(x) {
+			if (running || !postbox.length) {
 				return;
 			}
 
@@ -72,7 +72,8 @@ export function defineActor(name, fnOrState, maybeFn) {
 			running = false;
 
 			if (postbox.length) {
-				setTimeout(checkPostbox, 0);
+				setTimeout(checkPostbox, 0, "f");
+				checkPostbox("f");
 			}
 		}
 
