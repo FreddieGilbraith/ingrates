@@ -89,9 +89,10 @@ export function defineActor(name, fnOrState, maybeFn) {
 	};
 }
 
-export function createSystem({ root }) {
+export function createSystem({ root, transports }) {
 	const world = new Map();
 	const names = new Map();
+	const dispatcherFallbacks = [];
 
 	const externalSubscriptions = new Set();
 
@@ -115,11 +116,23 @@ export function createSystem({ root }) {
 			return;
 		}
 
-		world.get(snk)({
-			src,
-			msg,
-			snk,
-		});
+		const dispatchers = world.get(snk)
+			? [world.get(snk)]
+			: dispatcherFallbacks
+					.filter(({ match }) => match({ src, msg, snk }))
+					.map(({ handle }) => handle);
+
+		for (const dispatcher of dispatchers) {
+			dispatcher({
+				src,
+				msg,
+				snk,
+			});
+		}
+	}
+
+	for (const transport of Object.values(transports)) {
+		dispatcherFallbacks.push(transport(dispatch));
 	}
 
 	const rootActorAddr = root("__EXTERNAL__", {
