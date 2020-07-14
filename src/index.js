@@ -32,9 +32,10 @@ export function defineActor(name, fnOrState, maybeFn) {
 				children,
 				friends,
 				args,
+				name,
+
 				self: id,
 
-				getName: system.getName,
 				dispatch: (snk, msg) => system.dispatch({ src: id, msg, snk }),
 				forward: (snk) => system.dispatch({ src, msg, snk }),
 
