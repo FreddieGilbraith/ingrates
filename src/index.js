@@ -23,6 +23,7 @@ export function defineActor(name, fnOrState, maybeFn) {
 			}
 
 			running = true;
+
 			const { src, msg, snk } = postbox.shift();
 
 			const ctx = {
@@ -33,6 +34,7 @@ export function defineActor(name, fnOrState, maybeFn) {
 				name,
 
 				self: id,
+				sender: src,
 
 				dispatch: (snk, msg) => system.dispatch({ src: id, msg, snk }),
 				forward: (snk) => system.dispatch({ src, msg, snk }),
@@ -41,10 +43,6 @@ export function defineActor(name, fnOrState, maybeFn) {
 					const childId = actor(id, system, ...args);
 					children.set(name, childId);
 					return childId;
-				},
-
-				get sender() {
-					return src;
 				},
 			};
 
