@@ -3,11 +3,11 @@ import { createSystem, defineActor } from "../src";
 describe("arguments -> name", () => {
 	const myNameActor = defineActor(
 		(x, y) => ["my-name", x, y].join("-"),
-		(msg, { sender, dispatch, self, getName, args }) => {
+		(msg, { sender, dispatch, name, args }) => {
 			if (msg.type === "QUERY") {
 				dispatch(sender, {
 					type: "RESPONSE",
-					name: getName(self),
+					name,
 					args,
 				});
 			}

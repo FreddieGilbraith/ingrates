@@ -1,16 +1,37 @@
 import { createSystem, defineActor } from "../src";
 
+function flushPromises() {
+	return new Promise((done) => setImmediate(done));
+}
+
 describe("transports", () => {
+	const childActor = defineActor("child", () => {});
 	const rootActor = defineActor(
 		"root",
 		{},
-		(state, msg, { dispatch, parent, sender, self }) => {
+		(state, msg, { dispatch, parent, sender, self, spawn }) => {
 			switch (msg.type) {
 				case "INTOSPECT":
 					dispatch(parent, { type: "META", self });
 					return;
 				case "FROM_TRANSPORT":
 					dispatch(parent, { type: "FORWARD", msg, sender });
+					return;
+				case "QUERY_DB":
+					dispatch("database@users", {
+						type: "QUERY",
+						payload: { userId: 123 },
+					});
+					dispatch("logs@users", {
+						type: "ACCESS",
+						payload: { userId: 123 },
+					});
+				case "MAKE_CHILD":
+					const child = spawn("child", childActor);
+					dispatch(child, {
+						type: "AFFIRMATION",
+						msg: "you are valid and worthy of love",
+					});
 					return;
 			}
 		},
@@ -56,9 +77,118 @@ describe("transports", () => {
 		});
 	});
 
-	it("will delegate matching messages to transports", () => {});
+	it("will delegate matching messages to transports", async () => {
+		const mockFetch = jest.fn();
 
-	it("will use all matching transport", () => {});
+		function selectiveTransport(dispatch) {
+			return {
+				match: ({ src, msg, snk }) => snk.startsWith("database@"),
+				handle: ({ src, msg, snk }) =>
+					mockFetch(`actor/${snk.replace("database@", "")}`, {
+						body: msg,
+					}),
+			};
+		}
 
-	it("will not delegate to a transport if this system already contains the actor", () => {});
+		const system = createSystem({
+			root: rootActor,
+			transports: {
+				selectiveTransport,
+			},
+		});
+
+		system.dispatch({ type: "QUERY_DB" });
+
+		await flushPromises();
+
+		expect(mockFetch).toHaveBeenCalledTimes(1);
+		expect(mockFetch).toHaveBeenCalledWith("actor/users", {
+			body: { type: "QUERY", payload: { userId: 123 } },
+		});
+		expect(mockFetch).not.toHaveBeenCalledWith("actor/users", {
+			body: { type: "ACCESS", payload: { userId: 123 } },
+		});
+	});
+
+	it("will use all matching transport", async () => {
+		const mockFetchSelective = jest.fn();
+		function selectiveTransport(dispatch) {
+			return {
+				match: ({ src, msg, snk }) => snk.startsWith("database@"),
+				handle: ({ src, msg, snk }) =>
+					mockFetchSelective(
+						`actor/${snk.replace("database@", "")}`,
+						{
+							body: msg,
+						},
+					),
+			};
+		}
+
+		const mockFetchPermissive = jest.fn();
+		function permissiveTransport(dispatch) {
+			return {
+				match: ({ src, msg, snk }) => true,
+				handle: ({ src, msg, snk }) =>
+					mockFetchPermissive(`actor/${snk}`, { body: msg }),
+			};
+		}
+
+		const system = createSystem({
+			root: rootActor,
+			transports: {
+				selectiveTransport,
+				permissiveTransport,
+			},
+		});
+
+		system.dispatch({ type: "QUERY_DB" });
+
+		await flushPromises();
+
+		expect(mockFetchSelective).toHaveBeenCalledTimes(1);
+		expect(mockFetchSelective).toHaveBeenCalledWith("actor/users", {
+			body: { type: "QUERY", payload: { userId: 123 } },
+		});
+		expect(mockFetchSelective).not.toHaveBeenCalledWith("actor/users", {
+			body: { type: "ACCESS", payload: { userId: 123 } },
+		});
+
+		expect(mockFetchPermissive).toHaveBeenCalledTimes(2);
+		expect(mockFetchPermissive).toHaveBeenCalledWith(
+			"actor/database@users",
+			{
+				body: { type: "QUERY", payload: { userId: 123 } },
+			},
+		);
+		expect(mockFetchPermissive).toHaveBeenCalledWith("actor/logs@users", {
+			body: { type: "ACCESS", payload: { userId: 123 } },
+		});
+	});
+
+	it("will not delegate to a transport if this system already contains the actor", async () => {
+		const match = jest.fn();
+		const handle = jest.fn();
+
+		function mockTransport(dispatch) {
+			return {
+				match,
+				handle,
+			};
+		}
+
+		const system = createSystem({
+			root: rootActor,
+			transports: {
+				mockTransport,
+			},
+		});
+
+		system.dispatch({ type: "MAKE_CHILD" });
+
+		await flushPromises();
+
+		expect(match).not.toHaveBeenCalled();
+		expect(handle).not.toHaveBeenCalled();
+	});
 });

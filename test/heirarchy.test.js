@@ -6,7 +6,7 @@ describe("heirarchy", () => {
 
 		const rootActor = defineActor(
 			"root",
-			(msg, { parent, dispatch, spawn, children }) => {
+			(msg, { name, parent, dispatch, spawn, children }) => {
 				const logger =
 					children.get("logger") ?? spawn("logger", loggerActor);
 				const calculator =
@@ -27,6 +27,7 @@ describe("heirarchy", () => {
 						dispatch(logger, {
 							type: "LOG",
 							payload: `result: "${msg.result}"`,
+							senderName: name,
 						});
 
 						dispatch(parent, { type: "DONE" });
@@ -35,16 +36,13 @@ describe("heirarchy", () => {
 			},
 		);
 
-		const loggerActor = defineActor(
-			"logger",
-			(msg, { sender, getName }) => {
-				mockConsole(`message from ${getName(sender)} : ${msg.payload}`);
-			},
-		);
+		const loggerActor = defineActor("logger", (msg, { sender }) => {
+			mockConsole(`message from ${msg.senderName} : ${msg.payload}`);
+		});
 
 		const calculatorActor = defineActor(
 			"calculator",
-			(msg, { dispatch, friends, parent }) => {
+			(msg, { dispatch, friends, parent, name }) => {
 				switch (msg.type) {
 					case "INTRO":
 						const { logger } = msg;
@@ -57,10 +55,12 @@ describe("heirarchy", () => {
 						dispatch(friends.get("logger"), {
 							type: "LOG",
 							payload: `lhs: "${lhs}"`,
+							senderName: name,
 						});
 						dispatch(friends.get("logger"), {
 							type: "LOG",
 							payload: `rhs: "${rhs}"`,
+							senderName: name,
 						});
 						dispatch(parent, { type: "RESULT", result });
 						break;

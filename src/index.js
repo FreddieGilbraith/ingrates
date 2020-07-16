@@ -1,7 +1,5 @@
 import { nanoid } from "nanoid";
 
-//envelope: { src, msg, snk }
-
 export function defineActor(name, fnOrState, maybeFn) {
 	const fn = maybeFn ? maybeFn : fnOrState;
 	const initialState = maybeFn ? fnOrState : undefined;
@@ -89,9 +87,8 @@ export function defineActor(name, fnOrState, maybeFn) {
 	};
 }
 
-export function createSystem({ root, transports }) {
+export function createSystem({ root, transports = {} }) {
 	const world = new Map();
-	const names = new Map();
 	const dispatcherFallbacks = [];
 
 	const externalSubscriptions = new Set();
@@ -102,10 +99,6 @@ export function createSystem({ root, transports }) {
 
 	function next() {
 		return new Promise((done) => subscribe(done));
-	}
-
-	function getName(id) {
-		return names.get(id);
 	}
 
 	function dispatch({ src, msg, snk }) {
@@ -137,10 +130,8 @@ export function createSystem({ root, transports }) {
 
 	const rootActorAddr = root("__EXTERNAL__", {
 		dispatch,
-		getName,
 		addSelf: (id, { submitEnvelope, name }) => {
 			world.set(id, submitEnvelope);
-			names.set(id, name);
 		},
 	});
 
