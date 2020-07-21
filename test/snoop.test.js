@@ -3,7 +3,7 @@ import { createSystem, defineActor } from "../src";
 describe("snoop", () => {
 	const childActor = defineActor("root", (msg, { dispatch, parent }) => {});
 	const rootActor = defineActor("root", {
-		START: (state, msg, { dispatch, parent, self, spawn }) => {
+		START: (msg, { dispatch, parent, self, spawn }) => {
 			const child = spawn("onlyChild", childActor);
 
 			dispatch(parent, {
@@ -35,12 +35,12 @@ describe("snoop", () => {
 
 		expect(snoop).toHaveBeenCalledWith({
 			src: "__INTERNAL__",
-			msg: { type: "__INIT__" },
+			msg: { type: "INIT" },
 			snk: rootId,
 		});
 		expect(snoop).toHaveBeenCalledWith({
 			src: "__INTERNAL__",
-			msg: { type: "__INIT__" },
+			msg: { type: "INIT" },
 			snk: childId,
 		});
 

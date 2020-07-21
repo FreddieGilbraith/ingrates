@@ -14,7 +14,7 @@ describe("heirarchy", () => {
 					spawn("calculator", calculatorActor);
 
 				switch (msg.type) {
-					case "__INIT__":
+					case "INIT":
 						dispatch(calculator, { type: "INTRO", logger });
 						dispatch(calculator, {
 							type: "ADD",

@@ -94,7 +94,7 @@ export function defineActor(name, fnOrState, maybeFn) {
 	};
 }
 
-export function createSystem({ root, transports = {} }) {
+export function createSystem({ root, transports = {}, snoop }) {
 	const world = new Map();
 	const dispatcherFallbacks = [];
 
@@ -109,6 +109,8 @@ export function createSystem({ root, transports = {} }) {
 	}
 
 	function dispatch({ src, msg, snk }) {
+		(snoop || noop)(arguments[0]);
+
 		if (snk === "__EXTERNAL__") {
 			for (const listener of externalSubscriptions) {
 				listener(msg);
@@ -141,16 +143,10 @@ export function createSystem({ root, transports = {} }) {
 			world.set(id, submitEnvelope);
 			dispatch({
 				src: "__INTERNAL__",
-				msg: { type: "__INIT__" },
+				msg: { type: "INIT" },
 				snk: id,
 			});
 		},
-	});
-
-	dispatch({
-		src: "__INTERNAL__",
-		msg: { type: "__INIT__" },
-		snk: rootActorAddr,
 	});
 
 	return {
