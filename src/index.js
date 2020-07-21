@@ -1,9 +1,18 @@
 import { nanoid } from "nanoid";
 
+const noop = () => {};
+
 export function defineActor(name, fnOrState, maybeFn) {
-	const fn = maybeFn ? maybeFn : fnOrState;
 	const initialState = maybeFn ? fnOrState : undefined;
 	const stateful = Boolean(maybeFn);
+	const fn = ((fnOrObj) =>
+		typeof fnOrObj === "function"
+			? fnOrObj
+			: stateful
+			? (s, m, c) => (fnOrObj[m.type] || noop)(s, m, c)
+			: (m, c) => (fnOrObj[m.type] || noop)(m, c))(
+		maybeFn ? maybeFn : fnOrState,
+	);
 
 	const nameGenerator = typeof name === "function" ? name : () => name;
 

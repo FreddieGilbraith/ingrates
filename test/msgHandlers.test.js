@@ -19,15 +19,15 @@ describe("message handlers", () => {
 		});
 
 		system.dispatch({ type: "IMMEDIATE_RESPONSE" });
-		const initReply = await system.next();
-		expect(initReply).toEqual({
+		const reply1 = await system.next();
+		expect(reply1).toEqual({
 			type: "REPLY",
 			for: { type: "IMMEDIATE_RESPONSE" },
 		});
 
 		system.dispatch({ type: "DELAYED_RESPONSE" });
-		const initReply = await system.next();
-		expect(initReply).toEqual({
+		const reply2 = await system.next();
+		expect(reply2).toEqual({
 			type: "REPLY",
 			for: { type: "DELAYED_RESPONSE" },
 		});

@@ -1,6 +1,6 @@
 {
-	"name": "ingrates",
-	"version": "1.0.0",
+	"name": "@little-bonsai/ingrates",
+	"version": "0.1.0",
 	"description": "",
 	"main": "lib/index.js",
 	"scripts": {
@@ -8,7 +8,7 @@
 		"build": "NODE_ENV=production babel src --out-dir lib",
 		"format": "prettier --write src/**/*",
 		"prepushOnly": "npm run format && && npm run test && npm run build",
-		"test_watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
+		"test:watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
 		"watch": "NODE_ENV=staging babel src --out-dir lib --watch"
 	},
 	"author": "",
@@ -16,11 +16,6 @@
 	"eslintConfig": {
 		"extends": "react-app"
 	},
-	"files": [
-		null,
-		"/lib",
-		"/main.js"
-	],
 	"prettier": {
 		"tabWidth": 4,
 		"trailingComma": "all",
@@ -40,7 +35,7 @@
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.10.4",
-		"@babel/core": "^7.10.4",
+		"@babel/core": "^7.10.5",
 		"@babel/plugin-proposal-async-generator-functions": "^7.10.4",
 		"@babel/preset-env": "^7.10.4",
 		"babel-eslint": "^10.1.0",
