@@ -1,8 +1,10 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.1.0",
-	"description": "",
-	"main": "lib/index.js",
+	"version": "0.0.0",
+	"description": "An isomorphic actor system",
+	"main": "src/index.js",
+	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": ["src"],
 	"scripts": {
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "NODE_ENV=production babel src --out-dir lib",
