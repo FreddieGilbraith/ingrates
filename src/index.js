@@ -139,6 +139,11 @@ export function createSystem({ root, transports = {} }) {
 		dispatch,
 		addSelf: (id, { submitEnvelope, name }) => {
 			world.set(id, submitEnvelope);
+			dispatch({
+				src: "__INTERNAL__",
+				msg: { type: "__INIT__" },
+				snk: id,
+			});
 		},
 	});
 
