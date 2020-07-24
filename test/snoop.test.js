@@ -1,9 +1,9 @@
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 describe("snoop", () => {
-	const childActor = defineActor("root", (msg, { dispatch, parent }) => {});
-	const rootActor = defineActor("root", {
-		START: (msg, { dispatch, parent, self, spawn }) => {
+	function childActor(state, msg, { dispatch, parent }) {}
+	const rootActor = {
+		START: (state, msg, { dispatch, parent, self, spawn }) => {
 			const child = spawn("onlyChild", childActor);
 
 			dispatch(parent, {
@@ -13,15 +13,15 @@ describe("snoop", () => {
 			});
 		},
 
-		FORWARD: (msg, { children, dispatch }) => {
+		FORWARD: (state, msg, { children, dispatch }) => {
 			dispatch(children.get("onlyChild"), msg);
 		},
-	});
+	};
 
 	it("will report all messages it sees to the snooping function", async () => {
 		const snoop = jest.fn();
 
-		const system = createSystem({ root: rootActor, snoop });
+		const system = defineSystem({ snoop }).mount(rootActor);
 
 		system.dispatch({ type: "START" });
 

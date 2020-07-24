@@ -1,29 +1,28 @@
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 describe("arguments -> name", () => {
-	const myNameActor = defineActor(
-		(x, y) => ["my-name", x, y].join("-"),
-		(msg, { sender, dispatch, name, args }) => {
-			if (msg.type === "QUERY") {
-				dispatch(sender, {
-					type: "RESPONSE",
-					name,
-					args,
-				});
-			}
-		},
-	);
+	function myNameActor(state, msg, { sender, dispatch, name, args }, x, y) {
+		if (msg.type === "QUERY") {
+			dispatch(sender, {
+				type: "RESPONSE",
+				name,
+				x,
+				y,
+			});
+		}
+	}
+	myNameActor.name = (x, y) => ["my-name", x, y].join("-");
 
-	const rootActor = defineActor("root", (msg, { forward, spawn }) => {
+	function rootActor(state, msg, { forward, spawn }) {
 		if (msg.type === "QUERY") {
 			const child = spawn("child", myNameActor, "foo", "bar");
 
 			forward(child);
 		}
-	});
+	}
 
 	it("responds with its name and arguments", async () => {
-		const system = createSystem({ root: rootActor });
+		const system = defineSystem().mount(rootActor);
 
 		system.dispatch({ type: "QUERY" });
 
@@ -32,7 +31,8 @@ describe("arguments -> name", () => {
 		expect(response).toEqual({
 			type: "RESPONSE",
 			name: "my-name-foo-bar",
-			args: ["foo", "bar"],
+			x: "foo",
+			y: "bar",
 		});
 	});
 });

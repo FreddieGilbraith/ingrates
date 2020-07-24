@@ -1,41 +1,38 @@
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 function flushPromises() {
 	return new Promise((done) => setImmediate(done));
 }
 
 describe("transports", () => {
-	const childActor = defineActor("child", () => {});
-	const rootActor = defineActor(
-		"root",
-		{},
-		(state, msg, { dispatch, parent, sender, self, spawn }) => {
-			switch (msg.type) {
-				case "INTOSPECT":
-					dispatch(parent, { type: "META", self });
-					return;
-				case "FROM_TRANSPORT":
-					dispatch(parent, { type: "FORWARD", msg, sender });
-					return;
-				case "QUERY_DB":
-					dispatch("database@users", {
-						type: "QUERY",
-						payload: { userId: 123 },
-					});
-					dispatch("logs@users", {
-						type: "ACCESS",
-						payload: { userId: 123 },
-					});
-				case "MAKE_CHILD":
-					const child = spawn("child", childActor);
-					dispatch(child, {
-						type: "AFFIRMATION",
-						msg: "you are valid and worthy of love",
-					});
-					return;
-			}
-		},
-	);
+	function childActor() {}
+
+	function rootActor(state, msg, { dispatch, parent, sender, self, spawn }) {
+		switch (msg.type) {
+			case "INTOSPECT":
+				dispatch(parent, { type: "META", self });
+				return;
+			case "FROM_TRANSPORT":
+				dispatch(parent, { type: "FORWARD", msg, sender });
+				return;
+			case "QUERY_DB":
+				dispatch("database@users", {
+					type: "QUERY",
+					payload: { userId: 123 },
+				});
+				dispatch("logs@users", {
+					type: "ACCESS",
+					payload: { userId: 123 },
+				});
+			case "MAKE_CHILD":
+				const child = spawn("child", childActor);
+				dispatch(child, {
+					type: "AFFIRMATION",
+					msg: "you are valid and worthy of love",
+				});
+				return;
+		}
+	}
 
 	it("will recieve incoming messages from transports", async () => {
 		const mockFetch = jest.fn();
@@ -51,12 +48,11 @@ describe("transports", () => {
 			};
 		}
 
-		const system = createSystem({
-			root: rootActor,
+		const system = defineSystem({
 			transports: {
 				permissiveTransport,
 			},
-		});
+		}).mount(rootActor);
 
 		system.dispatch({ type: "INTOSPECT" });
 
@@ -90,12 +86,11 @@ describe("transports", () => {
 			};
 		}
 
-		const system = createSystem({
-			root: rootActor,
+		const system = defineSystem({
 			transports: {
 				selectiveTransport,
 			},
-		});
+		}).mount(rootActor);
 
 		system.dispatch({ type: "QUERY_DB" });
 
@@ -134,13 +129,12 @@ describe("transports", () => {
 			};
 		}
 
-		const system = createSystem({
-			root: rootActor,
+		const system = defineSystem({
 			transports: {
 				selectiveTransport,
 				permissiveTransport,
 			},
-		});
+		}).mount(rootActor);
 
 		system.dispatch({ type: "QUERY_DB" });
 
@@ -177,12 +171,11 @@ describe("transports", () => {
 			};
 		}
 
-		const system = createSystem({
-			root: rootActor,
+		const system = defineSystem({
 			transports: {
 				mockTransport,
 			},
-		});
+		}).mount(rootActor);
 
 		system.dispatch({ type: "MAKE_CHILD" });
 

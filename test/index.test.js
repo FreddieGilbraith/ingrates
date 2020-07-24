@@ -1,22 +1,18 @@
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 describe("basic api", () => {
-	const rootActor = defineActor(
-		"root",
-		{},
-		(state, msg, { dispatch, parent }) => {
-			if (msg.type === "TEST_MSG") {
-				dispatch(parent, { type: "TEST_RESPONSE" });
-			}
-		},
-	);
+	function rootActor(state = {}, msg, { dispatch, parent }, ...args) {
+		if (msg.type === "TEST_MSG") {
+			dispatch(parent, { type: "TEST_RESPONSE" });
+		}
+	}
 
 	it("can create a system", () => {
-		const system = createSystem({ root: rootActor });
+		const system = defineSystem().mount(rootActor);
 	});
 
 	it("can dispatch a messge into the system", (done) => {
-		const system = createSystem({ root: rootActor });
+		const system = defineSystem().mount(rootActor);
 		system.dispatch({
 			type: "TEST_MSG",
 		});
@@ -25,7 +21,8 @@ describe("basic api", () => {
 	});
 
 	it("can subscribe to messages coming out of the system", (done) => {
-		const system = createSystem({ root: rootActor });
+		const system = defineSystem().mount(rootActor);
+
 		system.subscribe((msg) => {
 			expect(msg).toEqual({ type: "TEST_RESPONSE" });
 

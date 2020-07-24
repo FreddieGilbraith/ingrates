@@ -1,35 +1,31 @@
 import * as R from "ramda";
 
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 describe("stateful actors", () => {
-	const counterActor = defineActor(
-		"counter",
-		{ count: 0 },
-		(state, msg, { dispatch, sender }) => {
-			switch (msg.type) {
-				case "INC":
-					return {
-						...state,
-						count: state.count + 1,
-					};
-				case "DEC":
-					return R.over(R.lensProp("count"), R.dec);
+	function counterActor(state = { count: 0 }, msg, { dispatch, sender }) {
+		switch (msg.type) {
+			case "INC":
+				return {
+					...state,
+					count: state.count + 1,
+				};
+			case "DEC":
+				return R.over(R.lensProp("count"), R.dec);
 
-				case "NOOP":
-					break;
+			case "NOOP":
+				break;
 
-				case "QUERY":
-					dispatch(sender, {
-						type: "STORED_VALUE",
-						count: state.count,
-					});
-			}
-		},
-	);
+			case "QUERY":
+				dispatch(sender, {
+					type: "STORED_VALUE",
+					count: state.count,
+				});
+		}
+	}
 
 	it("will use default state", async () => {
-		const system = createSystem({ root: counterActor });
+		const system = defineSystem().mount(counterActor);
 
 		system.dispatch({ type: "QUERY" });
 
@@ -39,7 +35,7 @@ describe("stateful actors", () => {
 	});
 
 	it("will update state from a returned value", async () => {
-		const system = createSystem({ root: counterActor });
+		const system = defineSystem().mount(counterActor);
 
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "INC" });
@@ -52,7 +48,7 @@ describe("stateful actors", () => {
 	});
 
 	it("will update state from a returned update function", async () => {
-		const system = createSystem({ root: counterActor });
+		const system = defineSystem().mount(counterActor);
 
 		system.dispatch({ type: "DEC" });
 		system.dispatch({ type: "DEC" });
@@ -65,7 +61,7 @@ describe("stateful actors", () => {
 	});
 
 	it("will maintain state if undefined is returned", async () => {
-		const system = createSystem({ root: counterActor });
+		const system = defineSystem().mount(counterActor);
 
 		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "INC" });

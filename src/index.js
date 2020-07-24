@@ -2,162 +2,144 @@ import { nanoid } from "nanoid";
 
 const noop = () => {};
 
-export function defineActor(name, fnOrState, maybeFn) {
-	const initialState = maybeFn ? fnOrState : undefined;
-	const stateful = Boolean(maybeFn);
-	const fn = ((fnOrObj) =>
-		typeof fnOrObj === "function"
-			? fnOrObj
-			: stateful
-			? (s, m, c) => (fnOrObj[m.type] || noop)(s, m, c)
-			: (m, c) => (fnOrObj[m.type] || noop)(m, c))(
-		maybeFn ? maybeFn : fnOrState,
-	);
+export default function defineSystem({ loaders, snoop, transports } = {}) {
+	function createWorldHandlers(world) {
+		async function callHandler({
+			args,
+			children,
+			envelope,
+			friends,
+			handler,
+			id,
+			parent,
+			state,
+		}) {
+			const updateState = await handler(
+				state,
+				envelope.msg,
+				{
+					self: id,
+					children,
+					friends,
+					sender: envelope.src,
+					parent,
 
-	const nameGenerator = typeof name === "function" ? name : () => name;
+					dispatch: (snk, msg, src) =>
+						dispatch({ snk, msg, src: src || id }),
+				},
+				...(args || []),
+			);
+		}
 
-	return function createActorInstance(parent, system, ...args) {
-		const id = nanoid();
-		const name = nameGenerator(...args);
-		const postbox = [];
-		const children = new Map();
-		const friends = new Map();
+		async function enqueueHandlerCall(id) {
+			const {
+				args,
+				children,
+				friends,
+				handler,
+				mailbox,
+				parent,
+				running,
+				state,
+			} = world.get(id);
 
-		let state = initialState;
-		let running = false;
-
-		async function checkPostbox(x) {
-			if (running || !postbox.length) {
+			if (running || !mailbox.length) {
 				return;
 			}
 
-			running = true;
+			world.get(id).running = true;
 
-			const { src, msg, snk } = postbox.shift();
+			const envelope = mailbox.shift();
 
-			const ctx = {
-				parent,
-				children,
-				friends,
+			await callHandler({
 				args,
-				name,
-
-				self: id,
-				sender: src,
-
-				dispatch: (snk, msg) => system.dispatch({ src: id, msg, snk }),
-				forward: (snk) => system.dispatch({ src, msg, snk }),
-
-				spawn: (name, actor, ...args) => {
-					const childId = actor(id, system, ...args);
-					children.set(name, childId);
-					return childId;
-				},
-			};
-
-			try {
-				if (stateful) {
-					const response = await fn(state, msg, ctx);
-					switch (typeof response) {
-						case "function":
-							state = response(state);
-							break;
-						case "undefined":
-							break;
-						default:
-							state = response;
-							break;
-					}
-				} else {
-					await fn(msg, ctx);
-				}
-			} catch (e) {
-				console.error(e);
-			}
-
-			running = false;
-
-			if (postbox.length) {
-				setTimeout(checkPostbox, 0, "f");
-				checkPostbox("f");
-			}
-		}
-
-		function submitEnvelope({ src, msg, snk }) {
-			postbox.push({ src, msg, snk });
-			checkPostbox();
-		}
-
-		system.addSelf(id, { name, submitEnvelope });
-
-		return id;
-	};
-}
-
-export function createSystem({ root, transports = {}, snoop }) {
-	const world = new Map();
-	const dispatcherFallbacks = [];
-
-	const externalSubscriptions = new Set();
-
-	function subscribe(listener) {
-		externalSubscriptions.add(listener);
-	}
-
-	function next() {
-		return new Promise((done) => subscribe(done));
-	}
-
-	function dispatch({ src, msg, snk }) {
-		(snoop || noop)(arguments[0]);
-
-		if (snk === "__EXTERNAL__") {
-			for (const listener of externalSubscriptions) {
-				listener(msg);
-			}
-			return;
-		}
-
-		const dispatchers = world.get(snk)
-			? [world.get(snk)]
-			: dispatcherFallbacks
-					.filter(({ match }) => match({ src, msg, snk }))
-					.map(({ handle }) => handle);
-
-		for (const dispatcher of dispatchers) {
-			dispatcher({
-				src,
-				msg,
-				snk,
+				children,
+				envelope,
+				friends,
+				handler,
+				id,
+				parent,
+				state,
 			});
+
+			world.get(id).running = false;
+
+			setTimeout(enqueueHandlerCall, 0, id);
 		}
+
+		function dispatch(envelope) {
+			const { snk, msg, src } = envelope;
+
+			if (snk === "__EXTERNAL__") {
+				subscribers.forEach((subscriber) => subscriber({ msg, src }));
+				return;
+			}
+
+			world.get(snk).mailbox.push(envelope);
+
+			setTimeout(enqueueHandlerCall, 0, snk);
+		}
+
+		//todo, unsubscribe
+		const subscribers = [];
+		function subscribe(fn) {
+			subscribers.push(fn);
+		}
+
+		function next() {
+			return new Promise((done) => subscribe(done));
+		}
+
+		return {
+			dispatch: (snk, msg) => {
+				dispatch({ snk, msg, src: "__EXTERNAL__" });
+				return next();
+			},
+		};
 	}
 
-	for (const transport of Object.values(transports)) {
-		dispatcherFallbacks.push(transport(dispatch));
-	}
+	async function rehydrate(rootActorDefinition) {
+		const {
+			getActorDefinition,
+			getArgs,
+			getChildren,
+			getFriends,
+			getState,
+		} = loaders;
 
-	const rootActorAddr = root("__EXTERNAL__", {
-		dispatch,
-		addSelf: (id, { submitEnvelope }) => {
-			world.set(id, submitEnvelope);
-			dispatch({
-				src: "__INTERNAL__",
-				msg: { type: "INIT" },
-				snk: id,
-			});
-		},
-	});
+		const world = new Map();
+
+		async function recusivelyLoadActor(id, parent) {
+			const handler = await getActorDefinition(id);
+			const args = (await getArgs(id)) || null;
+			const children = (await getChildren(id)) || new Map();
+			const friends = (await getFriends(id)) || new Map();
+			const state = (await getState(id)) || null;
+
+			if (id !== "") {
+				world.set(id, {
+					args,
+					children,
+					friends,
+					handler,
+					mailbox: [],
+					running: false,
+					state,
+					parent,
+				});
+			}
+
+			for (const child of children.values()) {
+				await recusivelyLoadActor(child, id);
+			}
+		}
+
+		await recusivelyLoadActor("");
+
+		return createWorldHandlers(world);
+	}
 
 	return {
-		subscribe,
-		next,
-		dispatch: (msg) => {
-			dispatch({
-				src: "__EXTERNAL__",
-				msg,
-				snk: rootActorAddr,
-			});
-		},
+		rehydrate,
 	};
 }

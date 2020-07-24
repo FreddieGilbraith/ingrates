@@ -1,7 +1,7 @@
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 describe("message handlers", () => {
-	const rootActor = defineActor("root", {
+	const rootActor = {
 		IMMEDIATE_RESPONSE: (msg, { dispatch, parent }) => {
 			dispatch(parent, { type: "REPLY", for: msg });
 		},
@@ -11,12 +11,10 @@ describe("message handlers", () => {
 
 			dispatch(parent, { type: "REPLY", for: msg });
 		},
-	});
+	};
 
 	it("can have its function specified in a msg-type-switch format", async () => {
-		const system = createSystem({
-			root: rootActor,
-		});
+		const system = defineSystem().mount(rootActor);
 
 		system.dispatch({ type: "IMMEDIATE_RESPONSE" });
 		const reply1 = await system.next();

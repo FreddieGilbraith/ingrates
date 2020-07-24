@@ -19,7 +19,7 @@
 -   [x] `transport`s for sending messages between actor systems
 -   [x] `snoop`ing to watch all messages transmitted through the system
 -   [x] `friends` and `children` containers, so you don't have to pollute your state with addresses
--   [x] `strict` mode analyses all messages to ensure they are serialisable
+-   [ ] `strict` mode analyses all messages to ensure they are serialisable
 -   [ ] serialise/rehydrate an actor system to/from a string
 
 ## Docs

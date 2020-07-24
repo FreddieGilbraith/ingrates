@@ -1,24 +1,21 @@
-import { createSystem, defineActor } from "../src";
+import defineSystem from "../src";
 
 jest.useFakeTimers();
 
 describe("async", () => {
+	async function upDownActor(state, msg, { dispatch, sender }) {
+		if (msg.type === "RUN") {
+			currentlyRunning++;
+			await new Promise((done) => setTimeout(done), 10);
+			currentlyRunning--;
+			dispatch(sender, { type: "DONE" });
+		}
+	}
+
 	it("runs each message one at a time", async () => {
 		let currentlyRunning = 0;
 
-		const upDownActor = defineActor(
-			"Up Down",
-			async (msg, { dispatch, sender }) => {
-				if (msg.type === "RUN") {
-					currentlyRunning++;
-					await new Promise((done) => setTimeout(done), 10);
-					currentlyRunning--;
-					dispatch(sender, { type: "DONE" });
-				}
-			},
-		);
-
-		const system = createSystem({ root: upDownActor });
+		const system = defineSystem().mount(upDownActor);
 
 		expect(currentlyRunning).toBe(0);
 
