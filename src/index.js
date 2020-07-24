@@ -2,61 +2,6 @@ import { nanoid } from "nanoid";
 
 const noop = () => {};
 
-function valIsStrictlyValid(x, path = "") {
-	if (x === undefined) {
-		return { valid: false, path, err: "property is undefined" };
-	}
-
-	if (typeof x === "function") {
-		return { valid: false, path, err: "property is a Function" };
-	}
-
-	if (x instanceof Date) {
-		return { valid: false, path, err: "property is a Date" };
-	}
-
-	if (typeof x === "symbol") {
-		return { valid: false, path, err: "property is a Symbol" };
-	}
-
-	if (Array.isArray(x)) {
-		return x.reduce((acc, value, i) => {
-			const response = valIsStrictlyValid(
-				value,
-				path ? `${path}[${i}]` : `[${key}]`,
-			);
-			if (response.valid) {
-				return acc;
-			} else {
-				return response;
-			}
-		});
-	}
-
-	if (typeof x === "object") {
-		return Object.entries(x).reduce(
-			(acc, [key, value]) => {
-				const response = valIsStrictlyValid(
-					value,
-					path ? path + "." + key : key,
-				);
-				if (response.valid) {
-					return acc;
-				} else {
-					return response;
-				}
-			},
-			{
-				valid: true,
-			},
-		);
-	}
-
-	return {
-		valid: true,
-	};
-}
-
 export function defineActor(name, fnOrState, maybeFn) {
 	const initialState = maybeFn ? fnOrState : undefined;
 	const stateful = Boolean(maybeFn);
@@ -149,7 +94,7 @@ export function defineActor(name, fnOrState, maybeFn) {
 	};
 }
 
-export function createSystem({ root, transports = {}, snoop, strict }) {
+export function createSystem({ root, transports = {}, snoop }) {
 	const world = new Map();
 	const dispatcherFallbacks = [];
 
@@ -165,17 +110,6 @@ export function createSystem({ root, transports = {}, snoop, strict }) {
 
 	function dispatch({ src, msg, snk }) {
 		(snoop || noop)(arguments[0]);
-		if (strict) {
-			const { valid, err, path } = valIsStrictlyValid(arguments[0]);
-			if (!valid) {
-				strict({
-					src,
-					msg,
-					snk,
-					error: { err, path },
-				});
-			}
-		}
 
 		if (snk === "__EXTERNAL__") {
 			for (const listener of externalSubscriptions) {
