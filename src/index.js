@@ -2,8 +2,8 @@ import { nanoid } from "nanoid";
 
 const noop = () => {};
 
-export default function defineSystem({ loaders, snoop, transports } = {}) {
-	function createWorldHandlers(world) {
+export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
+	function createWorldHandlers({ world, rootId }) {
 		async function callHandler({
 			args,
 			children,
@@ -24,8 +24,24 @@ export default function defineSystem({ loaders, snoop, transports } = {}) {
 					sender: envelope.src,
 					parent,
 
+					forward: (snk) => dispatch({ ...envelope, snk }),
 					dispatch: (snk, msg, src) =>
 						dispatch({ snk, msg, src: src || id }),
+
+					spawn: (name, handler, ...args) => {
+						const id = nanoid();
+						world.set(id, {
+							args,
+							children: new Map(),
+							friends: new Map(),
+							handler,
+							mailbox: [],
+							running: false,
+							state: null,
+							parent: id,
+						});
+						return id;
+					},
 				},
 				...(args || []),
 			);
@@ -71,31 +87,70 @@ export default function defineSystem({ loaders, snoop, transports } = {}) {
 			const { snk, msg, src } = envelope;
 
 			if (snk === "__EXTERNAL__") {
-				subscribers.forEach((subscriber) => subscriber({ msg, src }));
+				subscribers.forEach((subscriber) => subscriber(msg));
 				return;
 			}
 
-			world.get(snk).mailbox.push(envelope);
-
-			setTimeout(enqueueHandlerCall, 0, snk);
+			if (world.get(snk)) {
+				world.get(snk).mailbox.push(envelope);
+				setTimeout(enqueueHandlerCall, 0, snk);
+				return;
+			}
+			boundTransports
+				.filter(({ match }) => match(envelope))
+				.forEach((transport) => transport.handle(envelope));
 		}
 
-		//todo, unsubscribe
-		const subscribers = [];
+		const boundTransports = Object.values(transports).map((x) =>
+			x(dispatch),
+		);
+
+		const subscribers = new Set();
 		function subscribe(fn) {
-			subscribers.push(fn);
+			subscribers.add(fn);
+		}
+		function unsubscribe(fn) {
+			subscribers.delete(fn);
 		}
 
 		function next() {
-			return new Promise((done) => subscribe(done));
+			return new Promise((done) => {
+				function s(...args) {
+					unsubscribe(s);
+					done(...args);
+				}
+				subscribe(s);
+			});
 		}
 
 		return {
-			dispatch: (snk, msg) => {
-				dispatch({ snk, msg, src: "__EXTERNAL__" });
+			next,
+			subscribe,
+			unsubscribe,
+
+			dispatch: (msg) => {
+				dispatch({ snk: rootId, msg, src: "__EXTERNAL__" });
 				return next();
 			},
 		};
+	}
+
+	function mount(rootActorDefinition, ...args) {
+		const world = new Map();
+		const rootId = nanoid();
+
+		world.set(rootId, {
+			args,
+			children: new Map(),
+			friends: new Map(),
+			handler: rootActorDefinition,
+			mailbox: [],
+			running: false,
+			state: null,
+			parent: "__EXTERNAL__",
+		});
+
+		return createWorldHandlers({ world, rootId });
 	}
 
 	async function rehydrate(rootActorDefinition) {
@@ -108,8 +163,13 @@ export default function defineSystem({ loaders, snoop, transports } = {}) {
 		} = loaders;
 
 		const world = new Map();
+		let rootId = null;
 
-		async function recusivelyLoadActor(id, parent) {
+		async function recusivelyLoadActor(id, parent = "__EXTERNAL__") {
+			if (!rootId && id.length) {
+				rootId = id;
+			}
+
 			const handler = await getActorDefinition(id);
 			const args = (await getArgs(id)) || null;
 			const children = (await getChildren(id)) || new Map();
@@ -136,10 +196,11 @@ export default function defineSystem({ loaders, snoop, transports } = {}) {
 
 		await recusivelyLoadActor("");
 
-		return createWorldHandlers(world);
+		return createWorldHandlers({ world, rootId });
 	}
 
 	return {
 		rehydrate,
+		mount,
 	};
 }

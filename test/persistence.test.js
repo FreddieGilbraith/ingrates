@@ -43,8 +43,12 @@ describe("persistence", () => {
 	function rootActor(
 		state,
 		msg,
-		{ dispatch, children, spawn, self, parent, sender },
+		{ dispatch, children, spawn, forward, self, parent, sender },
 	) {
+		if (msg.forwardTo) {
+			forward(msg.forwardTo);
+			return;
+		}
 		if (msg.type === "QUERY") {
 			const as = {};
 			for (const [key, val] of children.entries()) {
@@ -105,49 +109,42 @@ describe("persistence", () => {
 				},
 			}).rehydrate(rootActor);
 
-			const response1 = await system.dispatch("root-id", {
+			const response1 = await system.dispatch({
 				type: "QUERY",
 			});
 			expect(response1).toEqual({
-				src: "root-id",
-				msg: {
-					type: "RESPONSE",
-					self: "root-id",
-					parent: "",
-					children: { arkansas: "state-id", blackBeard: "pirate-id" },
-				},
+				type: "RESPONSE",
+				self: "root-id",
+				parent: "",
+				children: { arkansas: "state-id", blackBeard: "pirate-id" },
 			});
 
-			const response2 = await system.dispatch("pirate-id", {
+			const response2 = await system.dispatch({
 				type: "QUERY",
+				forwardTo: "pirate-id",
 			});
 
 			expect(response2).toEqual({
-				src: "pirate-id",
-				msg: {
-					type: "RESPONSE",
-					self: "pirate-id",
-					args: ["foo", "bar", true],
-					parent: "root-id",
-					friends: {
-						buddy: "state-id",
-					},
+				type: "RESPONSE",
+				self: "pirate-id",
+				args: ["foo", "bar", true],
+				parent: "root-id",
+				friends: {
+					buddy: "state-id",
 				},
 			});
 
-			const response3 = await system.dispatch("state-id", {
+			const response3 = await system.dispatch({
 				type: "QUERY",
+				forwardTo: "state-id",
 			});
 
 			expect(response3).toEqual({
-				src: "state-id",
-				msg: {
-					type: "RESPONSE",
-					self: "state-id",
-					parent: "root-id",
-					state: {
-						count: 5,
-					},
+				type: "RESPONSE",
+				self: "state-id",
+				parent: "root-id",
+				state: {
+					count: 5,
 				},
 			});
 		});
