@@ -14,7 +14,13 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 			parent,
 			state,
 		}) {
-			const updateState = await handler(
+			const handlerFunction =
+				typeof handler === "function"
+					? handler
+					: (state, msg, ...rest) =>
+							(handler[msg.type] || noop)(state, msg, ...rest);
+
+			const updateState = await handlerFunction(
 				state,
 				envelope.msg,
 				{
@@ -108,6 +114,8 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 
 		function dispatch(envelope) {
 			const { snk, msg, src } = envelope;
+
+			(snoop || noop)(envelope);
 
 			if (snk === "__EXTERNAL__") {
 				subscribers.forEach((subscriber) => subscriber(msg));

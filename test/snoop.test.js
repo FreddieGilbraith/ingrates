@@ -2,6 +2,7 @@ import defineSystem from "../src";
 
 describe("snoop", () => {
 	function childActor(state, msg, { dispatch, parent }) {}
+
 	const rootActor = {
 		START: (state, msg, { dispatch, parent, self, spawn }) => {
 			const child = spawn("onlyChild", childActor);
@@ -31,18 +32,7 @@ describe("snoop", () => {
 
 		await new Promise((done) => setImmediate(done));
 
-		expect(snoop).toHaveBeenCalledTimes(6);
-
-		expect(snoop).toHaveBeenCalledWith({
-			src: "__INTERNAL__",
-			msg: { type: "INIT" },
-			snk: rootId,
-		});
-		expect(snoop).toHaveBeenCalledWith({
-			src: "__INTERNAL__",
-			msg: { type: "INIT" },
-			snk: childId,
-		});
+		expect(snoop).toHaveBeenCalledTimes(4);
 
 		expect(snoop).toHaveBeenCalledWith({
 			src: "__EXTERNAL__",
