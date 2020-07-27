@@ -1,17 +1,15 @@
 import defineSystem from "../src";
 
 describe("arguments -> name", () => {
-	function myNameActor(state, msg, { sender, dispatch, name, args }, x, y) {
+	function myNameActor(state, msg, { sender, dispatch }, x, y) {
 		if (msg.type === "QUERY") {
 			dispatch(sender, {
 				type: "RESPONSE",
-				name,
 				x,
 				y,
 			});
 		}
 	}
-	myNameActor.name = (x, y) => ["my-name", x, y].join("-");
 
 	function rootActor(state, msg, { forward, spawn }) {
 		if (msg.type === "QUERY") {
@@ -30,7 +28,6 @@ describe("arguments -> name", () => {
 
 		expect(response).toEqual({
 			type: "RESPONSE",
-			name: "my-name-foo-bar",
 			x: "foo",
 			y: "bar",
 		});
