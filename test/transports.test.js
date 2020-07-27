@@ -76,16 +76,6 @@ describe("transports", () => {
 	it("will delegate matching messages to transports", async () => {
 		const mockFetch = jest.fn();
 
-		function selectiveTransport(dispatch) {
-			return {
-				match: ({ src, msg, snk }) => snk.startsWith("database@"),
-				handle: ({ src, msg, snk }) =>
-					mockFetch(`actor/${snk.replace("database@", "")}`, {
-						body: msg,
-					}),
-			};
-		}
-
 		const system = defineSystem({
 			transports: {
 				selectiveTransport,
