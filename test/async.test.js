@@ -3,24 +3,24 @@ import defineSystem from "../src";
 jest.useFakeTimers();
 
 describe("async", () => {
-	async function upDownActor(state, msg, { dispatch, sender }) {
-		if (msg.type === "RUN") {
-			currentlyRunning++;
-			await new Promise((done) => setTimeout(done), 10);
-			currentlyRunning--;
-			dispatch(sender, { type: "DONE" });
-		}
-	}
-
 	it("runs each message one at a time", async () => {
 		let currentlyRunning = 0;
+
+		async function upDownActor(state, msg, { dispatch, sender }) {
+			if (msg.type === "RUN") {
+				currentlyRunning++;
+				await new Promise((done) => setTimeout(done), 10);
+				currentlyRunning--;
+				dispatch(sender, { type: "DONE" });
+			}
+		}
 
 		const system = defineSystem().mount(upDownActor);
 
 		expect(currentlyRunning).toBe(0);
 
 		system.dispatch({ type: "RUN" });
-		await new Promise((done) => setImmediate(done));
+		await Promise.resolve();
 		expect(currentlyRunning).toBe(1);
 
 		jest.advanceTimersByTime(5);

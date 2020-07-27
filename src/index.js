@@ -80,7 +80,7 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 
 			world.get(id).running = false;
 
-			setTimeout(enqueueHandlerCall, 0, id);
+			Promise.resolve().then(enqueueHandlerCall.bind(null, id));
 		}
 
 		function dispatch(envelope) {
@@ -93,7 +93,7 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 
 			if (world.get(snk)) {
 				world.get(snk).mailbox.push(envelope);
-				setTimeout(enqueueHandlerCall, 0, snk);
+				Promise.resolve().then(enqueueHandlerCall.bind(null, snk));
 				return;
 			}
 			boundTransports
