@@ -1,7 +1,7 @@
 import defineSystem from "../src";
 
 function flushPromises() {
-	return new Promise((done) => setImmediate(done));
+	return new Promise((done) => setTimeout(done, 0));
 }
 
 describe("transports", () => {
