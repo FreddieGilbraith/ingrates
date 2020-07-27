@@ -29,7 +29,7 @@ describe("heirarchy", () => {
 					dispatch(logger, {
 						type: "LOG",
 						payload: `result: "${msg.result}"`,
-						senderName: name,
+						senderName: "root",
 					});
 
 					dispatch(parent, { type: "DONE" });
@@ -38,13 +38,15 @@ describe("heirarchy", () => {
 		}
 
 		function loggerActor(state, msg, { sender }) {
-			mockConsole(`message from ${msg.senderName} : ${msg.payload}`);
+			if (msg.type === "LOG") {
+				mockConsole(`message from ${msg.senderName} : ${msg.payload}`);
+			}
 		}
 
 		function calculatorActor(
 			state,
 			msg,
-			{ dispatch, friends, parent, name },
+			{ dispatch, friends, parent, name, self },
 		) {
 			switch (msg.type) {
 				case "INTRO":
@@ -58,12 +60,12 @@ describe("heirarchy", () => {
 					dispatch(friends.get("logger"), {
 						type: "LOG",
 						payload: `lhs: "${lhs}"`,
-						senderName: name,
+						senderName: "calculator",
 					});
 					dispatch(friends.get("logger"), {
 						type: "LOG",
 						payload: `rhs: "${rhs}"`,
-						senderName: name,
+						senderName: "calculator",
 					});
 					dispatch(parent, { type: "RESULT", result });
 					break;

@@ -29,18 +29,28 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 						dispatch({ snk, msg, src: src || id }),
 
 					spawn: (name, handler, ...args) => {
-						const id = nanoid();
-						world.set(id, {
+						const newId = nanoid();
+						world.set(newId, {
 							args,
 							children: new Map(),
 							friends: new Map(),
 							handler,
-							mailbox: [],
+							mailbox: [
+								{
+									src: "__INTERNAL__",
+									snk: id,
+									msg: { type: "INIT" },
+								},
+							],
 							running: false,
 							state: null,
 							parent: id,
 						});
-						return id;
+
+						Promise.resolve().then(
+							enqueueHandlerCall.bind(null, newId),
+						);
+						return newId;
 					},
 				},
 				...(args || []),
@@ -56,6 +66,7 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 						return updateState;
 				}
 			})();
+
 			world.get(id).state = newState;
 		}
 
@@ -135,6 +146,8 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 			});
 		}
 
+		Promise.resolve().then(enqueueHandlerCall.bind(null, rootId));
+
 		return {
 			next,
 			subscribe,
@@ -156,7 +169,9 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 			children: new Map(),
 			friends: new Map(),
 			handler: rootActorDefinition,
-			mailbox: [],
+			mailbox: [
+				{ src: "__INTERNAL__", snk: rootId, msg: { type: "INIT" } },
+			],
 			running: false,
 			state: undefined,
 			parent: "__EXTERNAL__",
