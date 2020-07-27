@@ -50,6 +50,7 @@ describe("stateful actors", () => {
 	it("will update state from a returned update function", async () => {
 		const system = defineSystem().mount(counterActor);
 
+		system.dispatch({ type: "INC" });
 		system.dispatch({ type: "DEC" });
 		system.dispatch({ type: "DEC" });
 		system.dispatch({ type: "DEC" });
@@ -57,7 +58,7 @@ describe("stateful actors", () => {
 
 		const response = await system.next();
 
-		expect(response).toEqual({ type: "STORED_VALUE", count: -3 });
+		expect(response).toEqual({ type: "STORED_VALUE", count: -2 });
 	});
 
 	it("will maintain state if undefined is returned", async () => {

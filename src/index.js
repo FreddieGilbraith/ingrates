@@ -45,6 +45,18 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 				},
 				...(args || []),
 			);
+
+			const newState = (() => {
+				switch (typeof updateState) {
+					case "function":
+						return updateState(state);
+					case "undefined":
+						return state;
+					default:
+						return updateState;
+				}
+			})();
+			world.get(id).state = newState;
 		}
 
 		async function enqueueHandlerCall(id) {
@@ -146,7 +158,7 @@ export default function defineSystem({ loaders, snoop, transports = {} } = {}) {
 			handler: rootActorDefinition,
 			mailbox: [],
 			running: false,
-			state: null,
+			state: undefined,
 			parent: "__EXTERNAL__",
 		});
 
