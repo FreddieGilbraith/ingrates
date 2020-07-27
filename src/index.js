@@ -3,9 +3,18 @@ import { nanoid } from "nanoid";
 function noop() {}
 
 export default function createActorSystem(rootActor, { transports = {} } = {}) {
+	let doNext = noop;
+
 	const actors = {};
 
 	const makeDispatch = (src) => (snk, msg) => {
+		const envelope = { src, msg, snk };
+
+		if (snk === "") {
+			doNext(envelope);
+			return;
+		}
+
 		if (actors[snk]) {
 			actors[snk].next({ ...msg, src });
 		}
@@ -33,5 +42,9 @@ export default function createActorSystem(rootActor, { transports = {} } = {}) {
 	return {
 		spawn: makeSpawn(""),
 		dispatch: makeDispatch(""),
+		next: () =>
+			new Promise((done) => {
+				doNext = done;
+			}),
 	};
 }

@@ -7,7 +7,7 @@ describe("async generators", () => {
 		return new Promise((x) => setTimeout(x, Math.random() * 10));
 	}
 
-	async function* childActor({ spawn, dispatch }, name) {
+	async function* countingActor({ spawn, dispatch }, name) {
 		const state = {
 			count: 0,
 		};
@@ -42,49 +42,33 @@ describe("async generators", () => {
 		}
 	}
 
-	async function* rootActor({ dispatch, spawn, parent }) {
-		const countingChild1 = spawn(childActor, "one");
-		const countingChild2 = spawn(childActor, "two");
-		let runs = 0;
+	//function selectiveTransport(dispatch) {
+	//return {
+	//match: ({ src, msg, snk }) => snk.startsWith("database@"),
+	//handle: ({ src, msg, snk }) =>
+	//mockFetchSelective(`actor/${snk.replace("database@", "")}`, {
+	//body: msg,
+	//}),
+	//};
+	//}
 
-		dispatch(countingChild1, { type: "INC" });
-		dispatch(countingChild1, { type: "INC" });
-		dispatch(countingChild1, { type: "DEC" });
-		dispatch(countingChild1, { type: "INC" });
+	it("will update its internal state", async () => {
+		const { spawn, dispatch, next } = createActorSystem({});
 
-		dispatch(countingChild1, { type: "QUERY" });
+		const counter = spawn(countingActor, "count VonCount");
 
-		while (true) {
-			const msg = yield;
-			console.log(msg);
-			dispatch(parent, { type: "OUTPUT", msg });
-		}
-	}
+		dispatch(counter, { type: "INC" });
+		dispatch(counter, { type: "INC" });
+		dispatch(counter, { type: "DEC" });
+		dispatch(counter, { type: "INC" });
+		dispatch(counter, { type: "QUERY" });
 
-	it("does something", async () => {
-		let next = () => {};
-		const output = (envelope) => {
-			console.log("output", envelope);
-			next(envelope);
-		};
+		const { msg } = await next();
 
-		function selectiveTransport(dispatch) {
-			return {
-				match: ({ src, msg, snk }) => snk === "",
-				handle: output,
-			};
-		}
-
-		const { spawn, dispatch } = createActorSystem({});
-
-		spawn(rootActor);
-
-		await new Promise((x) => setTimeout(x, 100));
-
-		//const outputMsg = await new Promise((done) => {
-		//next = done;
-		//});
-
-		//console.log(outputMsg);
+		expect(msg).toEqual({
+			type: "RESPONSE",
+			name: "count VonCount",
+			count: 2,
+		});
 	});
 });
