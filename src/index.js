@@ -2,23 +2,43 @@ import { nanoid } from "nanoid";
 
 function noop() {}
 
-export default function createActorSystem(rootActor, { transports = {} } = {}) {
-	let doNext = noop;
+export default function createActorSystem({ transports = [] } = {}) {
+	const externalListeners = new Set();
+	const subscribe = (fn) => externalListeners.add(fn);
+	const unsubscribe = (fn) => externalListeners.delete(fn);
+	const next = () =>
+		new Promise((done) => {
+			function doNext(x) {
+				done(x);
+				unsubscribe(doNext);
+			}
+			subscribe(doNext);
+		});
+
+	// ------------------------------
 
 	const actors = {};
 
-	const makeDispatch = (src) => (snk, msg) => {
+	function dispatchEnvelope({ src, snk, msg }) {
 		const envelope = { src, msg, snk };
 
+		transporters
+			.filter((x) => x.match(envelope))
+			.forEach((x) => x.handle(envelope));
+
 		if (snk === "") {
-			doNext(envelope);
-			return;
+			externalListeners.forEach((externalListener) =>
+				externalListener({ src, msg, snk }),
+			);
 		}
 
 		if (actors[snk]) {
 			actors[snk].next({ ...msg, src });
 		}
-	};
+	}
+
+	const makeDispatch = (src) => (snk, msg) =>
+		dispatchEnvelope({ src, snk, msg });
 
 	const makeSpawn = (parent) => (gen, ...args) => {
 		const self = nanoid();
@@ -39,12 +59,17 @@ export default function createActorSystem(rootActor, { transports = {} } = {}) {
 		return self;
 	};
 
+	// ------------------------------
+
+	const spawn = makeSpawn("");
+	const dispatch = makeDispatch("");
+	const transporters = transports.map((x) => x(dispatchEnvelope));
+
 	return {
-		spawn: makeSpawn(""),
-		dispatch: makeDispatch(""),
-		next: () =>
-			new Promise((done) => {
-				doNext = done;
-			}),
+		spawn,
+		dispatch,
+		subscribe,
+		unsubscribe,
+		next,
 	};
 }

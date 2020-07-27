@@ -13,7 +13,7 @@ describe("async generators", () => {
 		};
 
 		while (true) {
-			const msg = yield state;
+			const msg = yield;
 
 			//by getting the value before the wait, and using it after the wait,
 			//we're opening ourselves up to race conditions if async generators don't properly enqueue calls
@@ -42,18 +42,8 @@ describe("async generators", () => {
 		}
 	}
 
-	//function selectiveTransport(dispatch) {
-	//return {
-	//match: ({ src, msg, snk }) => snk.startsWith("database@"),
-	//handle: ({ src, msg, snk }) =>
-	//mockFetchSelective(`actor/${snk.replace("database@", "")}`, {
-	//body: msg,
-	//}),
-	//};
-	//}
-
 	it("will update its internal state", async () => {
-		const { spawn, dispatch, next } = createActorSystem({});
+		const { spawn, dispatch, next } = createActorSystem();
 
 		const counter = spawn(countingActor, "count VonCount");
 
@@ -69,6 +59,65 @@ describe("async generators", () => {
 			type: "RESPONSE",
 			name: "count VonCount",
 			count: 2,
+		});
+	});
+
+	it("will communicate with transports", async () => {
+		const mockFetchSelective = jest.fn();
+		let replyFromDb = () => {};
+
+		function selectiveTransport(dispatch) {
+			replyFromDb = dispatch;
+			return {
+				match: ({ src, msg, snk }) => snk.startsWith("database@"),
+				handle: ({ src, msg, snk }) =>
+					mockFetchSelective(
+						`actor/${snk.replace("database@", "")}`,
+						{
+							body: msg,
+						},
+					),
+			};
+		}
+
+		async function* networkEnabledActor({ dispatch, parent }) {
+			const msg1 = yield;
+			dispatch("database@users", {
+				type: "QUERY",
+				userId: 123,
+				respondWith: "RESPONSE",
+			});
+			dispatch(parent, { type: "STARTED_QUERY" });
+
+			const msg2 = yield;
+			dispatch(parent, { type: "RESPONSE", msg: msg2 });
+		}
+
+		const { spawn, dispatch, next } = createActorSystem({
+			transports: [selectiveTransport],
+		});
+
+		const counter = spawn(networkEnabledActor);
+		dispatch(counter, { type: "ASK_FOR_USER" });
+		await next();
+
+		expect(mockFetchSelective).toHaveBeenCalledWith(`actor/users`, {
+			body: { type: "QUERY", userId: 123, respondWith: "RESPONSE" },
+		});
+
+		// ------------------------------
+
+		replyFromDb({
+			snk: counter,
+			src: "database@user",
+			msg: { type: "RESPONSE", userEnabled: true },
+		});
+
+		const { msg: output } = await next();
+
+		expect(output).toEqual({
+			type: "RESPONSE",
+			msg: { type: "RESPONSE", userEnabled: true, src: "database@user" },
 		});
 	});
 });
