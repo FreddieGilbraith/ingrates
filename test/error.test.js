@@ -22,6 +22,13 @@ function flushPromises() {
 	return new Promise((done) => setImmediate(done));
 }
 
+beforeEach(() => {
+	jest.spyOn(console, "error").mockImplementation(() => {});
+});
+afterEach(() => {
+	jest.resetAllMocks();
+});
+
 it("does not care when an actor throws", (done) => {
 	const errorHandler = jest.fn();
 	process.on("unhandledRejection", errorHandler);

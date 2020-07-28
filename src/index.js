@@ -5,6 +5,7 @@ function noop() {}
 export default function createActorSystem({
 	transports = [],
 	snoop = noop,
+	onErr = console.error,
 } = {}) {
 	const actors = {};
 
@@ -30,7 +31,10 @@ export default function createActorSystem({
 						shutdown(snk);
 					}
 				},
-				() => shutdown(snk),
+				(x) => {
+					onErr(snk, x);
+					shutdown(snk);
+				},
 			);
 		}
 	}
