@@ -12,16 +12,6 @@
 
 `ingrates` is very much WIP, and has no real world usage. I also don't know much about formal actor systems, so this might be missing some key functionality that you really want; please get in touch if so.
 
-## Features
-
--   [x] stateful/stateless actors
--   [x] fully [async](async) (won't work on IE11)
--   [x] `transport`s for sending messages between actor systems
--   [x] `snoop`ing to watch all messages transmitted through the system
--   [x] `friends` and `children` containers, so you don't have to pollute your state with addresses
--   [ ] `strict` mode analyses all messages to ensure they are serialisable
--   [ ] serialise/rehydrate an actor system to/from a string
-
 ## Docs
 
 There's no docs yet, please refer to the [tests](tests) to get an overview of the api.
