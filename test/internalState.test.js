@@ -1,5 +1,4 @@
 import "babel-polyfill";
-
 import createActorSystem from "../src";
 
 function pause() {

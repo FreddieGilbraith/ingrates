@@ -16,7 +16,7 @@ async function* networkEnabledActor({ dispatch, parent }) {
 	dispatch(parent, { type: "RESPONSE", msg: msg2 });
 }
 
-it("will communicate with transports", (done) => {
+it.only("will communicate with transports", (done) => {
 	const mockFetchSelective = jest.fn();
 	let replyFromDb = () => {};
 

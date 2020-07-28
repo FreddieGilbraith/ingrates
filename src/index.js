@@ -10,8 +10,13 @@ export default function createActorSystem({
 
 	const transporters = transports.map((x) => x(dispatchEnvelope));
 
-	function dispatchEnvelope({ src, snk, msg }) {
-		const envelope = { src, msg, snk };
+	const shutdown = (id) => {
+		snoop(id);
+		delete actors[id];
+	};
+
+	function dispatchEnvelope(envelope) {
+		const { src, msg, snk } = envelope;
 		snoop(envelope);
 
 		transporters
@@ -19,16 +24,14 @@ export default function createActorSystem({
 			.forEach((x) => x.handle(envelope));
 
 		if (actors[snk]) {
-			actors[snk]
-				.next(Object.assign({ src }, msg))
-				.then((x) => {
+			actors[snk].next(Object.assign({ src }, msg)).then(
+				(x) => {
 					if (x.done) {
-						delete actors[snk];
+						shutdown(snk);
 					}
-				})
-				.catch(() => {
-					delete actors[snk];
-				});
+				},
+				() => shutdown(snk),
+			);
 		}
 	}
 
@@ -37,6 +40,8 @@ export default function createActorSystem({
 
 	const makeSpawn = (parent) => (gen, ...args) => {
 		const self = nanoid();
+
+		snoop(self, gen, args);
 
 		const x = gen(
 			{
