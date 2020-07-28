@@ -36,7 +36,7 @@ export default function createActorSystem({
 	}
 
 	const makeDispatch = (src) => (snk, msg) =>
-		setTimeout(dispatchEnvelope, 0, { src, snk, msg });
+		Promise.resolve().then(() => dispatchEnvelope({ src, snk, msg }));
 
 	const makeSpawn = (parent) => (gen, ...args) => {
 		const self = nanoid();
