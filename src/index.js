@@ -3,20 +3,6 @@ import { nanoid } from "nanoid";
 function noop() {}
 
 export default function createActorSystem({ transports = [] } = {}) {
-	const externalListeners = new Set();
-	const subscribe = (fn) => externalListeners.add(fn);
-	const unsubscribe = (fn) => externalListeners.delete(fn);
-	const next = () =>
-		new Promise((done) => {
-			function doNext(x) {
-				done(x);
-				unsubscribe(doNext);
-			}
-			subscribe(doNext);
-		});
-
-	// ------------------------------
-
 	const actors = {};
 
 	function dispatchEnvelope({ src, snk, msg }) {
@@ -25,12 +11,6 @@ export default function createActorSystem({ transports = [] } = {}) {
 		transporters
 			.filter((x) => x.match(envelope))
 			.forEach((x) => x.handle(envelope));
-
-		if (snk === "") {
-			externalListeners.forEach((externalListener) =>
-				externalListener({ src, msg, snk }),
-			);
-		}
 
 		if (actors[snk]) {
 			actors[snk].next(Object.assign({ src }, msg));
@@ -61,15 +41,7 @@ export default function createActorSystem({ transports = [] } = {}) {
 
 	// ------------------------------
 
-	const spawn = makeSpawn("");
-	const dispatch = makeDispatch("");
 	const transporters = transports.map((x) => x(dispatchEnvelope));
 
-	return {
-		spawn,
-		dispatch,
-		subscribe,
-		unsubscribe,
-		next,
-	};
+	return makeSpawn("");
 }

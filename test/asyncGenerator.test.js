@@ -1,3 +1,4 @@
+import "babel-polyfill";
 import { nanoid } from "nanoid";
 
 import createActorSystem from "../src";
@@ -42,27 +43,30 @@ describe("async generators", () => {
 		}
 	}
 
-	it("will update its internal state", async () => {
-		const { spawn, dispatch, next } = createActorSystem();
+	it("will update its internal state", (done) => {
+		createActorSystem()(async function* testActor({ spawn, dispatch }) {
+			const counter = spawn(countingActor, "count VonCount");
 
-		const counter = spawn(countingActor, "count VonCount");
+			dispatch(counter, { type: "INC" });
+			dispatch(counter, { type: "INC" });
+			dispatch(counter, { type: "DEC" });
+			dispatch(counter, { type: "INC" });
+			dispatch(counter, { type: "QUERY" });
 
-		dispatch(counter, { type: "INC" });
-		dispatch(counter, { type: "INC" });
-		dispatch(counter, { type: "DEC" });
-		dispatch(counter, { type: "INC" });
-		dispatch(counter, { type: "QUERY" });
+			const msg = yield;
 
-		const { msg } = await next();
+			expect(msg).toEqual({
+				type: "RESPONSE",
+				name: "count VonCount",
+				count: 2,
+				src: counter,
+			});
 
-		expect(msg).toEqual({
-			type: "RESPONSE",
-			name: "count VonCount",
-			count: 2,
+			done();
 		});
 	});
 
-	it("will communicate with transports", async () => {
+	it("will communicate with transports", (done) => {
 		const mockFetchSelective = jest.fn();
 		let replyFromDb = () => {};
 
@@ -93,31 +97,38 @@ describe("async generators", () => {
 			dispatch(parent, { type: "RESPONSE", msg: msg2 });
 		}
 
-		const { spawn, dispatch, next } = createActorSystem({
+		createActorSystem({
 			transports: [selectiveTransport],
-		});
+		})(async function* testActor({ spawn, dispatch }) {
+			const netActor = spawn(networkEnabledActor);
+			dispatch(netActor, { type: "ASK_FOR_USER" });
 
-		const counter = spawn(networkEnabledActor);
-		dispatch(counter, { type: "ASK_FOR_USER" });
-		await next();
+			yield;
 
-		expect(mockFetchSelective).toHaveBeenCalledWith(`actor/users`, {
-			body: { type: "QUERY", userId: 123, respondWith: "RESPONSE" },
-		});
+			expect(mockFetchSelective).toHaveBeenCalledWith(`actor/users`, {
+				body: { type: "QUERY", userId: 123, respondWith: "RESPONSE" },
+			});
 
-		// ------------------------------
+			// ------------------------------
 
-		replyFromDb({
-			snk: counter,
-			src: "database@user",
-			msg: { type: "RESPONSE", userEnabled: true },
-		});
+			replyFromDb({
+				snk: netActor,
+				src: "database@user",
+				msg: { type: "RESPONSE", userEnabled: true },
+			});
 
-		const { msg: output } = await next();
+			const output = yield;
 
-		expect(output).toEqual({
-			type: "RESPONSE",
-			msg: { type: "RESPONSE", userEnabled: true, src: "database@user" },
+			expect(output).toEqual({
+				type: "RESPONSE",
+				msg: {
+					type: "RESPONSE",
+					userEnabled: true,
+					src: "database@user",
+				},
+				src: netActor,
+			});
+			done();
 		});
 	});
 });
