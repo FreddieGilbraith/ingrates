@@ -33,7 +33,7 @@ export default function createActorSystem({ transports = [] } = {}) {
 		}
 
 		if (actors[snk]) {
-			actors[snk].next({ ...msg, src });
+			actors[snk].next(Object.assign({ src }, msg));
 		}
 	}
 
