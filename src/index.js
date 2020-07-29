@@ -25,7 +25,7 @@ export default function createActorSystem({
 			.forEach((x) => x.handle(envelope));
 
 		if (actors[snk]) {
-			actors[snk].next(Object.assign({ src }, msg)).then(
+			Promise.resolve(actors[snk].next(Object.assign({ src }, msg))).then(
 				(x) => {
 					if (x.done) {
 						shutdown(snk);
