@@ -6,6 +6,7 @@ export default function createActorSystem({
 	transports = [],
 	snoop = noop,
 	onErr = console.error,
+	timeout = 1000,
 } = {}) {
 	const actors = {};
 
@@ -39,6 +40,20 @@ export default function createActorSystem({
 		}
 	}
 
+	const makeQuery = () => (snk, msg, tim = timeout) => {
+		const src = nanoid();
+		return new Promise((done, fail) => {
+			setTimeout(fail, tim);
+			actors[src] = {
+				next: (x) => {
+					done(x);
+					return Promise.resolve({ done: true });
+				},
+			};
+			dispatchEnvelope({ snk, src, msg });
+		});
+	};
+
 	const makeDispatch = (src) => (snk, msg) =>
 		Promise.resolve().then(() => dispatchEnvelope({ src, snk, msg }));
 
@@ -53,6 +68,7 @@ export default function createActorSystem({
 				parent,
 				spawn: makeSpawn(self),
 				dispatch: makeDispatch(self),
+				query: makeQuery(),
 			},
 			...args,
 		);

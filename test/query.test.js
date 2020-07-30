@@ -6,9 +6,13 @@ function pause() {
 }
 
 async function* doublerActor({ parent, dispatch }) {
-	const msg = yield;
-	await pause();
-	dispatch(parent, { ...msg, value: msg.value * 2 });
+	while (true) {
+		const msg = yield;
+		if (msg.type === "SHOULD_REPLY") {
+			await pause();
+			dispatch(msg.src, { ...msg, value: msg.value * 2 });
+		}
+	}
 }
 
 it("can directly query an actor", (done) => {
@@ -18,17 +22,37 @@ it("can directly query an actor", (done) => {
 		self,
 		query,
 	}) {
-		const child = spawn(childActor);
-		dispatch(child, { test: true });
-		const reply = yield;
+		const child = spawn(doublerActor);
+		const reply = await query(child, {
+			type: "SHOULD_REPLY",
+			test: true,
+			value: 2,
+		});
 
 		expect(reply).toEqual({
+			type: "SHOULD_REPLY",
+			src: expect.any(String),
 			test: true,
-			src: self,
+			value: 4,
 		});
 
 		done();
 	});
 });
 
-it.todo("reject if the timeout is reached");
+it("reject if the timeout is reached", (done) => {
+	createActorSystem()(async function* testActor({
+		spawn,
+		dispatch,
+		self,
+		query,
+	}) {
+		const child = spawn(doublerActor);
+
+		try {
+			const reply = await query(child, { type: "NO_REPLY" });
+		} catch (e) {
+			done();
+		}
+	});
+});
