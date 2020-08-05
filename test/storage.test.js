@@ -92,5 +92,88 @@ describe("storage", () => {
 		});
 	});
 
-	it("will recreate the actor system when storage() is first called", () => {});
+	it("will recreate the actor system when storage() is first called", (done) => {
+		expect.assertions(2);
+
+		function* statefulActor({ self, parent, dispatch, state }, name) {
+			while (true) {
+				const msg = yield state;
+				switch (msg.type) {
+					case "INC":
+						state.value++;
+						break;
+					case "DEC":
+						state.value--;
+						break;
+					case "QUERY":
+						dispatch(msg.src, {
+							type: "RESPONSE",
+							value: state.value,
+							counter: self,
+						});
+						break;
+				}
+			}
+		}
+
+		function* rootActor({ self, parent, dispatch, spawn, state }, name) {
+			state.counterChild = state.counterChild || spawn(statefulActor);
+
+			dispatch(state.counterChild, { type: "INC" });
+			dispatch(state.counterChild, { type: "INC" });
+			dispatch(state.counterChild, { type: "QUERY" });
+
+			const response = yield state;
+
+			dispatch(parent, { ...response, src: self });
+		}
+
+		function* testActor({ spawn, self }) {
+			expect(self).toBe("test-actor");
+
+			const msg = yield;
+
+			expect(msg).toEqual({
+				src: "root-actor",
+				type: "RESPONSE",
+				value: 5,
+				counter: "counter-actor",
+			});
+
+			done();
+		}
+
+		function storage(spawnActor) {
+			spawnActor(
+				{
+					parent: null,
+					state: null,
+					self: "test-actor",
+				},
+				testActor,
+			);
+
+			spawnActor(
+				{
+					parent: "test-actor",
+					state: { counterChild: "counter-actor" },
+					self: "root-actor",
+				},
+				rootActor,
+			);
+
+			spawnActor(
+				{
+					parent: "root-actor",
+					state: { value: 3 },
+					self: "counter-actor",
+				},
+				statefulActor,
+			);
+
+			return () => {};
+		}
+
+		createActorSystem({ storage });
+	});
 });

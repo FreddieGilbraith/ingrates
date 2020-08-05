@@ -16,7 +16,7 @@ export default function createActorSystem({
 
 	const transporters = transports.map((x) => x(dispatchEnvelope));
 
-	const snoopers = [snoop, storage(() => {})];
+	const snoopers = [snoop, storage(spawnActor)];
 
 	const shutdown = (id) => {
 		snoopers.forEach((f) => f("stop", { id }));
@@ -51,23 +51,53 @@ export default function createActorSystem({
 		}
 	}
 
-	const makeSpawn = (parent) => (gen, ...args) => {
-		const self = nanoid();
-		snoopers.forEach((f) => f("spawn", { parent, self, gen, args }));
+	function spawnActor(_parent, gen, ...args) {
+		const { parent, state, self } =
+			_parent === null || typeof _parent === "string"
+				? {
+						parent: _parent,
+						state: null,
+						self: nanoid(),
+				  }
+				: _parent;
+
+		snoopers &&
+			snoopers
+				.filter(Boolean)
+				.forEach((f) => f("spawn", { parent, self, gen, args }));
 
 		const x = gen(
 			{
 				self,
 				parent,
-				spawn: makeSpawn(self),
-				dispatch: makeDispatch(self),
-				query: makeQuery(),
+				spawn: spawnActor.bind(null, self),
+				state,
+
+				dispatch: (snk, msg) =>
+					Promise.resolve().then(() =>
+						dispatchEnvelope({ src: self, snk, msg }),
+					),
+
+				query: (snk, msg, tim = timeout) => {
+					const src = nanoid();
+					return new Promise((done, fail) => {
+						setTimeout(fail, tim);
+						actors[src] = {
+							next: (x) => {
+								done(x);
+								return Promise.resolve({ done: true });
+							},
+						};
+						dispatchEnvelope({ snk, src, msg });
+					});
+				},
 			},
 			...args,
 		);
 		Promise.resolve(x.next()).then(
 			(y) =>
 				y.value &&
+				snoopers &&
 				snoopers.forEach((f) =>
 					f("publish", { id: self, value: y.value }),
 				),
@@ -76,24 +106,7 @@ export default function createActorSystem({
 		actors[self] = x;
 
 		return self;
-	};
+	}
 
-	const makeQuery = () => (snk, msg, tim = timeout) => {
-		const src = nanoid();
-		return new Promise((done, fail) => {
-			setTimeout(fail, tim);
-			actors[src] = {
-				next: (x) => {
-					done(x);
-					return Promise.resolve({ done: true });
-				},
-			};
-			dispatchEnvelope({ snk, src, msg });
-		});
-	};
-
-	const makeDispatch = (src) => (snk, msg) =>
-		Promise.resolve().then(() => dispatchEnvelope({ src, snk, msg }));
-
-	return makeSpawn(null);
+	return spawnActor.bind(null, null);
 }
