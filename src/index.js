@@ -1,22 +1,19 @@
 import { nanoid } from "nanoid";
 
 function noop() {}
-function noopNoop() {
-	return noop;
-}
 
 export default function createActorSystem({
 	transports = [],
 	snoop = noop,
 	onErr = console.error,
 	timeout = 1000,
-	storage = noopNoop,
+	storage,
 } = {}) {
 	const actors = {};
 
 	const transporters = transports.map((x) => x(dispatchEnvelope));
 
-	const snoopers = [snoop, storage(spawnActor)];
+	const snoopers = [snoop];
 
 	const shutdown = (id) => {
 		snoopers.forEach((f) => f("stop", { id }));
@@ -108,5 +105,11 @@ export default function createActorSystem({
 		return self;
 	}
 
-	return spawnActor.bind(null, null);
+	if (storage) {
+		return storage(spawnActor)
+			.then((x) => snoopers.push(x))
+			.then(() => spawnActor.bind(null, null));
+	} else {
+		return spawnActor.bind(null, null);
+	}
 }

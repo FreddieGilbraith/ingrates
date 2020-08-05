@@ -26,70 +26,69 @@ describe("storage", () => {
 			return;
 		}
 
-		function storage() {
+		async function storage() {
 			return onChange;
 		}
 
-		createActorSystem({ storage })(async function* testActor({
-			self,
-			spawn,
-		}) {
-			const root = spawn(rootActor);
+		createActorSystem({ storage }).then((x) =>
+			x(async function* testActor({ self, spawn }) {
+				const root = spawn(rootActor);
 
-			const { child } = yield;
+				const { child } = yield;
 
-			// empty the microevent queue so the root actor can exit
-			await new Promise((x) => setTimeout(x, 0));
+				// empty the microevent queue so the root actor can exit
+				await new Promise((x) => setTimeout(x, 0));
 
-			// spawn myself
-			expect(onChange).toHaveBeenCalledWith("spawn", {
-				parent: null,
-				self: self,
-				gen: testActor,
-				args: [],
-			});
+				// spawn myself
+				expect(onChange).toHaveBeenCalledWith("spawn", {
+					parent: null,
+					self: self,
+					gen: testActor,
+					args: [],
+				});
 
-			// spawn root
-			expect(onChange).toHaveBeenCalledWith("spawn", {
-				parent: self,
-				self: root,
-				gen: rootActor,
-				args: [],
-			});
+				// spawn root
+				expect(onChange).toHaveBeenCalledWith("spawn", {
+					parent: self,
+					self: root,
+					gen: rootActor,
+					args: [],
+				});
 
-			// spawn child
-			expect(onChange).toHaveBeenCalledWith("spawn", {
-				parent: root,
-				self: child,
-				gen: replyAndDieActor,
-				args: ["Peter"],
-			});
+				// spawn child
+				expect(onChange).toHaveBeenCalledWith("spawn", {
+					parent: root,
+					self: child,
+					gen: replyAndDieActor,
+					args: ["Peter"],
+				});
 
-			// root publish state
-			expect(onChange).toHaveBeenCalledWith("publish", {
-				id: root,
-				value: { count: 1 },
-			});
-			expect(onChange).toHaveBeenCalledWith("publish", {
-				id: root,
-				value: {
-					src: root,
-					type: "SOUND_OFF",
-					name: "Peter",
-				},
-			});
+				// root publish state
+				expect(onChange).toHaveBeenCalledWith("publish", {
+					id: root,
+					value: { count: 1 },
+				});
+				expect(onChange).toHaveBeenCalledWith("publish", {
+					id: root,
+					value: {
+						src: root,
+						type: "SOUND_OFF",
+						name: "Peter",
+					},
+				});
 
-			// child publish state
-			expect(onChange).toHaveBeenCalledWith("publish", {
-				id: child,
-				value: { name: "Peter" },
-			});
+				// child publish state
+				expect(onChange).toHaveBeenCalledWith("publish", {
+					id: child,
+					value: { name: "Peter" },
+				});
 
-			expect(onChange).toHaveBeenCalledWith("stop", { id: child });
-			expect(onChange).toHaveBeenCalledWith("stop", { id: root });
+				expect(onChange).toHaveBeenCalledWith("stop", { id: child });
+				expect(onChange).toHaveBeenCalledWith("stop", { id: root });
 
-			done();
-		});
+				done();
+			}),
+		);
 	});
 
 	it("will recreate the actor system when storage() is first called", (done) => {
@@ -143,7 +142,7 @@ describe("storage", () => {
 			done();
 		}
 
-		function storage(spawnActor) {
+		async function storage(spawnActor) {
 			spawnActor(
 				{
 					parent: null,
