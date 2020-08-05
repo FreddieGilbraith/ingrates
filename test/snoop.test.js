@@ -37,17 +37,25 @@ it("informs the snoop function of what's going on inside the system", (done) => 
 		expect(snoop).toHaveBeenCalledTimes(7);
 
 		// spawn root
-		expect(snoop.mock.calls[0]).toEqual([self, rootActor, []]);
+		expect(snoop.mock.calls[0]).toEqual([
+			"spawn",
+			{ self, parent: null, gen: rootActor, args: [] },
+		]);
 
 		// spawn child
 		expect(snoop.mock.calls[1]).toEqual([
-			child,
-			childActor,
-			["first born", 123],
+			"spawn",
+			{
+				self: child,
+				parent: self,
+				gen: childActor,
+				args: ["first born", 123],
+			},
 		]);
 
 		//dispatch three actions to child
 		expect(snoop.mock.calls[2]).toEqual([
+			"dispatch",
 			{
 				src: self,
 				snk: child,
@@ -56,6 +64,7 @@ it("informs the snoop function of what's going on inside the system", (done) => 
 		]);
 
 		expect(snoop.mock.calls[3]).toEqual([
+			"dispatch",
 			{
 				src: self,
 				snk: child,
@@ -64,6 +73,7 @@ it("informs the snoop function of what's going on inside the system", (done) => 
 		]);
 
 		expect(snoop.mock.calls[4]).toEqual([
+			"dispatch",
 			{
 				src: self,
 				snk: child,
@@ -73,6 +83,7 @@ it("informs the snoop function of what's going on inside the system", (done) => 
 
 		// response message is sent
 		expect(snoop.mock.calls[5]).toEqual([
+			"dispatch",
 			{
 				src: child,
 				snk: self,
@@ -81,7 +92,7 @@ it("informs the snoop function of what's going on inside the system", (done) => 
 		]);
 
 		// the child has terminated
-		expect(snoop.mock.calls[6]).toEqual([child]);
+		expect(snoop.mock.calls[6]).toEqual(["stop", { id: child }]);
 
 		done();
 	});
