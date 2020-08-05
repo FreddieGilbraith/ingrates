@@ -1,8 +1,8 @@
-import { nanoid } from "nanoid";
+const { nanoid } = require("nanoid");
 
 function noop() {}
 
-export default function createActorSystem({
+module.exports = function createActorSystem({
 	transports = [],
 	snoop = noop,
 	onErr = console.error,
@@ -53,7 +53,7 @@ export default function createActorSystem({
 			_parent === null || typeof _parent === "string"
 				? {
 						parent: _parent,
-						state: null,
+						state: undefined,
 						self: nanoid(),
 				  }
 				: _parent;
@@ -91,6 +91,7 @@ export default function createActorSystem({
 			},
 			...args,
 		);
+
 		Promise.resolve(x.next()).then(
 			(y) =>
 				y.value &&
@@ -108,8 +109,14 @@ export default function createActorSystem({
 	if (storage) {
 		return storage(spawnActor)
 			.then((x) => snoopers.push(x))
-			.then(() => spawnActor.bind(null, null));
+			.then(() => {
+				if (!Object.keys(actors).length) {
+					return spawnActor.bind(null, null);
+				} else {
+					return () => {};
+				}
+			});
 	} else {
 		return spawnActor.bind(null, null);
 	}
-}
+};
