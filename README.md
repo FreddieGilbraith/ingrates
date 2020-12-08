@@ -17,30 +17,32 @@ It is very much WIP, and has no real world usage. I also don't know much about f
 ## Example
 
 ```javascript
-async function* childActor({ parent, dispatch }, firstname, lastname) {
-	while (true) {
-		const msg = yield;
+import createActorSystem from "@little-bonsai/ingrates";
 
-		if (msg.type === "HELLO") {
-			dispatch(msg.src, {
-				type: "GOODBYE",
-				msg: `say goodbye to ${firstname} ${lastname}`,
-			});
-		}
-	}
+async function* childActor({ parent, dispatch }, firstname, lastname) {
+  while (true) {
+    const msg = yield;
+
+    if (msg.type === "HELLO") {
+      dispatch(msg.src, {
+        type: "GOODBYE",
+        msg: `say goodbye to ${firstname} ${lastname}`,
+      });
+    }
+  }
 }
 
 async function* rootActor({ spawn, self, dispatch }) {
-	const myChild = spawn(childActor, "Bert", "Jurnegen");
+  const myChild = spawn(childActor, "Bert", "Jurnegen");
 
-	dispatch(myChild, { type: "HELLO" });
+  dispatch(myChild, { type: "HELLO" });
 
-	while (true) {
-		const msg = yield;
-		if (msg.type === "GOODBYE") {
-			console.log("Please... my son. He's very sick");
-		}
-	}
+  while (true) {
+    const msg = yield;
+    if (msg.type === "GOODBYE") {
+      console.log("Please... my son. He's very sick");
+    }
+  }
 }
 
 createActorSystem()(rootActor);
@@ -56,7 +58,7 @@ All functionality starts with [tests](tests), please have a look through to get 
 
 ## Todo
 
--   [ ] handling logic for orphaned actors
+- [ ] handling logic for orphaned actors
 
 [async]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AsyncFunction
 [generators]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
