@@ -1,6 +1,7 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.3.3",
+	"version": "0.3.4",
+	"sideEffects": false,
 	"description": "An isomorphic actor system",
 
 	"source": "src/index.js",
