@@ -1,24 +1,33 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.3.1",
+	"version": "0.3.3",
 	"description": "An isomorphic actor system",
-	"main": "lib/index.js",
+
+	"source": "src/index.js",
+	"main": "dist/index.js",
+	"module": "dist/index.module.js",
+	"unpkg": "dist/index.umd.js",
+
 	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
-	"files": ["lib", "src"],
+
+	"files": ["dist", "src"],
+
 	"scripts": {
 		"test": "NODE_ENV=test jest --coverage true src test",
-		"build": "NODE_ENV=production babel src --out-dir lib",
+		"build": "microbundle",
 		"prepublishOnly": "npm run build",
 		"format": "prettier --write src/**/*",
 		"prepushOnly": "npm run format && && npm run test && npm run build",
 		"test:watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
-		"watch": "NODE_ENV=staging babel src --out-dir lib --watch"
+		"watch": "microbundle watch"
 	},
+
 	"author": "",
 	"license": "ISC",
 	"eslintConfig": {
 		"extends": "react-app"
 	},
+
 	"prettier": {
 		"tabWidth": 4,
 		"trailingComma": "all",
@@ -33,21 +42,11 @@
 			}
 		]
 	},
+
 	"babel": {
-		"env": {
-			"production": {
-				"presets": ["minify"]
-			}
-		},
-		"presets": [
-			[
-				"@babel/preset-env",
-				{
-					"targets": "> 0.25%, not dead"
-				}
-			]
-		]
+		"presets": ["@babel/preset-env"]
 	},
+
 	"devDependencies": {
 		"@babel/cli": "^7.12.1",
 		"@babel/core": "^7.12.3",
@@ -63,11 +62,11 @@
 		"eslint-plugin-jsx-a11y": "^6.4.1",
 		"eslint-plugin-react": "^7.21.5",
 		"jest-cli": "^26.6.2",
+		"microbundle": "^0.12.4",
 		"prettier": "^2.1.2",
 		"ramda": "^0.27.1"
 	},
 	"dependencies": {
-		"nanoid": "^3.1.16",
-		"rome": "^10.0.4-beta"
+		"nanoid": "^3.1.16"
 	}
 }
