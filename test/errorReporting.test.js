@@ -5,20 +5,20 @@ function flushPromises() {
 	return new Promise((x) => setImmediate(x));
 }
 
-async function* errorCreatingActor() {
-	const msg = yield;
-	if (msg.type === "FAIL") {
-		throw new Error("test error");
-	}
-}
-
-describe("error handling", () => {
+describe("error reporting", () => {
 	beforeEach(() => {
 		jest.spyOn(console, "error").mockImplementation(() => {});
 	});
 	afterEach(() => {
 		jest.resetAllMocks();
 	});
+
+	async function* errorCreatingActor() {
+		const msg = yield;
+		if (msg.type === "FAIL") {
+			throw new Error("test error");
+		}
+	}
 
 	it("should console.error if an actor fails", (done) => {
 		createActorSystem()(async function* testActor({ spawn, dispatch }) {
