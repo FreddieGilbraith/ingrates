@@ -20,3 +20,42 @@ I should provide a way to inject helpers into the provided ingrates functions ar
 ### Pinging
 
 Pinging should also export a function decorator that automatically intercepts and replies to `{type:"PING"}` messages
+
+### Web Apps
+
+you could totally have an adapter that allows actors to `yeild` jsx, where refs are replaced by what ever child `yields`:
+
+```javascript
+
+function* ParentActor({ spawn, }){
+   const ChildComponent = spawn(ChildActor);
+   let count = 0;
+
+   while(true){
+      const msg = yield <div>
+         <span>count: {count}</span>
+         <ChildComponent/>
+      </div>
+
+      if(msg.type === "INC"){
+         count++;
+      }
+   }
+}
+
+function* ChildActor({dispatch, parent){
+   while(true){
+      const msg = yield (
+         <button onClick={{type: "ON_CLICK"}} >
+            Click Me
+         </button>
+      );
+
+      if(msg.type === "ON_CLICK"){
+         dispatch(parent, { type: "INC" });
+      }
+   }
+}
+```
+
+fuck, that's genius
