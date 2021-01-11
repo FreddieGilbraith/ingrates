@@ -98,7 +98,9 @@ export default function createActorSystem({
 	if (realizers.length !== 0) {
 		return Promise.all(
 			realizers.map((realizer) =>
-				realizer(spawnActor).then((x) => snoopers.push(x)),
+				realizer({ spawnActor, dispatchEnvelope }).then((x) =>
+					snoopers.push(x),
+				),
 			),
 		).then(() => {
 			if (!Object.keys(actors).length) {

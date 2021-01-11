@@ -142,7 +142,7 @@ describe("storage", () => {
 			done();
 		}
 
-		async function storageRealizer(spawnActor) {
+		async function storageRealizer({ spawnActor }) {
 			spawnActor(
 				{
 					parent: null,
