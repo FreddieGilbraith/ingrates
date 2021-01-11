@@ -4,10 +4,11 @@ function noop() {}
 
 module.exports = function createActorSystem({
 	transports = [],
+	enhancers = [],
+	realizers = [],
+
 	snoop = noop,
 	onErr = console.error,
-	storage,
-	enhancers = [],
 } = {}) {
 	const actors = {};
 
@@ -97,16 +98,18 @@ module.exports = function createActorSystem({
 		return self;
 	}
 
-	if (storage) {
-		return storage(spawnActor)
-			.then((x) => snoopers.push(x))
-			.then(() => {
-				if (!Object.keys(actors).length) {
-					return spawnActor.bind(null, null);
-				} else {
-					return () => {};
-				}
-			});
+	if (realizers.length !== 0) {
+		return Promise.all(
+			realizers.map((realizer) =>
+				realizer(spawnActor).then((x) => snoopers.push(x)),
+			),
+		).then(() => {
+			if (!Object.keys(actors).length) {
+				return spawnActor.bind(null, null);
+			} else {
+				return () => {};
+			}
+		});
 	} else {
 		return spawnActor.bind(null, null);
 	}

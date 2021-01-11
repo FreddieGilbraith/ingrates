@@ -26,11 +26,11 @@ describe("storage", () => {
 			return;
 		}
 
-		async function storage() {
+		async function storageRealizer() {
 			return onChange;
 		}
 
-		createActorSystem({ storage }).then((x) =>
+		createActorSystem({ realizers: [storageRealizer] }).then((x) =>
 			x(async function* testActor({ self, spawn }) {
 				const root = spawn(rootActor);
 
@@ -142,7 +142,7 @@ describe("storage", () => {
 			done();
 		}
 
-		async function storage(spawnActor) {
+		async function storageRealizer(spawnActor) {
 			spawnActor(
 				{
 					parent: null,
@@ -173,6 +173,6 @@ describe("storage", () => {
 			return () => {};
 		}
 
-		createActorSystem({ storage });
+		createActorSystem({ realizers: [storageRealizer] });
 	});
 });
