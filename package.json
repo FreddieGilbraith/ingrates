@@ -3,21 +3,15 @@
 	"version": "0.4.0",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
+
 	"source": "src/index.js",
 	"main": "dist/index.js",
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
-	"keywords": [
-		"actor",
-		"actors",
-		"browser",
-		"node",
-		"isomorphic"
-	],
-	"files": [
-		"dist",
-		"src"
-	],
+	"exports": "./dist/foo.modern.js",
+
+	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": ["dist", "src"],
 	"scripts": {
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "microbundle",
@@ -38,9 +32,7 @@
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": [
-					"**/*.md"
-				],
+				"files": ["**/*.md"],
 				"options": {
 					"useTabs": false,
 					"tabWidth": 2
@@ -49,9 +41,7 @@
 		]
 	},
 	"babel": {
-		"presets": [
-			"@babel/preset-env"
-		]
+		"presets": ["@babel/preset-env"]
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.12.1",

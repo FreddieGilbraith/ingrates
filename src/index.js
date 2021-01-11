@@ -65,10 +65,8 @@ module.exports = function createActorSystem({
 				.forEach((f) => f("spawn", { parent, self, gen, args }));
 
 		const provisions = enhancers.reduce(
-			(provisions, enhancer) => ({
-				...provisions,
-				...enhancer(provisions),
-			}),
+			(provisions, enhancer) =>
+				Object.assign({}, provisions, enhancer(provisions)),
 			{
 				self,
 				parent,
