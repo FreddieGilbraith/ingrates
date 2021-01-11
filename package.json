@@ -1,18 +1,23 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.3.4",
+	"version": "0.4.0",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
-
 	"source": "src/index.js",
 	"main": "dist/index.js",
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
-
-	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
-
-	"files": ["dist", "src"],
-
+	"keywords": [
+		"actor",
+		"actors",
+		"browser",
+		"node",
+		"isomorphic"
+	],
+	"files": [
+		"dist",
+		"src"
+	],
 	"scripts": {
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "microbundle",
@@ -22,20 +27,20 @@
 		"test:watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
 		"watch": "microbundle watch"
 	},
-
 	"author": "",
 	"license": "ISC",
 	"eslintConfig": {
 		"extends": "react-app"
 	},
-
 	"prettier": {
 		"tabWidth": 4,
 		"trailingComma": "all",
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": ["**/*.md"],
+				"files": [
+					"**/*.md"
+				],
 				"options": {
 					"useTabs": false,
 					"tabWidth": 2
@@ -43,11 +48,11 @@
 			}
 		]
 	},
-
 	"babel": {
-		"presets": ["@babel/preset-env"]
+		"presets": [
+			"@babel/preset-env"
+		]
 	},
-
 	"devDependencies": {
 		"@babel/cli": "^7.12.1",
 		"@babel/core": "^7.12.3",
