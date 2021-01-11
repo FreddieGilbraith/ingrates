@@ -7,14 +7,13 @@ export default function createActorSystem({
 	enhancers = [],
 	realizers = [],
 
-	snoop = noop,
 	onErr = console.error,
 } = {}) {
 	const actors = {};
 
 	const transporters = transports.map((x) => x(dispatchEnvelope));
 
-	const snoopers = [snoop];
+	const snoopers = [];
 
 	const shutdown = (id) => {
 		snoopers.forEach((f) => f("stop", { id }));

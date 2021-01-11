@@ -5,6 +5,10 @@ describe("storage", () => {
 	it("will let the storage engine know about changes to actors", (done) => {
 		const onChange = jest.fn();
 
+		async function storageRealizer() {
+			return onChange;
+		}
+
 		function* rootActor({ dispatch, spawn, parent }) {
 			const child = spawn(replyAndDieActor, "Peter");
 			dispatch(child, { type: "SOUND_OFF" });
@@ -24,10 +28,6 @@ describe("storage", () => {
 			dispatch(msg.src, { ...msg, name });
 
 			return;
-		}
-
-		async function storageRealizer() {
-			return onChange;
 		}
 
 		createActorSystem({ realizers: [storageRealizer] }).then((x) =>
