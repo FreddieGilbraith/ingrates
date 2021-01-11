@@ -1,8 +1,8 @@
-const { nanoid } = require("nanoid");
+import { nanoid } from "nanoid";
 
 function noop() {}
 
-module.exports = function createActorSystem({
+export default function createActorSystem({
 	transports = [],
 	enhancers = [],
 	realizers = [],
@@ -111,4 +111,4 @@ module.exports = function createActorSystem({
 	} else {
 		return spawnActor.bind(null, null);
 	}
-};
+}
