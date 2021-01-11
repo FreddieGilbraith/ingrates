@@ -6,8 +6,8 @@ module.exports = function createActorSystem({
 	transports = [],
 	snoop = noop,
 	onErr = console.error,
-	timeout = 1000,
 	storage,
+	enhancers = [],
 } = {}) {
 	const actors = {};
 
@@ -63,7 +63,11 @@ module.exports = function createActorSystem({
 				.filter(Boolean)
 				.forEach((f) => f("spawn", { parent, self, gen, args }));
 
-		const x = gen(
+		const provisions = enhancers.reduce(
+			(provisions, enhancer) => ({
+				...provisions,
+				...enhancer(provisions),
+			}),
 			{
 				self,
 				parent,
@@ -74,23 +78,10 @@ module.exports = function createActorSystem({
 					Promise.resolve().then(() =>
 						dispatchEnvelope({ src: self, snk, msg }),
 					),
-
-				query: (snk, msg, tim = timeout) => {
-					const src = nanoid();
-					return new Promise((done, fail) => {
-						setTimeout(fail, tim);
-						actors[src] = {
-							next: (x) => {
-								done(x);
-								return Promise.resolve({ done: true });
-							},
-						};
-						dispatchEnvelope({ snk, src, msg });
-					});
-				},
 			},
-			...args,
 		);
+
+		const x = gen(provisions, ...args);
 
 		Promise.resolve(x.next()).then(
 			(y) =>
