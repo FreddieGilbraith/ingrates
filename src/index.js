@@ -18,6 +18,11 @@ export default function createActorSystem({
 	const shutdown = (id) => {
 		snoopers.forEach((f) => f("stop", { id }));
 		delete actors[id];
+
+		const actorPairs = Object.entries(actors)
+			.filter((x) => x[1].parent === id)
+			.map((x) => x[0])
+			.forEach(shutdown);
 	};
 
 	function dispatchEnvelope(envelope) {
@@ -29,7 +34,9 @@ export default function createActorSystem({
 			.forEach((x) => x.handle(envelope));
 
 		if (actors[snk]) {
-			Promise.resolve(actors[snk].next(Object.assign({ src }, msg))).then(
+			Promise.resolve(
+				actors[snk].itter.next(Object.assign({ src }, msg)),
+			).then(
 				(x) => {
 					snoopers.forEach(
 						(f) =>
@@ -79,9 +86,9 @@ export default function createActorSystem({
 			},
 		);
 
-		const x = gen(provisions, ...args);
+		const itter = gen(provisions, ...args);
 
-		Promise.resolve(x.next()).then(
+		Promise.resolve(itter.next()).then(
 			(y) =>
 				y.value &&
 				snoopers &&
@@ -90,7 +97,10 @@ export default function createActorSystem({
 				),
 		);
 
-		actors[self] = x;
+		actors[self] = {
+			itter,
+			parent,
+		};
 
 		return self;
 	}
