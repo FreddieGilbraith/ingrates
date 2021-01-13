@@ -14,28 +14,42 @@ describe("supervision", () => {
 		jest.resetAllMocks();
 	});
 
-	describe("retry", () => {});
-	describe("continue", () => {});
-	describe("restart", () => {});
-	describe("stop", () => {});
+	describe("general", () => {
+		it.todo("should recieve the message that caused the failure");
+		it.todo("should recieve the state at the time of failure");
+	});
 
-	describe("escalate", () => {});
+	describe("retry", () => {
+		it.todo(
+			"should pass the actor the same message again, before any others in the mailbox",
+		);
+	});
 
-	async function* errorThrowingActor({}) {
-		while (true) {
-			const msg = yield;
+	describe("continue", () => {
+		it.todo("should pass the actor the next message in the mailbox");
+	});
 
-			switch (msg.type) {
-				case "THROW":
-					(() => {
-						throw new Error("test throw");
-					})();
+	describe("restart", () => {
+		it.todo("should start the actor again, with a clear mailbox");
+	});
 
-				case "REJECT":
-					await Promise.reject(new Error("test rejection"));
-			}
-		}
-	}
+	describe("stop", () => {
+		it.todo(
+			"should stop the actor, which will then process no further messages",
+		);
+		it.todo("should stop all child actors");
+	});
 
-	it.todo("stub");
+	describe("escalate", () => {
+		it.todo(
+			"should cause the parent actor to fail, calling its supervisor",
+		);
+	});
+
+	describe("complex", () => {
+		it.todo(
+			"should retry 3 times, with a 500ms pause between, then continue",
+		);
+		it.todo("should retry 1 time, after a 500ms pause, then restart");
+	});
 });
