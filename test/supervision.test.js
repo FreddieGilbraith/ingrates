@@ -2,10 +2,6 @@ import "babel-polyfill";
 
 import createActorSystem from "../src";
 
-function flushPromises() {
-	return new Promise((done) => setImmediate(done));
-}
-
 describe("supervision", () => {
 	beforeEach(() => {
 		jest.spyOn(console, "error").mockImplementation(() => {});

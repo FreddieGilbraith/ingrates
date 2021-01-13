@@ -1,9 +1,7 @@
 import "babel-polyfill";
 import createActorSystem from "../src";
 
-function pause() {
-	return new Promise((x) => setTimeout(x, Math.random() * 10));
-}
+import { pause, queryEnhancer } from "./utils";
 
 async function* doublerActor({ parent, dispatch }) {
 	while (true) {
@@ -15,35 +13,9 @@ async function* doublerActor({ parent, dispatch }) {
 	}
 }
 
-function queryEnhancer({ self, spawn, dispatch }) {
-	function query(snk, msg, timeout = 1000) {
-		return new Promise((done, fail) => {
-			function* QueryActor({ self, dispatch }) {
-				dispatch(snk, msg);
-				setTimeout(
-					dispatch.bind(null, self, { type: "TIMEOUT" }),
-					timeout,
-				);
-
-				const response = yield;
-
-				if (response.type === "TIMEOUT") {
-					fail(timeout);
-				} else {
-					done(response);
-				}
-			}
-
-			spawn(QueryActor);
-		});
-	}
-
-	return {
-		query,
-	};
-}
-
 it("can directly query an actor", (done) => {
+	expect.assertions(1);
+
 	createActorSystem({ enhancers: [queryEnhancer] })(
 		async function* testActor({ spawn, dispatch, self, query }) {
 			const child = spawn(doublerActor);
@@ -66,18 +38,18 @@ it("can directly query an actor", (done) => {
 });
 
 it("reject if the timeout is reached", (done) => {
-	createActorSystem()(async function* testActor({
-		spawn,
-		dispatch,
-		self,
-		query,
-	}) {
-		const child = spawn(doublerActor);
+	expect.assertions(1);
 
-		try {
-			const reply = await query(child, { type: "NO_REPLY" });
-		} catch (e) {
-			done();
-		}
-	});
+	createActorSystem({ enhancers: [queryEnhancer] })(
+		async function* testActor({ spawn, dispatch, self, query }) {
+			const child = spawn(doublerActor);
+
+			try {
+				const reply = await query(child, { type: "NO_REPLY" });
+			} catch (e) {
+				expect(e.type).toBe("QUERY_TIMEOUT");
+				done();
+			}
+		},
+	);
 });
