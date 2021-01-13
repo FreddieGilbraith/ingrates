@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid";
+import fixedId from "fixed-id";
 
 function noop() {}
 
@@ -54,7 +54,7 @@ export default function createActorSystem({
 				? {
 						parent: _parent,
 						state: undefined,
-						self: nanoid(),
+						self: fixedId(),
 				  }
 				: _parent;
 
