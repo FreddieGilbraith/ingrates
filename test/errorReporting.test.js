@@ -13,14 +13,37 @@ describe("error reporting", () => {
 		jest.resetAllMocks();
 	});
 
-	async function* errorCreatingActor() {
-		const msg = yield;
-		if (msg.type === "FAIL") {
-			throw new Error("test error");
+	it("should console.error if a sync actor fails", (done) => {
+		function* errorCreatingActor() {
+			const msg = yield;
+			if (msg.type === "FAIL") {
+				throw new Error("test error");
+			}
 		}
-	}
 
-	it("should console.error if an actor fails", (done) => {
+		createActorSystem()(async function* testActor({ spawn, dispatch }) {
+			const problemChild = spawn(errorCreatingActor);
+
+			dispatch(problemChild, { type: "FAIL" });
+
+			await flushPromises();
+
+			expect(console.error).toHaveBeenCalledWith(
+				problemChild,
+				new Error("test error"),
+			);
+
+			done();
+		});
+	});
+	it("should console.error if an async actor fails", (done) => {
+		async function* errorCreatingActor() {
+			const msg = yield;
+			if (msg.type === "FAIL") {
+				throw new Error("test error");
+			}
+		}
+
 		createActorSystem()(async function* testActor({ spawn, dispatch }) {
 			const problemChild = spawn(errorCreatingActor);
 
@@ -38,6 +61,13 @@ describe("error reporting", () => {
 	});
 
 	it("can override the error handler", (done) => {
+		function* errorCreatingActor() {
+			const msg = yield;
+			if (msg.type === "FAIL") {
+				throw new Error("test error");
+			}
+		}
+
 		const onErr = jest.fn();
 		createActorSystem({ onErr })(async function* testActor({
 			spawn,

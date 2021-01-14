@@ -52,7 +52,6 @@ describe("shutdown", () => {
 
 			dispatch(bob, { type: "STOP" });
 
-			await sleep(100);
 			await flushPromises();
 
 			try {
@@ -142,5 +141,61 @@ describe("shutdown", () => {
 		);
 	});
 
-	test.todo("actors should shutdown when their parents crash");
+	test("actors should shutdown when their parents crash", (done) => {
+		expect.assertions(2);
+
+		function* Eve({ dispatch }) {
+			while (true) {
+				const msg = yield;
+				if (msg.type === "PING") {
+					dispatch(msg.src, { type: "PONG" });
+				}
+			}
+		}
+
+		function* Zed({ spawn, dispatch }) {
+			let running = true;
+			const eve = spawn(Eve);
+
+			while (running) {
+				const msg = yield;
+				switch (msg.type) {
+					case "REQUEST_EVE_ADDRESS": {
+						dispatch(msg.src, {
+							type: "RESPONSE_EVE_ADDRESS",
+							addr: eve,
+						});
+						break;
+					}
+
+					case "KILL": {
+						throw new Error("Zed's dead, Baby");
+					}
+				}
+			}
+		}
+
+		createActorSystem({
+			enhancers: [queryEnhancer],
+			onErr: jest.fn(),
+		})(async function* TestActor({ spawn, dispatch, query }) {
+			const zed = spawn(Zed);
+			const { addr: eve } = await query(zed, {
+				type: "REQUEST_EVE_ADDRESS",
+			});
+
+			const response1 = await query(eve, { type: "PING" });
+			expect(response1.type).toBe("PONG");
+
+			dispatch(zed, { type: "KILL" });
+
+			try {
+				const response1 = await query(eve, { type: "PING" });
+				done("Fail: Eve was still queryable");
+			} catch (e) {
+				expect(e.type).toBe("QUERY_TIMEOUT");
+				done();
+			}
+		});
+	});
 });

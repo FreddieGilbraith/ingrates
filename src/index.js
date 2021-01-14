@@ -34,24 +34,29 @@ export default function createActorSystem({
 			.forEach((x) => x.handle(envelope));
 
 		if (actors[snk]) {
-			Promise.resolve(
-				actors[snk].itter.next(Object.assign({ src }, msg)),
-			).then(
-				(x) => {
-					snoopers.forEach(
-						(f) =>
-							x.value &&
-							f("publish", { id: snk, value: x.value }),
-					);
-					if (x.done) {
+			try {
+				Promise.resolve(
+					actors[snk].itter.next(Object.assign({ src }, msg)),
+				).then(
+					(x) => {
+						snoopers.forEach(
+							(f) =>
+								x.value &&
+								f("publish", { id: snk, value: x.value }),
+						);
+						if (x.done) {
+							shutdown(snk);
+						}
+					},
+					(x) => {
+						onErr(snk, x);
 						shutdown(snk);
-					}
-				},
-				(x) => {
-					onErr(snk, x);
-					shutdown(snk);
-				},
-			);
+					},
+				);
+			} catch (e) {
+				onErr(snk, e);
+				shutdown(snk);
+			}
 		}
 	}
 
