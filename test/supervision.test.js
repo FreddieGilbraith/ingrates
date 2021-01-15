@@ -1,5 +1,6 @@
 import "babel-polyfill";
 
+import { queryEnhancer, flushPromises } from "./utils";
 import createActorSystem from "../src";
 
 describe("supervision", () => {
@@ -10,9 +11,100 @@ describe("supervision", () => {
 		jest.resetAllMocks();
 	});
 
-	describe("general", () => {
-		it.todo("should recieve the message that caused the failure");
-		it.todo("should recieve the state at the time of failure");
+	describe.skip("general", () => {
+		const supervisor = jest.fn();
+
+		async function* CrashableActor({ dispatch, state = {} }) {
+			while (true) {
+				const msg = yield state;
+				switch (msg.type) {
+					case "PING":
+						dispatch(msg.src, { type: "PONG" });
+						state.timesPinged = (state.timesPinged || 0) + 1;
+						break;
+					case "KILL":
+						throw new Error("I was told to crash");
+						break;
+				}
+			}
+		}
+
+		CrashableActor.supervision = supervisor;
+
+		it("should recieve the provisions of the failed actor", (done) =>
+			createActorSystem()(async function* testActor({ spawn, dispatch }) {
+				expect.assertions(2);
+				const crashable = spawn(CrashableActor);
+				dispatch(crashable, { type: "KILL", meta: 123 });
+
+				await flushPromises();
+
+				expect(supervisor).toHaveBeenCalledTimes(1);
+				expect(supervisor.mock.calls[0][0].self).toEqual(crashable);
+
+				done();
+			}));
+
+		it("should recieve the message that caused the failure", (done) =>
+			createActorSystem()(async function* testActor({
+				spawn,
+				dispatch,
+				self,
+			}) {
+				expect.assertions(2);
+				const crashable = spawn(CrashableActor);
+				dispatch(crashable, { type: "KILL", meta: 123 });
+
+				await flushPromises();
+
+				expect(supervisor).toHaveBeenCalledTimes(1);
+				expect(supervisor.mock.calls[0][1].msg).toEqual({
+					src: self,
+					type: "KILL",
+					meta: 123,
+				});
+
+				done();
+			}));
+
+		it("should recieve the error that was thrown from the failure", (done) =>
+			createActorSystem()(async function* testActor({ spawn, dispatch }) {
+				expect.assertions(2);
+				const crashable = spawn(CrashableActor);
+				dispatch(crashable, { type: "KILL", meta: 123 });
+
+				await flushPromises();
+
+				expect(supervisor).toHaveBeenCalledTimes(1);
+				expect(supervisor.mock.calls[0][1].err).toEqual(
+					new Error("I was told to crash"),
+				);
+
+				done();
+			}));
+
+		it("should recieve the preceding state from the time of failure", (done) =>
+			createActorSystem({ enhancers: [queryEnhancer] })(
+				async function* testActor({ spawn, dispatch, query }) {
+					expect.assertions(2);
+					const crashable = spawn(CrashableActor);
+
+					await query(crashable, { type: "PING" });
+					await query(crashable, { type: "PING" });
+					await query(crashable, { type: "PING" });
+
+					dispatch(crashable, { type: "KILL", meta: 123 });
+
+					await flushPromises();
+
+					expect(supervisor).toHaveBeenCalledTimes(1);
+					expect(supervisor.mock.calls[0][1].state).toEqual({
+						timesPinged: 3,
+					});
+
+					done();
+				},
+			));
 	});
 
 	describe("retry", () => {
