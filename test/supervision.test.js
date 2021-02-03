@@ -11,7 +11,7 @@ describe("supervision", () => {
 		jest.resetAllMocks();
 	});
 
-	describe.skip("general", () => {
+	describe.only("general", () => {
 		const supervisor = jest.fn();
 
 		async function* CrashableActor({ dispatch, state = {} }) {
@@ -107,9 +107,9 @@ describe("supervision", () => {
 			));
 	});
 
-	describe("retry", () => {
+	describe("requeue", () => {
 		it.todo(
-			"should pass the actor the same message again, before any others in the mailbox",
+			"should pass the actor the same message again, at the end of it's current mailbox mailbox",
 		);
 	});
 

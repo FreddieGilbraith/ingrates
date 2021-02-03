@@ -1,11 +1,13 @@
 import fixedId from "fixed-id";
 
 function noop() {}
+function fallbackSupervisor() {}
 
 export default function createActorSystem({
 	transports = [],
 	enhancers = [],
 	realizers = [],
+	defaultSupervisor = fallbackSupervisor,
 
 	onErr = console.error,
 } = {}) {
@@ -25,6 +27,22 @@ export default function createActorSystem({
 			.forEach(shutdown);
 	};
 
+	const onActorError = (id, msg, err) => {
+		const actorInstance = actors[id];
+
+		const supervisor = actorInstance.super;
+		if (supervisor) {
+			supervisor(actorInstance.provisions, {
+				msg,
+				err,
+				state: actorInstance.state,
+			});
+		}
+
+		onErr(id, err);
+		shutdown(id);
+	};
+
 	function dispatchEnvelope(envelope) {
 		const { src, msg, snk } = envelope;
 		snoopers.forEach((f) => f("dispatch", envelope));
@@ -34,28 +52,26 @@ export default function createActorSystem({
 			.forEach((x) => x.handle(envelope));
 
 		if (actors[snk]) {
+			const chonkyMsg = Object.assign({ src }, msg);
 			try {
-				Promise.resolve(
-					actors[snk].itter.next(Object.assign({ src }, msg)),
-				).then(
+				Promise.resolve(actors[snk].itter.next(chonkyMsg)).then(
 					(x) => {
-						snoopers.forEach(
-							(f) =>
-								x.value &&
+						if (x.value) {
+							snoopers.forEach((f) =>
 								f("publish", { id: snk, value: x.value }),
-						);
+							);
+							actors[snk].state = x.value;
+						}
 						if (x.done) {
 							shutdown(snk);
 						}
 					},
-					(x) => {
-						onErr(snk, x);
-						shutdown(snk);
+					(error) => {
+						onActorError(snk, chonkyMsg, error);
 					},
 				);
-			} catch (e) {
-				onErr(snk, e);
-				shutdown(snk);
+			} catch (error) {
+				onActorError(snk, chonkyMsg, error);
 			}
 		}
 	}
@@ -105,6 +121,8 @@ export default function createActorSystem({
 		actors[self] = {
 			itter,
 			parent,
+			super: gen.supervision || defaultSupervisor,
+			provisions,
 		};
 
 		return self;

@@ -141,7 +141,7 @@ describe("shutdown", () => {
 		);
 	});
 
-	test("actors should shutdown when their parents crash", (done) => {
+	test.only("actors should shutdown when their parents crash", (done) => {
 		expect.assertions(2);
 
 		function* Eve({ dispatch }) {
