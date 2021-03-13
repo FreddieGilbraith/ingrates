@@ -1,3 +1,11 @@
+## Supervision
+
+Ok, so, a crashed generator can't be resumed, because there's no way for the generator function to know how to pull the next message in. The `throw` has stopped execution, so it can loop back up to the yield...
+
+Because of this limitation, I don't actually think there's much value in trying to support proper supervision out of the box...
+
+Addmitedly, because ingrates only requires an itter to have a `next` method, you could create a seperate wrapper that produces compatable itters from a pure function and a supervisor. But at that point you can still do the supervision in userland anyway, the only thing you'd be missing is escalation...
+
 ## React Hooks
 
 We probably can't surface a simple `useActor(async function*(){})` hooks, as this doesn't provide a built in way to destroy the actor when the component unmounts.

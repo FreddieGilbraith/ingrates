@@ -1,14 +1,11 @@
 import fixedId from "fixed-id";
 
-function fallbackSupervisor() {}
-
 export default function createActorSystem({
 	transports = [],
 	enhancers = [],
 	realizers = [],
-	defaultSupervisor = fallbackSupervisor,
 
-	onErr = console.error,
+	onErr = console.error.bind(null, "Ingrates Error"),
 } = {}) {
 	const roots = [];
 	const actors = {};
@@ -27,19 +24,8 @@ export default function createActorSystem({
 			.forEach(shutdown);
 	};
 
-	const onActorError = (id, msg, err) => {
-		const actorInstance = actors[id];
-
-		const supervisor = actorInstance.super;
-		if (supervisor) {
-			supervisor(actorInstance.provisions, {
-				msg,
-				err,
-				state: actorInstance.state,
-			});
-		}
-
-		onErr(id, err);
+	const onActorError = (id, envelope, err) => {
+		onErr(id, actors[id], err);
 		shutdown(id);
 	};
 
@@ -73,11 +59,11 @@ export default function createActorSystem({
 						}
 					},
 					(error) => {
-						onActorError(snk, chonkyMsg, error);
+						onActorError(snk, envelope, error);
 					},
 				);
 			} catch (error) {
-				onActorError(snk, chonkyMsg, error);
+				onActorError(snk, envelope, error);
 			}
 		}
 	}
@@ -131,7 +117,6 @@ export default function createActorSystem({
 		actors[self] = {
 			itter,
 			parent,
-			super: gen.supervision || defaultSupervisor,
 			provisions,
 		};
 
