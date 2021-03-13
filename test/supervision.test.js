@@ -11,7 +11,7 @@ describe("supervision", () => {
 		jest.resetAllMocks();
 	});
 
-	describe.skip("general", () => {
+	describe("general", () => {
 		const supervisor = jest.fn();
 
 		async function* CrashableActor({ dispatch, state = {} }) {
@@ -32,7 +32,7 @@ describe("supervision", () => {
 
 		CrashableActor.supervision = supervisor;
 
-		it("should recieve the provisions of the failed actor", (done) =>
+		it.only("should recieve the provisions of the failed actor", (done) =>
 			createActorSystem()(async function* testActor({ spawn, dispatch }) {
 				expect.assertions(2);
 				const crashable = spawn(CrashableActor);
@@ -108,10 +108,86 @@ describe("supervision", () => {
 			));
 	});
 
-	describe("retry", () => {
-		it.todo(
-			"should pass the actor the same message again, before any others in the mailbox",
-		);
+	describe.skip("retry", () => {
+		async function* CrashableActor({ dispatch, state = { users: [] } }) {
+			while (true) {
+				const msg = yield state;
+
+				console.log("CrashableActor", msg);
+				switch (msg.type) {
+					case "ADD_USER": {
+						state[msg.userId] = { name: msg.userName };
+						break;
+					}
+
+					case "GET_USER": {
+						if (state[msg.userId]) {
+							dispatch(msg.src, {
+								type: "DESCRIBE_USER",
+								userId: msg.userId,
+								user: state[msg.userId],
+							});
+							break;
+						} else {
+							throw new Error("Requested undefined user");
+						}
+					}
+
+					default:
+						continue;
+				}
+			}
+		}
+
+		CrashableActor.supervisor = ({ dispatch, self }, { msg, err }) => {
+			console.log("CrashableActor.supervisor", err);
+
+			if (err.message === "Requested undefined user") {
+				dispatch(self, {
+					type: "ADD_USER",
+					userId: msg.userId,
+					userName: "STUB_USER",
+				});
+				return "retry";
+			}
+		};
+
+		it("should pass the actor the same message again, after any others in the mailbox", (done) =>
+			createActorSystem({ enhancers: [queryEnhancer] })(
+				async function* testActor({ spawn, dispatch, query }) {
+					const actor = spawn(CrashableActor);
+
+					dispatch(actor, {
+						type: "ADD_USER",
+						userId: 1,
+						userName: "Alice",
+					});
+					dispatch(actor, { type: "GET_USER", userId: 2 });
+					dispatch(actor, { type: "GET_USER", userId: 1 });
+
+					const msg1 = yield;
+					expect(msg1).toMatchObject({
+						src: actor,
+						type: "DESCRIBE_USER",
+						userId: 1,
+						user: {
+							name: "Alice",
+						},
+					});
+
+					const msg2 = yield;
+					expect(msg2).toMatchObject({
+						src: actor,
+						type: "DESCRIBE_USER",
+						userId: 2,
+						user: {
+							name: "STUB_USER",
+						},
+					});
+
+					done();
+				},
+			));
 	});
 
 	describe("continue", () => {
