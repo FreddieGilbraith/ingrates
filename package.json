@@ -8,22 +8,14 @@
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/foo.modern.js",
-	"keywords": [
-		"actor",
-		"actors",
-		"browser",
-		"node",
-		"isomorphic"
-	],
-	"files": [
-		"dist",
-		"src"
-	],
+	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": ["dist", "src"],
 	"scripts": {
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "microbundle",
 		"prepublishOnly": "npm run build",
 		"format": "prettier --write src/**/*",
+		"lint": "eslint . && prettier --check src/**/*",
 		"prepushOnly": "npm run format && && npm run test && npm run build",
 		"test:watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
 		"watch": "microbundle watch"
@@ -31,7 +23,7 @@
 	"author": "",
 	"license": "ISC",
 	"eslintConfig": {
-		"extends": "react-app"
+		"extends": "@little-bonsai"
 	},
 	"prettier": {
 		"tabWidth": 4,
@@ -39,9 +31,7 @@
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": [
-					"**/*.md"
-				],
+				"files": ["**/*.md"],
 				"options": {
 					"useTabs": false,
 					"tabWidth": 2
@@ -50,24 +40,18 @@
 		]
 	},
 	"babel": {
-		"presets": [
-			"@babel/preset-env"
-		]
+		"presets": ["@babel/preset-env"]
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.12.1",
 		"@babel/core": "^7.12.3",
 		"@babel/preset-env": "^7.12.1",
+		"@little-bonsai/eslint-config": "0.0.2",
 		"babel-eslint": "^10.1.0",
 		"babel-jest": "^26.6.2",
 		"babel-polyfill": "^6.26.0",
 		"babel-preset-minify": "^0.5.1",
 		"eslint": "^7.12.1",
-		"eslint-config-react-app": "^6.0.0",
-		"eslint-plugin-flowtype": "^5.2.0",
-		"eslint-plugin-import": "^2.22.1",
-		"eslint-plugin-jsx-a11y": "^6.4.1",
-		"eslint-plugin-react": "^7.21.5",
 		"jest-cli": "^26.6.2",
 		"microbundle": "^0.12.4",
 		"prettier": "^2.1.2",
