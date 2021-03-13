@@ -2,8 +2,6 @@ import { performance } from "perf_hooks";
 import "babel-polyfill";
 import createActorSystem from "../src";
 
-import { queryEnhancer } from "./utils";
-
 describe("performance", () => {
 	it("can go fast", (done) => {
 		const actorStarted = jest.fn();
@@ -49,6 +47,8 @@ describe("performance", () => {
 							});
 							break running;
 						}
+					default:
+						continue;
 				}
 			}
 		}

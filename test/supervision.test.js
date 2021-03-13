@@ -24,7 +24,8 @@ describe("supervision", () => {
 						break;
 					case "KILL":
 						throw new Error("I was told to crash");
-						break;
+					default:
+						continue;
 				}
 			}
 		}

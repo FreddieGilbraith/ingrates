@@ -3,7 +3,7 @@ import createActorSystem from "../src";
 
 import { pause, queryEnhancer } from "./utils";
 
-async function* doublerActor({ parent, dispatch }) {
+async function* doublerActor({ dispatch }) {
 	while (true) {
 		const msg = yield;
 		if (msg.type === "SHOULD_REPLY") {
@@ -17,7 +17,7 @@ it("can directly query an actor", (done) => {
 	expect.assertions(1);
 
 	createActorSystem({ enhancers: [queryEnhancer] })(
-		async function* testActor({ spawn, dispatch, self, query }) {
+		async function* testActor({ spawn, query }) {
 			const child = spawn(doublerActor);
 			const reply = await query(child, {
 				type: "SHOULD_REPLY",
@@ -41,11 +41,11 @@ it("reject if the timeout is reached", (done) => {
 	expect.assertions(1);
 
 	createActorSystem({ enhancers: [queryEnhancer] })(
-		async function* testActor({ spawn, dispatch, self, query }) {
+		async function* testActor({ spawn, query }) {
 			const child = spawn(doublerActor);
 
 			try {
-				const reply = await query(child, { type: "NO_REPLY" });
+				await query(child, { type: "NO_REPLY" });
 			} catch (e) {
 				expect(e.type).toBe("QUERY_TIMEOUT");
 				done();

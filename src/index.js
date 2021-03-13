@@ -1,7 +1,5 @@
 import fixedId from "fixed-id";
 
-function noop() {}
-
 export default function createActorSystem({
 	transports = [],
 	enhancers = [],
@@ -19,7 +17,7 @@ export default function createActorSystem({
 		snoopers.forEach((f) => f("stop", { id }));
 		delete actors[id];
 
-		const actorPairs = Object.entries(actors)
+		Object.entries(actors)
 			.filter((x) => x[1].parent === id)
 			.map((x) => x[0])
 			.forEach(shutdown);

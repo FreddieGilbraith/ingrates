@@ -1,10 +1,9 @@
 import "babel-polyfill";
-import { nanoid } from "nanoid";
 
 import createActorSystem from "../src";
 
 async function* networkEnabledActor({ dispatch, parent }) {
-	const msg1 = yield;
+	const _msg1 = yield;
 	dispatch("database@users", {
 		type: "QUERY",
 		userId: 123,
@@ -23,8 +22,8 @@ it.only("will communicate with transports", (done) => {
 	function selectiveTransport(dispatch) {
 		replyFromDb = dispatch;
 		return {
-			match: ({ src, msg, snk }) => snk.startsWith("database@"),
-			handle: ({ src, msg, snk }) =>
+			match: ({ snk }) => snk.startsWith("database@"),
+			handle: ({ msg, snk }) =>
 				mockFetchSelective(`actor/${snk.replace("database@", "")}`, {
 					body: msg,
 				}),

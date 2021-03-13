@@ -37,6 +37,8 @@ function* ShoutingActor({ dispatch, parent }) {
 					src: parent,
 				});
 				break;
+			default:
+				continue;
 		}
 	}
 }
@@ -55,7 +57,8 @@ function* WhisperingActor({ dispatch }, postscript) {
 
 			case "SWITCH":
 				break running;
-				break;
+			default:
+				continue;
 		}
 	}
 }
@@ -64,7 +67,7 @@ describe("delegation", () => {
 	it("can delegate by actor address", (done) => {
 		expect.assertions(2);
 
-		function* FormatManager({ spawn, dispatch, delegate, delegateTo }) {
+		function* FormatManager({ spawn, delegateTo }) {
 			while (true) {
 				const shouter = spawn(ShoutingActor);
 
@@ -73,7 +76,7 @@ describe("delegation", () => {
 		}
 
 		createActorSystem({ enhancers: [queryEnhancer, delegationEnhancer] })(
-			async function* TestActor({ spawn, dispatch, query }) {
+			async function* TestActor({ spawn, query }) {
 				const manager = spawn(FormatManager);
 
 				expect(
@@ -106,16 +109,16 @@ describe("delegation", () => {
 	it("can delegate by actor definition", (done) => {
 		expect.assertions(2);
 
-		function* FormatManager({ spawn, dispatch, delegate, delegateTo }) {
+		function* FormatManager({ spawn, delegate }) {
 			while (true) {
-				const shouter = spawn(ShoutingActor);
+				spawn(ShoutingActor);
 
 				yield* delegate(WhisperingActor, "...ssh");
 			}
 		}
 
 		createActorSystem({ enhancers: [queryEnhancer, delegationEnhancer] })(
-			async function* TestActor({ spawn, dispatch, query }) {
+			async function* TestActor({ spawn, query }) {
 				const manager = spawn(FormatManager);
 
 				expect(
@@ -148,7 +151,7 @@ describe("delegation", () => {
 	it("can delegate to multiple actors", (done) => {
 		expect.assertions(6);
 
-		function* FormatManager({ spawn, dispatch, delegate, delegateTo }) {
+		function* FormatManager({ spawn, delegate, delegateTo }) {
 			while (true) {
 				const shouter = spawn(ShoutingActor);
 
