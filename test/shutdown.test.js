@@ -1,7 +1,7 @@
 import "babel-polyfill";
 import createActorSystem from "../src";
 
-import { flushPromises, sleep, pause, queryEnhancer } from "./utils";
+import { flushPromises, queryEnhancer } from "./utils";
 
 describe("shutdown", () => {
 	test("actors should shutdown when their parents shutdown gracefully", (done) => {
@@ -35,6 +35,8 @@ describe("shutdown", () => {
 						running = false;
 						break;
 					}
+					default:
+						continue;
 				}
 			}
 		}
@@ -55,7 +57,7 @@ describe("shutdown", () => {
 			await flushPromises();
 
 			try {
-				const response1 = await query(eve, { type: "PING" });
+				const _response1 = await query(eve, { type: "PING" });
 				done("Fail: Eve was still queryable");
 			} catch (e) {
 				expect(e.type).toBe("QUERY_TIMEOUT");
@@ -80,12 +82,15 @@ describe("shutdown", () => {
 			while (true) {
 				const msg = yield;
 				switch (msg.type) {
-					case "REQUEST_EVE_ADDRESS": {
+					case "REQUEST_EVE_ADDRESS":
 						dispatch(msg.src, {
 							type: "RESPONSE_EVE_ADDRESS",
 							addr: eve,
 						});
-					}
+						break;
+
+					default:
+						continue;
 				}
 			}
 		}
@@ -112,6 +117,8 @@ describe("shutdown", () => {
 						running = false;
 						break;
 					}
+					default:
+						continue;
 				}
 			}
 		}
@@ -131,7 +138,7 @@ describe("shutdown", () => {
 				await flushPromises();
 
 				try {
-					const response1 = await query(eve, { type: "PING" });
+					const _response2 = await query(eve, { type: "PING" });
 					done("Fail: Eve was still queryable");
 				} catch (e) {
 					expect(e.type).toBe("QUERY_TIMEOUT");
@@ -171,6 +178,8 @@ describe("shutdown", () => {
 					case "KILL": {
 						throw new Error("Zed's dead, Baby");
 					}
+					default:
+						continue;
 				}
 			}
 		}
@@ -190,7 +199,7 @@ describe("shutdown", () => {
 			dispatch(zed, { type: "KILL" });
 
 			try {
-				const response1 = await query(eve, { type: "PING" });
+				const _response2 = await query(eve, { type: "PING" });
 				done("Fail: Eve was still queryable");
 			} catch (e) {
 				expect(e.type).toBe("QUERY_TIMEOUT");

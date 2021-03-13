@@ -1,6 +1,6 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.5.2",
+	"version": "0.5.3",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
 	"source": "src/index.js",
@@ -24,6 +24,7 @@
 		"build": "microbundle",
 		"prepublishOnly": "npm run build",
 		"format": "prettier --write src/**/*",
+		"lint": "eslint . && prettier --check src/**/*",
 		"prepushOnly": "npm run format && && npm run test && npm run build",
 		"test:watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
 		"watch": "microbundle watch"
@@ -31,7 +32,7 @@
 	"author": "",
 	"license": "ISC",
 	"eslintConfig": {
-		"extends": "react-app"
+		"extends": "@little-bonsai"
 	},
 	"prettier": {
 		"tabWidth": 4,
@@ -55,22 +56,18 @@
 		]
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.12.1",
-		"@babel/core": "^7.12.3",
-		"@babel/preset-env": "^7.12.1",
+		"@babel/cli": "^7.13.10",
+		"@babel/core": "^7.13.10",
+		"@babel/preset-env": "^7.13.10",
+		"@little-bonsai/eslint-config": "0.0.3",
 		"babel-eslint": "^10.1.0",
-		"babel-jest": "^26.6.2",
+		"babel-jest": "^26.6.3",
 		"babel-polyfill": "^6.26.0",
 		"babel-preset-minify": "^0.5.1",
-		"eslint": "^7.12.1",
-		"eslint-config-react-app": "^6.0.0",
-		"eslint-plugin-flowtype": "^5.2.0",
-		"eslint-plugin-import": "^2.22.1",
-		"eslint-plugin-jsx-a11y": "^6.4.1",
-		"eslint-plugin-react": "^7.21.5",
-		"jest-cli": "^26.6.2",
-		"microbundle": "^0.12.4",
-		"prettier": "^2.1.2",
+		"eslint": "^7.22.0",
+		"jest-cli": "^26.6.3",
+		"microbundle": "^0.13.0",
+		"prettier": "^2.2.1",
 		"ramda": "^0.27.1"
 	},
 	"dependencies": {

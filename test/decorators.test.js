@@ -42,6 +42,8 @@ describe("decorators", () => {
 						});
 						break;
 					}
+					default:
+						continue;
 				}
 			}
 		}

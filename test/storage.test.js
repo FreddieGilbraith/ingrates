@@ -94,7 +94,7 @@ describe("storage", () => {
 	it("will recreate the actor system when storage() is first called", (done) => {
 		expect.assertions(2);
 
-		function* statefulActor({ self, parent, dispatch, state }, name) {
+		function* statefulActor({ self, dispatch, state }) {
 			while (true) {
 				const msg = yield state;
 				switch (msg.type) {
@@ -111,11 +111,13 @@ describe("storage", () => {
 							counter: self,
 						});
 						break;
+					default:
+						continue;
 				}
 			}
 		}
 
-		function* rootActor({ self, parent, dispatch, spawn, state }, name) {
+		function* rootActor({ self, parent, dispatch, spawn, state }) {
 			state.counterChild = state.counterChild || spawn(statefulActor);
 
 			dispatch(state.counterChild, { type: "INC" });
@@ -127,7 +129,7 @@ describe("storage", () => {
 			dispatch(parent, { ...response, src: self });
 		}
 
-		function* testActor({ spawn, self }) {
+		function* testActor({ self }) {
 			expect(self).toBe("test-actor");
 
 			const msg = yield;

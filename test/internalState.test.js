@@ -5,7 +5,7 @@ function pause() {
 	return new Promise((x) => setTimeout(x, Math.random() * 10));
 }
 
-async function* countingActor({ spawn, dispatch }, name) {
+async function* countingActor({ dispatch }, name) {
 	const state = {
 		count: 0,
 	};
@@ -36,6 +36,8 @@ async function* countingActor({ spawn, dispatch }, name) {
 				});
 				continue;
 			}
+			default:
+				continue;
 		}
 	}
 }

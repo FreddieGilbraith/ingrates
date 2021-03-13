@@ -1,6 +1,5 @@
 import fixedId from "fixed-id";
 
-function noop() {}
 function fallbackSupervisor() {}
 
 export default function createActorSystem({
@@ -11,6 +10,7 @@ export default function createActorSystem({
 
 	onErr = console.error,
 } = {}) {
+	const roots = [];
 	const actors = {};
 
 	const transporters = transports.map((x) => x(dispatchEnvelope));
@@ -21,7 +21,7 @@ export default function createActorSystem({
 		snoopers.forEach((f) => f("stop", { id }));
 		delete actors[id];
 
-		const actorPairs = Object.entries(actors)
+		Object.entries(actors)
 			.filter((x) => x[1].parent === id)
 			.map((x) => x[0])
 			.forEach(shutdown);
@@ -50,6 +50,12 @@ export default function createActorSystem({
 		transporters
 			.filter((x) => x.match(envelope))
 			.forEach((x) => x.handle(envelope));
+
+		if (snk === "root") {
+			return roots.forEach((snk) =>
+				dispatchEnvelope(Object.assign({}, envelope, { snk })),
+			);
+		}
 
 		if (actors[snk]) {
 			const chonkyMsg = Object.assign({ src }, msg);
@@ -117,6 +123,10 @@ export default function createActorSystem({
 					f("publish", { id: self, value: y.value }),
 				),
 		);
+
+		if (parent === null) {
+			roots.push(self);
+		}
 
 		actors[self] = {
 			itter,

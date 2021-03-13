@@ -5,7 +5,7 @@ function flushPromises() {
 	return new Promise((x) => setImmediate(x));
 }
 
-async function* childActor({ dispatch, parent }, name, age) {
+async function* childActor({ dispatch }) {
 	while (true) {
 		const msg = yield;
 		switch (msg.type) {
@@ -14,6 +14,8 @@ async function* childActor({ dispatch, parent }, name, age) {
 				break;
 			case "STOP":
 				return;
+			default:
+				continue;
 		}
 	}
 }
