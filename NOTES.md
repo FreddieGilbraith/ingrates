@@ -1,3 +1,11 @@
+## Pure Actors
+
+I could potench solve the supervision problem, if I provide support for describing `Pure Actors`, which would be functions, rather than generators.
+
+I think I have to look into how much that would increase the core engine bundle, and if I think it's an API that aligns with Ingrates ideals...
+
+Probably better to have a half decent supervision story, even if it comes at the expense of a deified API
+
 ## Supervision
 
 Ok, so, a crashed generator can't be resumed, because there's no way for the generator function to know how to pull the next message in. The `throw` has stopped execution, so it can loop back up to the yield...
