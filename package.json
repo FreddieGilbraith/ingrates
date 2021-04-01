@@ -3,13 +3,23 @@
 	"version": "0.5.3",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
+	"homepage": "https://ingrates.littlebonsai.co.uk/",
+	"license": "ISC",
+	"author": "Freddie Gilbraith <freddie.gilbraith@littlebonsai.co.uk",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/FreddieGilbraith/ingrates.git"
+	},
+
 	"source": "src/index.js",
 	"main": "dist/index.js",
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/foo.modern.js",
-	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
 	"files": ["dist", "src"],
+
+	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+
 	"scripts": {
 		"docs:build": "run-p docs:build:**",
 		"docs:build:pages": "./docs/src/build.js",
@@ -24,8 +34,6 @@
 		"test:watch": "NODE_ENV=test jest src test --watch --bail --runInBand",
 		"watch": "microbundle watch"
 	},
-	"author": "",
-	"license": "ISC",
 	"eslintConfig": {
 		"extends": "@little-bonsai"
 	},
