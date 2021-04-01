@@ -33,7 +33,7 @@ const Link = H`
 
 const Header = H`
 <header class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow fixed top-0 left-0 right-0 flex">
-	<div class="flex-1">Ingrates</div>
+	<div class="flex-1">${Link("/", "Ingrates")}</div>
 	
 	${Link("/api.html", "API")}
 	${Link("/guide.html", "Guide")}
