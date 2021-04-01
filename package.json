@@ -20,6 +20,10 @@
 		"src"
 	],
 	"scripts": {
+		"docs:build": "run-p docs:build:**",
+		"docs:build:pages": "exit 0",
+		"docs:build:css": "mkdirp docs/build && postcss docs/src/index.css -o docs/build/index.css",
+		"docs:watch": "watch -p 'docs/**/*' -c 'npm docs:build",
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "microbundle",
 		"prepublishOnly": "npm run build",
@@ -67,8 +71,13 @@
 		"eslint": "^7.22.0",
 		"jest-cli": "^26.6.3",
 		"microbundle": "^0.13.0",
+		"mkdirp": "^0.5.5",
+		"npm-run-all": "^4.1.5",
+		"postcss": "^8.2.9",
+		"postcss-cli": "^8.3.1",
 		"prettier": "^2.2.1",
-		"ramda": "^0.27.1"
+		"ramda": "^0.27.1",
+		"tailwindcss": "^2.0.4"
 	},
 	"dependencies": {
 		"fixed-id": "^1.0.0"
