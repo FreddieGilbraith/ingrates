@@ -3,15 +3,10 @@
 const fs = require("fs");
 const { promisify } = require("util");
 const path = require("path");
+const marked = require("marked");
 
 const writeFile = promisify(fs.writeFile);
-
-function isFunction(functionToCheck) {
-	return (
-		functionToCheck &&
-		{}.toString.call(functionToCheck) === "[object Function]"
-	);
-}
+const readFile = promisify(fs.readFile);
 
 function H(statics, ...args) {
 	return (...props) => {
@@ -45,14 +40,9 @@ const Header = H`
 	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
 </header>
 
-<div> <div class="h-7 block"></div> </div>
+<div> <div class="h-10 block"></div> </div>
 `;
 
-const Footer = H`
-<footer class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow flex justify-end" >
-	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
-</footer>
-`;
 const App = H`
 <html>
 	<head>
@@ -89,10 +79,10 @@ const HomePage = H`
 	<h1 class="text-9xl pb-2">Ingrates</h1>
 	<aside class="text-lg py-2">A tiny javascript actor system</aside>
 
-	<div class="flex justify-evenly w-full max-w-xs">
+	<a href="https://www.npmjs.com/package/@little-bonsai/ingrates" class="flex justify-evenly w-full max-w-xs">
 		<img src="https://badgen.net/bundlephobia/minzip/@little-bonsai/ingrates"/>
 		<img src="https://badgen.net/npm/v/@little-bonsai/ingrates"/>
-	</div>
+	</a>
 </div>
 
 <div class="
@@ -118,12 +108,8 @@ const HomePage = H`
 
 <hr/>
 
-<div class="p-2 self-center max-w-full">
-<code class="
-	rounded shadow font-mono bg-gray-900 text-gray-100 whitespace-pre p-2 block
-	overflow-x-auto
-"
->import createActorSystem from "@little-bonsai/ingrates";
+<pre class="p-2 self-center max-w-full">
+<code>import createActorSystem from "@little-bonsai/ingrates";
 
 createActorSystem()(rootActor);
 
@@ -141,28 +127,45 @@ async function* rootActor({ spawn, self, dispatch }) {
 }
 
 async function* childActor({ parent, dispatch }, firstname, lastname) {
-  while (true) {
-    const msg = yield;
+  const msg = yield;
 
-    if (msg.type === "HELLO") {
-      dispatch(msg.src, {
-        type: "GOODBYE",
-        msg: \`say goodbye to \${firstname} \${lastname}\`,
-      });
-    }
+  if (msg.type === "HELLO") {
+    dispatch(msg.src, {
+      type: "GOODBYE",
+      msg: \`say goodbye to \${firstname} \${lastname}\`,
+    });
   }
 }</code>
-</div>
+</pre>
 
 <div class="flex-1"></div>
 `;
 
+const Markdowned = H`
+<div id="markdown-content" class="p-2 max-w-2xl w-full self-center">
+${null}
+<div>
+`;
+
+async function convertMDToHTML(name) {
+	try {
+		const inPath = path.join(__dirname, `${name}.md`);
+		const outPath = path.join(__dirname, "..", "build", `${name}.html`);
+		const markdown = await readFile(inPath, "utf8");
+		const html = App(Markdowned(marked(markdown)));
+		await writeFile(outPath, html);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
 async function writeToBuild(writePath, content) {
 	const fullPath = path.join(__dirname, "..", "build", writePath);
-
 	await writeFile(fullPath, content);
 }
 
 (async function main() {
-	writeToBuild("index.html", App(HomePage()));
+	await writeToBuild("index.html", App(HomePage()));
+	await convertMDToHTML("api");
+	//await convertMDToHTML("guide");
 })();

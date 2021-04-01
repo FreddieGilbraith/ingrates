@@ -10,16 +10,13 @@
 		"type": "git",
 		"url": "https://github.com/FreddieGilbraith/ingrates.git"
 	},
-
 	"source": "src/index.js",
 	"main": "dist/index.js",
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/foo.modern.js",
 	"files": ["dist", "src"],
-
 	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
-
 	"scripts": {
 		"docs:build": "run-p docs:build:**",
 		"docs:build:pages": "./docs/src/build.js",
@@ -45,6 +42,7 @@
 			{
 				"files": ["**/*.md"],
 				"options": {
+					"printWidth": 60,
 					"useTabs": false,
 					"tabWidth": 2
 				}
@@ -75,6 +73,7 @@
 		"tailwindcss": "^2.0.4"
 	},
 	"dependencies": {
-		"fixed-id": "^1.0.0"
+		"fixed-id": "^1.0.0",
+		"marked": "^2.0.1"
 	}
 }
