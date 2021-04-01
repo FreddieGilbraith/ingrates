@@ -35,8 +35,8 @@ const Header = H`
 <header class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow fixed top-0 left-0 right-0 flex">
 	<div class="flex-1">Ingrates</div>
 	
-	${Link("/api", "API")}
-	${Link("/Guide", "Guide")}
+	${Link("/api.html", "API")}
+	${Link("/guide.html", "Guide")}
 	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
 </header>
 
