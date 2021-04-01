@@ -33,9 +33,7 @@ export default function createActorSystem({
 		const { src, msg, snk } = envelope;
 		snoopers.forEach((f) => f("dispatch", envelope));
 
-		transporters
-			.filter((x) => x.match(envelope))
-			.forEach((x) => x.handle(envelope));
+		transporters.some((x) => x(envelope));
 
 		if (snk === "root") {
 			return roots.forEach((snk) =>

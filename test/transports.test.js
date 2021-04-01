@@ -21,12 +21,15 @@ it("will communicate with transports", (done) => {
 
 	function selectiveTransport(dispatch) {
 		replyFromDb = dispatch;
-		return {
-			match: ({ snk }) => snk.startsWith("database@"),
-			handle: ({ msg, snk }) =>
+		return ({ msg, snk }) => {
+			if (snk.startsWith("database@")) {
 				mockFetchSelective(`actor/${snk.replace("database@", "")}`, {
 					body: msg,
-				}),
+				});
+				return true;
+			} else {
+				return false;
+			}
 		};
 	}
 
