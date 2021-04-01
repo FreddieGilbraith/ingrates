@@ -8,22 +8,13 @@
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/foo.modern.js",
-	"keywords": [
-		"actor",
-		"actors",
-		"browser",
-		"node",
-		"isomorphic"
-	],
-	"files": [
-		"dist",
-		"src"
-	],
+	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": ["dist", "src"],
 	"scripts": {
 		"docs:build": "run-p docs:build:**",
-		"docs:build:pages": "exit 0",
+		"docs:build:pages": "./docs/src/build.js",
 		"docs:build:css": "mkdirp docs/build && postcss docs/src/index.css -o docs/build/index.css",
-		"docs:watch": "watch -p 'docs/**/*' -c 'npm docs:build",
+		"docs:watch": "watch 'npm run docs:build' 'docs/src'",
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "microbundle",
 		"prepublishOnly": "npm run build",
@@ -44,9 +35,7 @@
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": [
-					"**/*.md"
-				],
+				"files": ["**/*.md"],
 				"options": {
 					"useTabs": false,
 					"tabWidth": 2
@@ -55,9 +44,7 @@
 		]
 	},
 	"babel": {
-		"presets": [
-			"@babel/preset-env"
-		]
+		"presets": ["@babel/preset-env"]
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.13.10",
