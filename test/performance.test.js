@@ -2,7 +2,102 @@ import { performance } from "perf_hooks";
 import "babel-polyfill";
 import createActorSystem from "../src";
 
+import { queryEnhancer } from "./utils";
+
+const aBigNumber = Math.pow(2, 12);
+
 describe("performance", () => {
+	it("can spawn many actors", (done) => {
+		function* ElNino({ dispatch, parent }, i) {
+			dispatch(parent, {
+				type: "HELLO",
+				i,
+			});
+		}
+
+		function* Papi({ parent, dispatch, spawn }) {
+			for (let i = 0; i < aBigNumber; i++) {
+				spawn(ElNino, i);
+			}
+
+			let acc = 0;
+			while (acc < aBigNumber) {
+				const msg = yield;
+				acc++;
+			}
+
+			dispatch(parent, "DONE");
+		}
+
+		createActorSystem()(function* TestActor({ spawn, dispatch }) {
+			spawn(Papi);
+
+			const start = performance.now();
+			yield;
+			const end = performance.now();
+
+			const duration = end - start;
+
+			console.log(
+				"spawned",
+				aBigNumber,
+				"actors; in",
+				Math.round(duration),
+				"ms",
+			);
+
+			expect(duration).toBeLessThan(3000);
+
+			done();
+		});
+	});
+
+	it("can send many messages", (done) => {
+		function* LaNina({ dispatch, parent }) {
+			while (true) {
+				const { i } = yield;
+				dispatch(parent, {
+					i: i + 1,
+				});
+			}
+		}
+
+		function* Papi({ parent, dispatch, spawn }) {
+			const laNina = spawn(LaNina);
+
+			let acc = 0;
+			while (acc < aBigNumber) {
+				dispatch(laNina, { i: acc });
+				const { i } = yield;
+				acc = i;
+			}
+
+			dispatch(parent, "DONE");
+		}
+
+		createActorSystem()(function* TestActor({ spawn, dispatch }) {
+			spawn(Papi);
+
+			const start = performance.now();
+			yield;
+			const end = performance.now();
+
+			const duration = end - start;
+
+			console.log(
+				"sent",
+				aBigNumber,
+				"messages; in",
+				Math.round(duration),
+				"ms",
+			);
+
+			expect(duration).toBeLessThan(3000);
+
+			done();
+		});
+	});
+
 	it("can go fast", (done) => {
 		const actorStarted = jest.fn();
 
@@ -10,8 +105,9 @@ describe("performance", () => {
 			actorStarted();
 
 			let value = null;
+			let running = true;
 
-			running: while (true) {
+			while (running) {
 				const msg = yield;
 
 				switch (msg.type) {
@@ -21,7 +117,8 @@ describe("performance", () => {
 								type: "RESULT",
 								value: msg.value * 2,
 							});
-							break running;
+							running = false;
+							break;
 						}
 
 						const c1 = spawn(RecursiveSumActor);
@@ -45,7 +142,8 @@ describe("performance", () => {
 								type: "RESULT",
 								value: value + msg.value,
 							});
-							break running;
+							running = false;
+							break;
 						}
 					default:
 						continue;
@@ -56,7 +154,7 @@ describe("performance", () => {
 		createActorSystem()(function* TestActor({ spawn, dispatch }) {
 			const summer = spawn(RecursiveSumActor);
 
-			const value = Math.pow(2, 11);
+			const value = aBigNumber / 2;
 			dispatch(summer, { type: "PLEASE_DOUBLE", value });
 
 			const start = performance.now();
@@ -76,7 +174,7 @@ describe("performance", () => {
 				"ms",
 			);
 
-			expect(duration < 3000).toBe(true);
+			expect(duration).toBeLessThan(3000);
 
 			done();
 		});

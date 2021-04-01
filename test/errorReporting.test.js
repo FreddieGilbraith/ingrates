@@ -29,7 +29,11 @@ describe("error reporting", () => {
 			await flushPromises();
 
 			expect(console.error).toHaveBeenCalledWith(
+				"Ingrates Error",
 				problemChild,
+				expect.objectContaining({
+					parent: expect.any(String),
+				}),
 				new Error("test error"),
 			);
 
@@ -52,7 +56,11 @@ describe("error reporting", () => {
 			await flushPromises();
 
 			expect(console.error).toHaveBeenCalledWith(
+				"Ingrates Error",
 				problemChild,
+				expect.objectContaining({
+					parent: expect.any(String),
+				}),
 				new Error("test error"),
 			);
 
@@ -82,6 +90,9 @@ describe("error reporting", () => {
 			expect(console.error).not.toHaveBeenCalled();
 			expect(onErr).toHaveBeenCalledWith(
 				problemChild,
+				expect.objectContaining({
+					parent: expect.any(String),
+				}),
 				new Error("test error"),
 			);
 
