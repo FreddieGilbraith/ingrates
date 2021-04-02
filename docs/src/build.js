@@ -47,6 +47,9 @@ const App = H`
 <html>
 	<head>
 		<link href="/index.css" rel="stylesheet">
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Ingrates</title>
 	</head>
 	<body class="flex flex-col items-stretch">
 		${Header()}
