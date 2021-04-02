@@ -40,7 +40,7 @@ const Header = H`
 	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
 </header>
 
-<div> <div class="h-10 block"></div> </div>
+<div> <div class="h-8 block"></div> </div>
 `;
 
 const App = H`
@@ -79,7 +79,7 @@ const HomePage = H`
 		Acting <span class="italic">is Reacting</span>
 	</h2>
 
-	<h1 class="text-9xl pb-2">Ingrates</h1>
+	<h1 class="text-7xl lg:text-9xl pb-2">Ingrates</h1>
 	<aside class="text-lg py-2">A tiny javascript actor system</aside>
 
 	<a href="https://www.npmjs.com/package/@little-bonsai/ingrates" class="flex justify-evenly w-full max-w-xs">
