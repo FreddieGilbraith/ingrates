@@ -37,6 +37,7 @@ const Header = H`
 	
 	${Link("/api.html", "API")}
 	${Link("/guide.html", "Guide")}
+	${Link("/eco.html", "Ecosystem")}
 	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
 </header>
 
@@ -170,5 +171,6 @@ async function writeToBuild(writePath, content) {
 (async function main() {
 	await writeToBuild("index.html", App(HomePage()));
 	await convertMDToHTML("api");
-	//await convertMDToHTML("guide");
+	await convertMDToHTML("guide");
+	await convertMDToHTML("eco");
 })();

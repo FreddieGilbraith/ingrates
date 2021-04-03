@@ -17,7 +17,7 @@
    * [enhancers](#enhancers)
    * [realizers](#realizers)
       * [systemUpdateListener](#systemupdatelistener)
-   * [Stateful Actors Note](#stateful-actors-note)
+      * [Stateful Actors Note](#stateful-actors-note)
 
 <!-- vim-markdown-toc -->
 
@@ -333,6 +333,6 @@ The `systemUpdateListener` function is used to listen to all changes that occour
 
 These changes can be used by a realizer to persist all the information about a system that's needed to reconstruct it. The realiser can then persist this information to a storage provider, so the system can be re-hydrated when it is next started
 
-### Stateful Actors Note
+#### Stateful Actors Note
 
 Please note, not every actor needs to be stateful, and there's no requirement that a `realizer` do something for every change it's informed of. It should in fact be very common to have an actor system where only some of the actors persist their state to storage.
