@@ -12,9 +12,12 @@
       * [src](#src)
    * [state](#state)
 * [createActorSystem](#createactorsystem)
+   * [onErr](#onerr)
    * [transports](#transports)
    * [enhancers](#enhancers)
    * [realizers](#realizers)
+      * [systemUpdateListener](#systemupdatelistener)
+   * [Stateful Actors Note](#stateful-actors-note)
 
 <!-- vim-markdown-toc -->
 
@@ -185,6 +188,18 @@ State can be a bit hard to understand, so it's recomended that you read through 
 
 ## createActorSystem
 
+> `({ onErr, transports, enhancers, realizers }) => (actor) => void`
+
+`createActorSystem` is the only export from `@little-bonsai/ingrates`. It's used to create the system that all your actors will run in. It returns a function that can be used to mount a root actor. There are several config options that can be used to extend the behaviour of the system.
+
+If you pass any `realizers` to the system, it will return a `Promise`.
+
+### onErr
+
+> `(address, internalActorConfig, error) => void`
+
+This will be called whenever an actor throws. By default it is set to `console.error`, but you can provide any function.
+
 ### transports
 
 > `( ({snk, msg, src }) => void ) => msg => bool`
@@ -228,16 +243,96 @@ createActorSystem({
 });
 ```
 
-The actor system will call `match` on each transport in the order they're provided, and halt after the first transport handler returns `true`. So transports that appear earlier in the list can intercept messages that would have matched with transports later in the list.
+The actor system will call each transport in the order they're provided, and halt after the first transport handler returns `true`. So transports that appear earlier in the list can intercept messages that would have matched with transports later in the list.
 
 ### enhancers
 
 > `currentProvisions => additionalProvisions`
 
-TODO
+Enhancers allow you to inject additional provisions into every actor in a given actor system. This can be useful to extend the basic functionality of ingrates with more advanced functionality.
+
+The enhancers are run in order, and each one receives all the provisions that an actor will receive. This means that enhancers can rely on provisions that are created by enhancers higher in the stack. If an enhancer returns a provision with the same name as an existing provision, it will overwrite that provision.
+
+```javascript
+function queryEnhancer({ spawn }) {
+  function query(snk, msg, timeout = 100) {
+    return new Promise((done, fail) => {
+      function* QueryActor({ self, dispatch }) {
+        dispatch(snk, msg);
+        setTimeout(
+          dispatch.bind(null, self, { type: "TIMEOUT" }),
+          timeout,
+        );
+
+        const response = yield;
+
+        if (response.type === "TIMEOUT") {
+          fail({ type: "QUERY_TIMEOUT", timeout });
+        } else {
+          done(response);
+        }
+      }
+
+      spawn(QueryActor);
+    });
+  }
+
+  return { query };
+}
+
+function loggingQueryEnhancer({ query }) {
+  function loggingQuery(...args) {
+    console.log("Running Query", ...args);
+    return query(...args);
+  }
+
+  return { loggingQuery };
+}
+
+createActorSystem({
+  enhancers: [queryEnhancer, loggingQueryEnhancer],
+});
+```
 
 ### realizers
 
 > `async ({ spawnActor, dispatchEnvelope }) => systemUpdateListener`
 
-TODO
+> `spawnActor = ({ parent, state, self }, generator, ...args) => self`
+
+> `dispatchEnvelope = ({src, msg, snk}) => void`
+
+Realizers are used to persist the state of stateful actors, and re-hydrate an actor system from persisted data on startup.
+
+When first called, the realiser is responsible for re-creating any actors that are it knows were persisted from the last time the actor system was run. `spawnActor` should be called with
+
+- `self`: the actor's own address
+- `parent`: the actor's parent's address
+- `state`: the persisted state of the actor
+- `generator`: the generator function used to define the actor
+- `...args`: any arguments used to initialize the actor
+
+The realizer should return a promise that only resolves once `spawnActor` has been called for all persisted actors. This promise should resolve to a `systemUpdateListener` function
+
+#### systemUpdateListener
+
+> `("spawn", { parent, self, gen, args }) => void`
+
+> `("dispatch", { src, msg, snk }) => void`
+
+> `("publish", { id, value }) => void`
+
+> `("stop", { id }) => void`
+
+The `systemUpdateListener` function is used to listen to all changes that occour in the actor system. The first argument is a string describing what change has occoured, the second argument is an object containing information relevant to that change.
+
+- `spawn` is called when an actor starts
+- `dispatch` is called when one actor sends a message to another
+- `publish` is called when an actor publishes their current state by `yield`ing it
+- `stop` is called when an actor exits
+
+These changes can be used by a realizer to persist all the information about a system that's needed to reconstruct it. The realiser can then persist this information to a storage provider, so the system can be re-hydrated when it is next started
+
+### Stateful Actors Note
+
+Please note, not every actor needs to be stateful, and there's no requirement that a `realizer` do something for every change it's informed of. It should in fact be very common to have an actor system where only some of the actors persist their state to storage.
