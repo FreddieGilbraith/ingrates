@@ -4,7 +4,7 @@
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
 	"homepage": "https://ingrates.littlebonsai.co.uk/",
-	"license": "ISC",
+	"license": "MIT",
 	"author": "Freddie Gilbraith <freddie.gilbraith@littlebonsai.co.uk",
 	"repository": {
 		"type": "git",
