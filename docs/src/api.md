@@ -1,6 +1,8 @@
 # API
 
-### Table of Contents
+<div id="md-toc">
+
+### Contents
 
 <!-- vim-markdown-toc GFM -->
 
@@ -21,11 +23,13 @@
 
 <!-- vim-markdown-toc -->
 
+</div>
+
 ## Actor Provisions
 
 The first argument of every actor is its `provisions`. This is an object containing all the properties and functions that ingrates provide to enable your generator function to act as an actor.
 
-There are several default provisions detailed below, that come built-in to ingrates, but it's easy to write your own, and inject them into every actor using an [enhancer][#enhancers]
+There are several default provisions detailed below, that come built-in to ingrates, but it's easy to write your own, and inject them into every actor using an [enhancer](#enhancers)
 
 ### spawn
 

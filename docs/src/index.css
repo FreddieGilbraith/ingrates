@@ -9,31 +9,37 @@ body {
 }
 
 #markdown-content h1 {
+	@apply capitalize;
 	@apply text-4xl;
 	@apply font-bold;
 	@apply pt-8;
 }
 #markdown-content h2 {
+	@apply capitalize;
 	@apply text-3xl;
 	@apply font-bold;
 	@apply pt-7;
 }
 #markdown-content h3 {
+	@apply capitalize;
 	@apply text-2xl;
 	@apply font-bold;
 	@apply pt-6;
 }
 #markdown-content h4 {
+	@apply capitalize;
 	@apply text-xl;
 	@apply underline;
 	@apply pt-5;
 }
 #markdown-content h5 {
+	@apply capitalize;
 	@apply text-lg;
 	@apply font-bold;
 	@apply pt-4;
 }
 #markdown-content h6 {
+	@apply capitalize;
 	@apply text-lg;
 	@apply underline;
 	@apply pt-3;
@@ -42,6 +48,26 @@ body {
 #markdown-content ul {
 	@apply pl-4;
 	@apply list-disc;
+}
+
+@screen lg {
+	#markdown-content #md-toc {
+		@apply fixed right-8 top-16;
+	}
+}
+
+@screen xl {
+	#markdown-content #md-toc {
+		@apply left-2;
+	}
+}
+
+a {
+	@apply underline;
+}
+
+a:hover {
+	@apply text-pink-500;
 }
 
 p {

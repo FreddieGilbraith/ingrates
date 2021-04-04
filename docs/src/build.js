@@ -27,9 +27,7 @@ function H(statics, ...args) {
 	};
 }
 
-const Link = H`
-<a class="px-1 text-white underline" href="${null}">${null}</a>
-`;
+const Link = H` <a class="px-1 text-white" href="${null}">${null}</a> `;
 
 const Header = H`
 <header class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow fixed top-0 left-0 right-0 flex">
@@ -41,7 +39,13 @@ const Header = H`
 	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
 </header>
 
-<div> <div class="h-8 block"></div> </div>
+<div> <div class="h-8 md:h-10 block"></div> </div>
+`;
+
+const Footer = H`
+<footer class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow flex text-right self-stretch">
+	Created and maintained by ${Link("littlebonsai.co.uk", "little bonsai")}
+</footer>
 `;
 
 const App = H`
@@ -55,6 +59,7 @@ const App = H`
 	<body class="flex flex-col items-stretch">
 		${Header()}
 		${null}
+		${Footer()}
 	</body>
 </html>
 `;
@@ -146,9 +151,18 @@ async function* childActor({ parent, dispatch }, firstname, lastname) {
 `;
 
 const Markdowned = H`
-<div id="markdown-content" class="p-2 max-w-2xl w-full self-center">
-${null}
-<div>
+<div
+	id="markdown-content"
+	style="padding-bottom:50vh"
+	class="
+		max-w-2xl w-full flex-1
+		p-2 self-center
+		lg:pl-6 lg:self-start
+		xl:pl-2 xl:self-center
+	"
+>
+	${null}
+</div>
 `;
 
 async function convertMDToHTML(name) {
