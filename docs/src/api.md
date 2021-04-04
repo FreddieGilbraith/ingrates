@@ -48,10 +48,11 @@ function* Parent({ spawn }) {
 function* Child(provisions, name = "John Doe") {
   console.log(name);
 }
+```
 
-// output:
-// "John Doe"
-// "Jane Roe"
+```output
+"John Doe"
+"Jane Roe"
 ```
 
 ### self
@@ -67,10 +68,11 @@ function* Parent({ spawn }) {
 function* Child({ self }) {
   console.log(self);
 }
+```
 
-// output:
-// "LzMuGqSgjR9sIcePQb5kQQHA"
-// "LzMuGqSgjR9sIcePQb5kQQHA"
+```output
+"LzMuGqSgjR9sIcePQb5kQQHA"
+"LzMuGqSgjR9sIcePQb5kQQHA"
 ```
 
 ### parent
@@ -86,10 +88,11 @@ function* Parent({ spawn, self }) {
 function* Child({ self, parent }) {
   console.log(parent);
 }
+```
 
-// output:
-// "kOksJglNhIRRsr4S2j6opH4N"
-// "kOksJglNhIRRsr4S2j6opH4N"
+```output
+"kOksJglNhIRRsr4S2j6opH4N"
+"kOksJglNhIRRsr4S2j6opH4N"
 ```
 
 ### dispatch
@@ -110,9 +113,10 @@ function* Child() {
   const msg = yield;
   console.log(msg.greeting, "world");
 }
+```
 
-// output:
-// "hello world"
+```output
+"hello world"
 ```
 
 #### src
@@ -135,9 +139,10 @@ function* Child({ dispatch }) {
     greeting: "hello to you too",
   });
 }
+```
 
-// output:
-// "hello to you too"
+```output
+"hello to you too"
 ```
 
 But an actor can also supply a custom `src` property, if it would like the response to go to a different actor;
@@ -164,9 +169,10 @@ function* Secretary() {
   const { greeting } = yield;
   console.log("Secretary recieved", greeting);
 }
+```
 
-// output:
-// "Secretary recieved hello to you too"
+```output
+"Secretary recieved hello to you too"
 ```
 
 ### state

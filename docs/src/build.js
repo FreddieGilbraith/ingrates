@@ -27,24 +27,44 @@ function H(statics, ...args) {
 	};
 }
 
-const Link = H` <a class="px-1 text-white" href="${null}">${null}</a> `;
+const InternalLink = H`
+<a
+   class="px-1 text-white"
+   href="${null}"
+   link="prefetch"
+>
+   ${null}
+</a>`;
+
+const ExternalLink = H`
+<a
+   class="px-1 text-white"
+   target="_blank"
+   link="external noopener"
+   href="${null}"
+>
+   ${null}
+</a>`;
 
 const Header = H`
-<header class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow fixed top-0 left-0 right-0 flex">
-	<div class="flex-1">${Link("/", "Ingrates")}</div>
+<header class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow fixed top-0 left-0 right-0 flex z-20">
+	<div class="flex-1">${InternalLink("/", "Ingrates")}</div>
 	
-	${Link("/api.html", "API")}
-	${Link("/guide.html", "Guide")}
-	${Link("/eco.html", "Ecosystem")}
-	${Link("https://github.com/FreddieGilbraith/ingrates", "Github")}
+	${InternalLink("/api.html", "API")}
+	${InternalLink("/guide.html", "Guide")}
+	${InternalLink("/eco.html", "Ecosystem")}
+	${ExternalLink("https://github.com/FreddieGilbraith/ingrates", "Github")}
 </header>
 
 <div> <div class="h-8 md:h-10 block"></div> </div>
 `;
 
 const Footer = H`
-<footer class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow flex text-right self-stretch">
-	Created and maintained by ${Link("littlebonsai.co.uk", "little bonsai")}
+<footer class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow text-right self-stretch">
+	Created and maintained by${ExternalLink(
+		"https://littlebonsai.co.uk",
+		"little bonsai",
+	)}
 </footer>
 `;
 
