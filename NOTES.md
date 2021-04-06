@@ -1,3 +1,7 @@
+## External Buffer
+
+If, instead of immediatly pushing messages into the itterator, we instead kept them in a queue outside it, and stored the actor iterator in a double buffered variable, we could potench handle crashes inside the actor in a cleaner way
+
 ## Pure Actors
 
 I could potench solve the supervision problem, if I provide support for describing `Pure Actors`, which would be functions, rather than generators.
@@ -20,7 +24,11 @@ We probably can't surface a simple `useActor(async function*(){})` hooks, as thi
 I instead think we're better off with something like this:
 
 ```javascript
-const [addr, state, dispatch] = useActorInterface((state, msg) => {});
+const [
+  addr,
+  state,
+  dispatch,
+] = useActorInterface((state, msg) => {});
 ```
 
 The actor interface is a pure function that can update its internal state based on the messages it receives, `addr` is the id of this actor, and `dispatch` can dispatch to any address with `addr` as the `src`
