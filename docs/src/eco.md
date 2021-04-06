@@ -6,7 +6,7 @@ There are some official ingrates packages listed below, if you write a package t
 
 > currently unpublished
 
-- [@little-bonsai/ingrates-query]()
+- [@little-bonsai/ingrates-query-enhancer](https://www.npmjs.com/package/@little-bonsai/ingrates-query-enhancer)
 
 ## Transports
 

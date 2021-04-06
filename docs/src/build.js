@@ -120,7 +120,7 @@ const HomePage = H`
 ">
 	${USPSection(
 		"Async",
-		`Make use of the actor system to simplify complex async workloads,
+		`Make use of the actor model to simplify complex async workloads,
 		encapsulate your logic and communicate with decoupled messages`,
 	)}
 	${USPSection(
