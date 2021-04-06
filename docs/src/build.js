@@ -140,10 +140,19 @@ const HomePage = H`
 <pre class="p-2 self-center max-w-full">
 <code>import createActorSystem from "@little-bonsai/ingrates";
 
-createActorSystem()(rootActor);
+async function* ChildActor({ parent, dispatch }, firstname, lastname) {
+  const msg = yield;
 
-async function* rootActor({ spawn, self, dispatch }) {
-  const myChild = spawn(childActor, "Bert", "Jurnegen");
+  if (msg.type === "HELLO") {
+    dispatch(msg.src, {
+      type: "GOODBYE",
+      msg: \`say goodbye to \${firstname} \${lastname}\`,
+    });
+  }
+}
+
+async function* RootActor({ spawn, self, dispatch }) {
+  const myChild = spawn(ChildActor, "Bert", "Jurnegen");
 
   dispatch(myChild, { type: "HELLO" });
 
@@ -155,16 +164,8 @@ async function* rootActor({ spawn, self, dispatch }) {
   }
 }
 
-async function* childActor({ parent, dispatch }, firstname, lastname) {
-  const msg = yield;
 
-  if (msg.type === "HELLO") {
-    dispatch(msg.src, {
-      type: "GOODBYE",
-      msg: \`say goodbye to \${firstname} \${lastname}\`,
-    });
-  }
-}</code>
+createActorSystem()(RootActor);</code>
 </pre>
 
 <div class="flex-1"></div>
