@@ -18,9 +18,9 @@
 	"files": ["dist", "src"],
 	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
 	"scripts": {
-		"docs:build": "run-p docs:build:**",
+		"docs:build": "mkdirp docs/build && run-p docs:build:**",
 		"docs:build:pages": "./docs/src/build.js",
-		"docs:build:css": "mkdirp docs/build && postcss docs/src/index.css -o docs/build/index.css",
+		"docs:build:css": "postcss docs/src/index.css -o docs/build/index.css",
 		"docs:watch": "watch 'npm run docs:build' 'docs/src'",
 		"test": "NODE_ENV=test jest --coverage true src test",
 		"build": "microbundle",
