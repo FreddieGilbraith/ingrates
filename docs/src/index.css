@@ -50,8 +50,8 @@ body {
 	@apply list-disc;
 }
 
-#markdown-content a { 
-   @apply font-bold;
+#markdown-content a {
+	@apply font-bold;
 }
 
 @screen lg {
@@ -88,11 +88,14 @@ code {
 	@apply font-mono;
 	@apply bg-gray-900;
 	@apply text-gray-100;
-   @apply px-1;
+	@apply px-1;
 }
 
 pre {
-   @apply pb-8;
+	@apply pb-8;
+	@apply relative;
+	@apply relative;
+	@apply overflow-visible;
 }
 
 blockquote code,
@@ -104,23 +107,21 @@ pre code {
 }
 
 not(pre) + pre {
-   @apply mt-8;
+	@apply mt-8;
 }
 
 code.language-output {
-   @apply relative;
-	@apply overflow-visible;
 }
 
 code.language-output:before {
-   content: "output";
+	content: "output";
 	@apply bg-gray-900;
 	@apply font-mono;
 	@apply pt-1;
 	@apply px-2;
 	@apply rounded;
 	@apply text-green-300;
-   @apply -top-6;
-   @apply absolute;
-   @apply left-0;
+	@apply -top-5;
+	@apply absolute;
+	@apply left-0;
 }
