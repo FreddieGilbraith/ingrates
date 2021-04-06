@@ -92,10 +92,12 @@ code {
 }
 
 pre {
-	@apply pb-8;
-	@apply relative;
 	@apply relative;
 	@apply overflow-visible;
+
+	@apply pb-4;
+	@apply md:pb-6;
+	@apply lg:pb-8;
 }
 
 blockquote code,
