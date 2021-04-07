@@ -8,7 +8,7 @@
 
 ---
 
-`ingrates` is an actor system based on [async](async) [generators](generators). I provides a very small API surface area and tries to remain relatively out of your way.
+`ingrates` is an actor system based on [async][async] [generators][generators]. I provides a very small API surface area and tries to remain relatively out of your way.
 
 You can find docs at [ingrates.littlebonsai.co.uk](https://ingrates.littlebonsai.co.uk)
 

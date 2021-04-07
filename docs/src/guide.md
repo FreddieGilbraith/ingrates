@@ -423,7 +423,50 @@ WKjcwBqUopez6bDOrvDcvLv1 "ongoing" 2
 WKjcwBqUopez6bDOrvDcvLv1 "ongoing" 3
 ```
 
+In this example, we would expect the restarted `RootActor` to send messages to a `UserDBActor` that has already recieved them, which would result in no change.
+We can see in the output that the actor with address `1GsoDGgoRQSepprEYxfUXHxH` is being restarted, but we're also starting a new actor with address `WKjcwBqUopez6bDOrvDcvLv1` that is recieving all the messages from `RootActor`.
+This is because `RootActor` didn't store the address of `userDb` in its state, so it doesn't know that there's a restarted instance of `UserDBActor` that it can use.
+
+```javascript
+function* RootActor({ spawn, dispatch, state = {} }) {
+  state.userDb = state.userDb || spawn(UserDBActor);
+  dispatch(userDb, {
+    type: "ADD_USER",
+    userId: 1,
+    userDetails: { name: "Alice" },
+  });
+  dispatch(userDb, {
+    type: "ADD_USER",
+    userId: 2,
+    userDetails: { name: "Bob" },
+  });
+  dispatch(userDb, {
+    type: "ADD_USER",
+    userId: 3,
+    userDetails: { name: "Clair" },
+  });
+}
+```
+
+```output
+1GsoDGgoRQSepprEYxfUXHxH "startup" 0
+1GsoDGgoRQSepprEYxfUXHxH "ongoing" 1
+1GsoDGgoRQSepprEYxfUXHxH "ongoing" 2
+1GsoDGgoRQSepprEYxfUXHxH "ongoing" 3
+// the user closes their browser, and re-opens it some time later
+1GsoDGgoRQSepprEYxfUXHxH "startup" 3
+1GsoDGgoRQSepprEYxfUXHxH "ongoing" 3
+1GsoDGgoRQSepprEYxfUXHxH "ongoing" 3
+1GsoDGgoRQSepprEYxfUXHxH "ongoing" 3
+```
+
+By moving `userDb` into state, `RootActor` will now be restarted with the correct address.
+
 ### Actually persisting state
+
+If you try to run the above example, you'll notice that none of the actors are actually being restarted between runs. Ingrates doesn't provide any persisting by default, and you will instead have to use a [realizer][realizers] to tell ingrates how to persist your actors.
+
+There are different realizers available as npm packages which you can find on the [ecosystem][eco] page
 
 ## Communicating outside the system
 
@@ -444,3 +487,5 @@ WKjcwBqUopez6bDOrvDcvLv1 "ongoing" 3
 [createactorsystem]: /api.html#createactorsystem
 [generator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorA
 [wikipedia]: https://en.wikipedia.org/wiki/Actor_model
+[realizers]: /api.html#realizers
+[eco]: /eco.html
