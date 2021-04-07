@@ -27,6 +27,7 @@
 * [Roadmap](#roadmap)
    * [Actor Supervision](#actor-supervision)
    * [Driving a view layer](#driving-a-view-layer)
+   * [Typescript](#typescript)
 
 <!-- vim-markdown-toc -->
 
@@ -436,12 +437,10 @@ WKjcwBqUopez6bDOrvDcvLv1 "ongoing" 3
 
 ### Driving a view layer
 
+### Typescript
+
 [async]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 [babel]: https://babeljs.io/setup
 [createactorsystem]: /api.html#createactorsystem
 [generator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorA
 [wikipedia]: https://en.wikipedia.org/wiki/Actor_model
-
-```
-
-```
