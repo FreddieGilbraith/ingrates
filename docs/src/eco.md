@@ -2,9 +2,13 @@
 
 There are some official ingrates packages listed below, if you write a package that uses/can be used with ingrates please [open a pull request](https://github.com/FreddieGilbraith/ingrates/pulls) to add it to this page
 
-## Enhancers
+## Actors
 
-> currently unpublished
+> currently WIP
+
+- ~[@little-bonsai/ingrates-filesystem-actor]()~
+
+## Enhancers
 
 - [@little-bonsai/ingrates-query-enhancer](https://www.npmjs.com/package/@little-bonsai/ingrates-query-enhancer)
 
@@ -12,12 +16,13 @@ There are some official ingrates packages listed below, if you write a package t
 
 > currently unpublished
 
-- [@little-bonsai/ingrates-fetch-transport]()
+- ~[@little-bonsai/ingrates-fetch-transport]()~
 
 ## Realizers
 
 > currently WIP
 
+- ~[@little-bonsai/ingrates-memory-realizer]()~ used for hot reloading
 - ~[@little-bonsai/ingrates-localstorage-realizer]()~
 - ~[@little-bonsai/ingrates-indexdb-realizer]()~
 - ~[@little-bonsai/ingrates-sqlite-realizer]()~
