@@ -603,7 +603,3 @@ function* RooActor({ spawn, dispatch }) {}
 [realizers]: /api.html#realizers
 [transports]: /api.html#transports
 [eco]: /eco.html
-
-```
-
-```
