@@ -22,6 +22,8 @@
    * [Parents of stateful actors](#parents-of-stateful-actors)
    * [Actually persisting state](#actually-persisting-state)
 * [Communicating outside the system](#communicating-outside-the-system)
+   * [Talking to another actor system](#talking-to-another-actor-system)
+   * [Talking to a non-actor system](#talking-to-a-non-actor-system)
 * [Extending Ingrates](#extending-ingrates)
 * [Use without async generators](#use-without-async-generators)
 * [Roadmap](#roadmap)
@@ -470,6 +472,117 @@ There are different realizers available as npm packages which you can find on th
 
 ## Communicating outside the system
 
+So far we've explored a lot of cool functionality, and you're probably starting to get an idea of how you could build some pretty complex systems using ingrates' actor model. But there always eventually comes a time when the system you're developing has to talk to the outside world. This might mean talking to _another different actor system_ running in another process, or on another machine, or talking to _a completly different bit of code_ like our UI library, or a REST API. We're going to explore how [transports] can be used to achieve both these goals
+
+### Talking to another actor system
+
+This is something we could probably already achieve using the functionality we already know about. Take a look at the following example:
+
+```javascript
+async function* SecretaryActor({ dispatch }) {
+  while (true) {
+    const msg = yield;
+    const [remoteAddress, host] = msg.destination.split(
+      "@",
+    );
+
+    const reponse = await SomeSocketLibrary.connect(
+      host,
+    ).send(msg.data);
+
+    dispatch(msg.src, response);
+  }
+}
+
+function* RootActor({ spawn, dispatch }) {
+  const secretary = spawn(SecretaryActor);
+  dispatch(secretary, {
+    destination: "abcd123@example.com",
+    data: {
+      foo: true,
+    },
+  });
+
+  const responseFromExampleServer = yield;
+}
+```
+
+This is a really cool idea! Using our `SecretaryActor` we can send messages to other computers with almost the same syntax, and `RootActor` doesn't have to know anything about our network configuration to do it! _But_, it would be even nicer if we could use exactly the same syntax as usual, and do-away with the `SecretaryActor`, like this:
+
+```javascript
+function* RootActor({ spawn, dispatch }) {
+  dispatch("abcd123@example.com", { foo: true });
+  const responseFromExampleServer = yield;
+}
+```
+
+This is possible if we use a [transport][transports] in our actor system, to handle messages that need to be delivered to other systems:
+
+```javascript
+function exampleDotComTransport(dispatch) {
+  SomeSocketLibrary.connect("example.com").on(
+    "message",
+    (msg) => dispatch(msg),
+  );
+
+  return ({ msg, snk }) => {
+    if (snk.endsWith("@example.com")) {
+      SomeSocketLibrary.connect("example.com").send(msg);
+      return true;
+    } else {
+      return false;
+    }
+  };
+}
+
+createActorSystem({
+  transports: [exampleDotComTransport],
+})(RootActor);
+```
+
+This guide isn't going to go into much further detail on _implementing_ a transport, you can read more about that in the [api docs][transports] and look at pre-existing transports in the [ecosystem][eco] page; but what you need to know is that _"transports enable **transparent** communication across actor system boundaries"_
+
+### Talking to a non-actor system
+
+You might, for example, want to build a web app. You could use ingrates to power your buisness logic, and then pick from a wide variety of UI tools to drive your DOM interactions:
+
+- React if you're a populist
+- Vue if you're an introvert
+- JQuery if you're 45
+- Ember if you haven't actually worked in web-dev for the lat 5 years
+- Svelte if you spend more time on hacker news than actually shipping products
+
+> (For legal reasons, these are all good natured jokes)
+
+---
+
+You could create a new actor that provides an interface with your UI library:
+
+```javascript
+function* DOMActor({ dispatch }) {
+  //note: this isn't a valid event
+  window.addEventHandler("all", (event) =>
+    dispatch(event.target.dataset.actorAddr, event),
+  );
+
+  while (true) {
+    const msg = yeild;
+    switch (msg.type) {
+      case "ADD_ELEMENT": {
+        const el = document.createElement(msg.elementType);
+        el.dataset.actorAddr = msg.src;
+        document
+          .getElementById(msg.parentElementId)
+          .appendChild(el);
+      }
+      // other DOM manipluations ...
+    }
+  }
+}
+
+function* RooActor({ spawn, dispatch }) {}
+```
+
 ## Extending Ingrates
 
 ## Use without async generators
@@ -488,4 +601,9 @@ There are different realizers available as npm packages which you can find on th
 [generator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorA
 [wikipedia]: https://en.wikipedia.org/wiki/Actor_model
 [realizers]: /api.html#realizers
+[transports]: /api.html#transports
 [eco]: /eco.html
+
+```
+
+```
