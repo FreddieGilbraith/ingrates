@@ -40,12 +40,12 @@ A function used to spawn new actors.
 The first argument should be the generator that you want to sport as an actor, and following arguments will be passed through to the child actor
 
 ```javascript
-function* Parent({ spawn }) {
-  spawn(Child);
-  spawn(Child, "Jane Roe");
+function* ParentActor({ spawn }) {
+  spawn(ChildActor);
+  spawn(ChildActor, "Jane Roe");
 }
 
-function* Child(provisions, name = "John Doe") {
+function* ChildActor(provisions, name = "John Doe") {
   console.log(name);
 }
 ```
@@ -60,12 +60,12 @@ function* Child(provisions, name = "John Doe") {
 The id of the current actor
 
 ```javascript
-function* Parent({ spawn }) {
-  const childId = spawn(Child);
+function* ParentActor({ spawn }) {
+  const childId = spawn(ChildActor);
   console.log(childId);
 }
 
-function* Child({ self }) {
+function* ChildActor({ self }) {
   console.log(self);
 }
 ```
@@ -80,12 +80,12 @@ function* Child({ self }) {
 The id of the parent that spawned this actor
 
 ```javascript
-function* Parent({ spawn, self }) {
-  const childId = spawn(Child);
+function* ParentActor({ spawn, self }) {
+  const childId = spawn(ChildActor);
   console.log(self);
 }
 
-function* Child({ self, parent }) {
+function* ChildActor({ self, parent }) {
   console.log(parent);
 }
 ```
@@ -102,14 +102,14 @@ function* Child({ self, parent }) {
 The `dispatch` function is used to send messages to other actors. Actors can receive incoming messages using the `yield` keyword.
 
 ```javascript
-function* Parent({ spawn, dispatch }) {
-  const childAddr = spawn(Child);
+function* ParentActor({ spawn, dispatch }) {
+  const childAddr = spawn(ChildActor);
   dispatch(childAddr, {
     greeting: "hello",
   });
 }
 
-function* Child() {
+function* ChildActor() {
   const msg = yield;
   console.log(msg.greeting, "world");
 }
@@ -124,8 +124,8 @@ function* Child() {
 `dispatch` will automatically add the property `src` (short for "source") to every message, so that an actor knows where to send their reply
 
 ```javascript
-function* Parent({ spawn, dispatch }) {
-  const childAddr = spawn(Child);
+function* ParentActor({ spawn, dispatch }) {
+  const childAddr = spawn(ChildActor);
   dispatch(childAddr, {
     greeting: "hello",
   });
@@ -133,7 +133,7 @@ function* Parent({ spawn, dispatch }) {
   console.log(greeting);
 }
 
-function* Child({ dispatch }) {
+function* ChildActor({ dispatch }) {
   const { greeting, src } = yield;
   dispatch(src, {
     greeting: "hello to you too",
@@ -148,9 +148,9 @@ function* Child({ dispatch }) {
 But an actor can also supply a custom `src` property, if it would like the response to go to a different actor;
 
 ```javascript
-function* Parent({ spawn, dispatch }) {
-  const childAddr = spawn(Child);
-  const secretaryAddr = spawn(Secretary);
+function* ParentActor({ spawn, dispatch }) {
+  const childAddr = spawn(ChildActor);
+  const secretaryAddr = spawn(SecretaryActor);
 
   dispatch(childAddr, {
     greeting: "hello",
@@ -158,14 +158,14 @@ function* Parent({ spawn, dispatch }) {
   });
 }
 
-function* Child({ dispatch }) {
+function* ChildActor({ dispatch }) {
   const { greeting, src } = yield;
   dispatch(src, {
     greeting: "hello to you too",
   });
 }
 
-function* Secretary() {
+function* SecretaryActor() {
   const { greeting } = yield;
   console.log("Secretary recieved", greeting);
 }

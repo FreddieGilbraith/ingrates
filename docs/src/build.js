@@ -8,6 +8,10 @@ const marked = require("marked");
 const writeFile = promisify(fs.writeFile);
 const readFile = promisify(fs.readFile);
 
+const highlight = require("./highlight");
+
+marked.setOptions({ highlight });
+
 function H(statics, ...args) {
 	return (...props) => {
 		let i = 0;
