@@ -76,11 +76,14 @@ module.exports = function (code, lang) {
 			.replace(/(console)/g, col("text-purple-300"))
 			.replace(/(const|case)/g, col("text-yellow-500"))
 			.replace(/(function\*?)/g, col("text-blue-300"))
-			.replace(/\s([A-Z][a-zA-Z]+Actor)/g, col("text-green-400"))
+			.replace(
+				/[^a-zA-Z]([A-Z][a-zA-Z]+Actor)[^a-zA-Z]/g,
+				col("text-green-400"),
+			)
 			.replace(/\s([A-Z][a-zA-Z]*)\(/g, col("text-purple-200"))
 			.replace(/\s([a-z][a-zA-Z]*)\(/g, col("text-green-200"))
 			.replace(
-				/(async|await|yield|while|for|if|else|return|switch|=>)/g,
+				/(import|from|async|await|yield|while|for|if|else|return|switch|=>)/g,
 				col("text-red-500"),
 			);
 	}

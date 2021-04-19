@@ -105,10 +105,6 @@ const HomePage = H`
 	text-white
 	bg-gradient-to-t from-red-500 to-pink-400 
 ">
-	<h2 class="text-2xl">
-		Acting <span class="italic">is Reacting</span>
-	</h2>
-
 	<h1 class="text-7xl lg:text-9xl pb-2">Ingrates</h1>
 	<aside class="text-lg py-2">A tiny javascript actor system</aside>
 
@@ -134,7 +130,7 @@ const HomePage = H`
 	)}
 	${USPSection(
 		"Portable",
-		`Runs the same on the server and the browser,
+		`Runs the same on the server and the browser (with no build step),
 		and provides great tooling for communication between the two`,
 	)}
 </div>
@@ -142,7 +138,8 @@ const HomePage = H`
 <hr/>
 
 <pre class="p-2 self-center max-w-full">
-<code>import createActorSystem from "@little-bonsai/ingrates";
+<code>${highlight(
+	`import createActorSystem from "@little-bonsai/ingrates";
 
 async function* ChildActor({ parent, dispatch }, firstname, lastname) {
   const msg = yield;
@@ -169,7 +166,9 @@ async function* RootActor({ spawn, self, dispatch }) {
 }
 
 
-createActorSystem()(RootActor);</code>
+createActorSystem()(RootActor);`,
+	"javascript",
+)}</code>
 </pre>
 
 <div class="flex-1"></div>
