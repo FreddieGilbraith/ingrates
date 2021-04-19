@@ -1,17 +1,7 @@
 const H = require("./H");
 const highlight = require("./highlight");
 
-const USPSection = H`
-<div class="p-2 flex-1 max-w-lg lg:max-w-sm">
-	<section class="p-2">
-		<h3 class="text-center text-2xl pb-1">${null}</h3>
-		<hr/>
-		<div class="pt-2 text-center">${null}</div>
-	</section>
-</div>
-`;
-
-const HomePage = H`
+const Hero = H`
 <div class="
 	p-8 flex flex-col items-center
 	shadow-inner
@@ -26,7 +16,19 @@ const HomePage = H`
 		<img src="https://badgen.net/npm/v/@little-bonsai/ingrates"/>
 	</a>
 </div>
+`;
 
+const USPSection = H`
+<div class="p-2 flex-1 max-w-lg lg:max-w-sm">
+	<section class="p-2">
+		<h3 class="text-center text-2xl pb-1">${null}</h3>
+		<hr/>
+		<div class="pt-2 text-center">${null}</div>
+	</section>
+</div>
+`;
+
+const USPs = H`
 <div class="
 	self-center max-w-7xl w-full p-2
 	flex flex-col lg:flex-row justify-evenly items-center lg:items-stretch
@@ -47,9 +49,9 @@ const HomePage = H`
 		and provides great tooling for communication between the two`,
 	)}
 </div>
+`;
 
-<hr/>
-
+const Example = H`
 <pre class="p-2 self-center max-w-full">
 <code>${highlight(
 	`import createActorSystem from "@little-bonsai/ingrates";
@@ -83,6 +85,15 @@ createActorSystem()(RootActor);`,
 	"javascript",
 )}</code>
 </pre>
+`;
+
+const HomePage = H`
+${Hero()}
+${USPs()}
+
+<hr/>
+
+${Example()}
 
 <div class="flex-1"></div>
 `;
