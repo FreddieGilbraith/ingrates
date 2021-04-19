@@ -87,6 +87,22 @@ createActorSystem()(RootActor);`,
 </pre>
 `;
 
+const GettingStarted = H`
+<div class="
+	self-center max-w-2xl w-full p-2
+	flex flex-col items-center
+">
+<h3 class="text-2xl underline">Getting Started</h3>
+
+<p>
+If you're just getting started with ingrates, you should start with <a href="/guide.html">The Guide</a> which will walk you through the ideas used in ingrates.
+You can then visit <a href="/eco.html">The Ecosystem</a> page to take a look at some of the other packages that use or extend ingrates.
+</p>
+</div>
+
+
+`;
+
 const HomePage = H`
 ${Hero()}
 ${USPs()}
@@ -94,6 +110,10 @@ ${USPs()}
 <hr/>
 
 ${Example()}
+
+<hr/>
+
+${GettingStarted()}
 
 <div class="flex-1"></div>
 `;
