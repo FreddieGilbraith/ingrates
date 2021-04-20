@@ -83,7 +83,7 @@ module.exports = function (code, lang) {
 			.replace(/\s([A-Z][a-zA-Z]*)\(/g, col("text-purple-200"))
 			.replace(/\s([a-z][a-zA-Z]*)\(/g, col("text-green-200"))
 			.replace(
-				/(import|from|async|await|yield|while|for|if|else|return|switch|=>)/g,
+				/[^a-zA-Z](import|from|async|await|yield|while|for|if|else|return|switch|=>[^a-zA-Z])/g,
 				col("text-red-500"),
 			);
 	}

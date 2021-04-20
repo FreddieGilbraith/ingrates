@@ -23,10 +23,9 @@
    * [Actually persisting state](#actually-persisting-state)
 * [Communicating outside the system](#communicating-outside-the-system)
    * [Talking to another actor system](#talking-to-another-actor-system)
-   * [Talking to a non-actor system](#talking-to-a-non-actor-system)
 * [Extending Ingrates](#extending-ingrates)
 * [Use without async generators](#use-without-async-generators)
-* [Roadmap](#roadmap)
+* [Future Roadmap](#future-roadmap)
    * [Actor Supervision](#actor-supervision)
    * [Driving a view layer](#driving-a-view-layer)
    * [Typescript](#typescript)
@@ -472,7 +471,7 @@ There are different realizers available as npm packages which you can find on th
 
 ## Communicating outside the system
 
-So far we've explored a lot of cool functionality, and you're probably starting to get an idea of how you could build some pretty complex systems using ingrates' actor model. But there always eventually comes a time when the system you're developing has to talk to the outside world. This might mean talking to _another different actor system_ running in another process, or on another machine, or talking to _a completly different bit of code_ like our UI library, or a REST API. We're going to explore how [transports] can be used to achieve both these goals
+So far we've explored a lot of cool functionality, and you're probably starting to get an idea of how you could build some pretty complex systems using ingrates' actor model. But there always eventually comes a time when the system you're developing has to talk to the outside world. This might mean talking to _another different actor system_ running in another process, or on another machine, or talking to _a completly different bit of code_ like our UI library, or a REST API. We're going to explore how [transports] can be used to achieve this goal.
 
 ### Talking to another actor system
 
@@ -542,52 +541,72 @@ createActorSystem({
 
 This guide isn't going to go into much further detail on _implementing_ a transport, you can read more about that in the [api docs][transports] and look at pre-existing transports in the [ecosystem][eco] page; but what you need to know is that _"transports enable **transparent** communication across actor system boundaries"_
 
-### Talking to a non-actor system
+## Extending Ingrates
 
-You might, for example, want to build a web app. You could use ingrates to power your buisness logic, and then pick from a wide variety of UI tools to drive your DOM interactions:
+Ingrates comes with quite a lot of functionality built in, but one of ingrates' goals is to be a very small library, so there are some features you might want that aren't included. We'll look at a specific feature that you might want to include, and explore how you could add it to ingrates.
 
-- React if you're a populist
-- Vue if you're an introvert
-- JQuery if you're 45
-- Ember if you haven't actually worked in web-dev for the lat 5 years
-- Svelte if you spend more time on hacker news than actually shipping products
-
-> (For legal reasons, these are all good natured jokes)
-
----
-
-You could create a new actor that provides an interface with your UI library:
+We've already discovered that the `dispatch` function **doesn't return anything**, and that if you want to get a response from an actor, you'll have to recieve a message from them. This is so an actor can continue to process incoming messages while it waits for a response. But there are some times that we don't want to do anything until we've recieved a response; wouldn't it be nice to have a function that worked like `dispatch`, but instead returned a `Promise` that resolved to our response message?
 
 ```javascript
-function* DOMActor({ dispatch }) {
-  //note: this isn't a valid event
-  window.addEventHandler("all", (event) =>
-    dispatch(event.target.dataset.actorAddr, event),
-  );
+import fs from "fs";
+import { promisify } from "util";
 
+async function* FileActor({ dispatch }, filePath) {
   while (true) {
-    const msg = yeild;
-    switch (msg.type) {
-      case "ADD_ELEMENT": {
-        const el = document.createElement(msg.elementType);
-        el.dataset.actorAddr = msg.src;
-        document
-          .getElementById(msg.parentElementId)
-          .appendChild(el);
-      }
-      // other DOM manipluations ...
+    const msg = yield;
+
+    if (msg.type === "READ_AS_STRING") {
+      const fileContents = await promisify(fs.readFile)(
+        filePath,
+        "utf8",
+      );
+      dispatch(msg.src, { fileContents });
     }
   }
 }
 
-function* RooActor({ spawn, dispatch }) {}
+async function* UsernameActor({ query, spawn, dispatch }) {
+  while (true) {
+    const msg = yield;
+
+    if (msg.type === "REQUEST_USERNAME") {
+      const file = spawn(FileActor, "/data/username");
+      const { fileContents } = await query(file, {
+        type: "READ_AS_STRING",
+      });
+
+      dispatch(msg.src, {
+        type: "RESPOND_USERNAME",
+        value: fileContents,
+      });
+    }
+  }
+}
 ```
 
-## Extending Ingrates
+`query` has the same signature as `dispatch`, but it returns a `Promise` instead of `void`. It also takes an optional 3rd parameter, that defines a timeout:
+
+```javascript
+const { fileContents } = await query(
+  file,
+  { type: "READ_AS_STRING" },
+  5000,
+);
+```
+
+If you try to run the above code, it will fail as `query` is `undefined`. You'll need to _enhance_ your actor system using an [enhancer][enhancers], which will provide this `query` function to all actors that run in the system
+
+```javascript
+const actorSystem = createActorSystem({
+  enhancers: [queryEnhancer],
+});
+```
+
+We're not going to look at how to implement an enhancer here, but you can find more information in the [api][api] section, and you can find a package that implements this `queryEnhancer` in the [ecosystem][eco] section.
 
 ## Use without async generators
 
-## Roadmap
+## Future Roadmap
 
 ### Actor Supervision
 
@@ -598,8 +617,9 @@ function* RooActor({ spawn, dispatch }) {}
 [async]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 [babel]: https://babeljs.io/setup
 [createactorsystem]: /api.html#createactorsystem
+[eco]: /eco.html
+[enhancers]: /api.html#enhancers
 [generator]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorA
-[wikipedia]: https://en.wikipedia.org/wiki/Actor_model
 [realizers]: /api.html#realizers
 [transports]: /api.html#transports
-[eco]: /eco.html
+[wikipedia]: https://en.wikipedia.org/wiki/Actor_model
