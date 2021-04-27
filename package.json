@@ -1,6 +1,6 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.6.0",
+	"version": "0.7.0",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
 	"homepage": "https://ingrates.littlebonsai.co.uk/",
@@ -16,8 +16,17 @@
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/index.modern.js",
 	"type": "module",
-	"files": ["dist", "src"],
-	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"actor",
+		"actors",
+		"browser",
+		"node",
+		"isomorphic"
+	],
 	"scripts": {
 		"docs:build": "mkdirp docs/build && run-p docs:build:**",
 		"docs:build:pages": "./docs/src/build.js",
@@ -41,7 +50,9 @@
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": ["**/*.md"],
+				"files": [
+					"**/*.md"
+				],
 				"options": {
 					"printWidth": 60,
 					"useTabs": false,
@@ -51,7 +62,9 @@
 		]
 	},
 	"babel": {
-		"presets": ["@babel/preset-env"]
+		"presets": [
+			"@babel/preset-env"
+		]
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.13.10",
