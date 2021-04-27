@@ -14,7 +14,8 @@
 	"main": "dist/index.js",
 	"module": "dist/index.module.js",
 	"unpkg": "dist/index.umd.js",
-	"exports": "./dist/foo.modern.js",
+	"exports": "./dist/index.modern.js",
+	"type": "module",
 	"files": ["dist", "src"],
 	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
 	"scripts": {
