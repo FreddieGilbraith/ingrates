@@ -1,0 +1,36 @@
+{
+	"name": "ctzn-follow-bot",
+	"type": "module",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"prettier": {
+		"printWidth": 100,
+		"tabWidth": 4,
+		"trailingComma": "all",
+		"useTabs": true,
+		"overrides": [
+			{
+				"files": [
+					"**/*.md"
+				],
+				"options": {
+					"printWidth": 60,
+					"useTabs": false,
+					"tabWidth": 2
+				}
+			}
+		]
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@little-bonsai/ingrates": "^0.7.0",
+		"@little-bonsai/ingrates-query-enhancer": "^0.1.2",
+		"prompts": "^2.4.1",
+		"websocket": "^1.0.34"
+	}
+}
