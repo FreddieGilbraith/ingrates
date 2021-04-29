@@ -48,7 +48,7 @@ export default function createActorSystem({
 					(x) => {
 						if (x.value) {
 							snoopers.forEach((f) =>
-								f("publish", { id: snk, value: x.value }),
+								f("publish", { self: snk, state: x.value }),
 							);
 							actors[snk].state = x.value;
 						}
@@ -103,9 +103,7 @@ export default function createActorSystem({
 			(y) =>
 				y.value &&
 				snoopers &&
-				snoopers.forEach((f) =>
-					f("publish", { id: self, value: y.value }),
-				),
+				snoopers.forEach((f) => f("publish", { self, state: y.value })),
 		);
 
 		if (parent === null) {

@@ -3,10 +3,12 @@ import PromptsCLIActor from "./PromptsCLI.js";
 
 export default function* RootActor({ dispatch, spawn, state = {}, log }) {
 	let statelessActors = {};
-	state.session = spawn(SessionActor);
+
+	state.session ||= spawn(SessionActor);
 
 	while (true) {
 		const msg = yield state;
+
 		switch (msg.type) {
 			case "REQUEST_PROMPTS_ADDR": {
 				statelessActors.promptsCli ||= spawn(PromptsCLIActor);
@@ -16,6 +18,9 @@ export default function* RootActor({ dispatch, spawn, state = {}, log }) {
 				});
 				break;
 			}
+
+			default:
+				log(msg);
 		}
 	}
 }

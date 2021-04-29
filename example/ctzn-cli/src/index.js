@@ -1,4 +1,4 @@
-import createActorSystem from "@little-bonsai/ingrates";
+import createActorSystem from "../../../dist/index.modern.js";
 import queryEnhancer from "@little-bonsai/ingrates-query-enhancer";
 
 import simpleFileSaveRealizer from "./simpleFileSaveRealizer.js";
@@ -11,7 +11,7 @@ import RootActor from "./actors/Root.js";
 	const actorSystem = await createActorSystem({
 		transports: [ctznTransport],
 		enhancers: [logEnhancer("main"), queryEnhancer],
-		//realizers: [simpleFileSaveRealizer],
+		realizers: [simpleFileSaveRealizer],
 	});
 
 	actorSystem(RootActor);
