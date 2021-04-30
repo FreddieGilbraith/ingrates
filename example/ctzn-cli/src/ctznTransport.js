@@ -5,6 +5,8 @@ import logEnhancer from "./logEnhancer.js";
 
 const { client: WebSocketClient } = websocketLib;
 
+const debug = false;
+
 async function* SocketClientActor({ parent, dispatch, log }, host) {
 	let id = 1;
 	const responseBundles = {};
@@ -17,7 +19,9 @@ async function* SocketClientActor({ parent, dispatch, log }, host) {
 		return client;
 	});
 
-	log(host, "Connected");
+	if (debug) {
+		log(host, "Connected");
+	}
 
 	client.on("error", console.error.bind(null, "socket", host, "error"));
 	client.on("close", console.info.bind(null, "socket", host, "close"));
@@ -53,7 +57,7 @@ async function* SocketClientActor({ parent, dispatch, log }, host) {
 			}),
 		);
 
-		await new Promise((x) => setTimeout(x, 1000));
+		await new Promise((x) => setTimeout(x, 500));
 	}
 }
 
@@ -104,7 +108,7 @@ export default function ctznTransport(dispatchEnvelope) {
 	});
 
 	return function handle({ snk, src, msg }) {
-		if (snk.startsWith("ctzn://")) {
+		if (snk && snk.startsWith("ctzn://")) {
 			pushIntoSystem({
 				type: "INCOMING_CTZN_MESSAGE",
 				snk,

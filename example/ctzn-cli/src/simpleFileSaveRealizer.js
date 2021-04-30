@@ -5,8 +5,12 @@ import { promisify } from "util";
 import mkdirp from "mkdirp";
 
 import logEnhancer from "./logEnhancer.js";
+
 import RootActor from "./actors/Root.js";
 import SessionActor from "./actors/Session.js";
+import SocialGraphActor from "./actors/SocialGraph.js";
+import UserActor from "./actors/User.js";
+import UsersListActor from "./actors/UsersList.js";
 
 const writeFile = promisify(fs.writeFile);
 const readdir = promisify(fs.readdir);
@@ -57,12 +61,14 @@ function tryReadFile(filePath) {
 }
 
 function makeSimpleFileSaveRealizer({ folderPath, actors, debug }) {
+	const mapAddsToGen = {};
+
 	async function* SpecificPersister({ log }, trueActorAddress) {
 		const filePath = path.join(folderPath, `${trueActorAddress}.json`);
 
 		while (true) {
+			const msg = yield;
 			try {
-				const msg = yield;
 				const bundleStr = await tryReadFile(filePath);
 				const bundleObj = JSON.parse(bundleStr || "{}");
 				const newBundle = {
@@ -84,15 +90,26 @@ function makeSimpleFileSaveRealizer({ folderPath, actors, debug }) {
 		while (true) {
 			const msg = yield;
 
+			if (msg.type === "spawn") {
+				mapAddsToGen[msg.properties.self] = msg.properties.gen;
+			}
+
 			if (msg.type === "spawn" && !msg.properties.gen) {
 				continue;
 			}
 
 			if (msg.type === "spawn" && !actors[msg.properties.gen]) {
-				if (debug) {
-					log("No generator found to persist actor", msg.properties.gen);
-				}
 				continue;
+			}
+
+			if (msg.type === "publish") {
+				if (!actors[mapAddsToGen[msg.properties.self]]) {
+					console.error(
+						"tried to persist an actor I don't know about",
+						mapAddsToGen[msg.properties.self],
+						msg.properties.self,
+					);
+				}
 			}
 
 			if (msg.type === "spawn" || msg.type === "publish") {
@@ -145,5 +162,5 @@ function makeSimpleFileSaveRealizer({ folderPath, actors, debug }) {
 
 export default makeSimpleFileSaveRealizer({
 	folderPath: path.join(process.cwd(), "ingratesState"),
-	actors: { RootActor, SessionActor },
+	actors: { RootActor, SessionActor, SocialGraphActor, UsersListActor, UserActor },
 });

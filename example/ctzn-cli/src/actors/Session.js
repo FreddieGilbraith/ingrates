@@ -10,8 +10,6 @@ export default async function* SessionActor({ parent, dispatch, state = {}, quer
 		});
 	}
 
-	log("boot", state);
-
 	let promptsCli = (await query("root", { type: "REQUEST_PROMPTS_ADDR" })).addr;
 
 	if (state.sessionId && state.homeserver) {
@@ -44,7 +42,6 @@ export default async function* SessionActor({ parent, dispatch, state = {}, quer
 			}
 
 			case "RESPOND_SESSION_START": {
-				log(msg);
 				if (msg.error) {
 					log(
 						`There was an error starting your session, please try again (${msg.error.message}, ${msg.error.data})`,
