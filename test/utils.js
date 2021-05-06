@@ -38,7 +38,7 @@ export function queryEnhancer({ spawn }) {
 	};
 }
 
-export function createTestSystem({ actors, ...rest }) {
+export function createTestSystem({ actors = [], ...rest } = {}) {
 	function createSpecificTestRunner(runner) {
 		return function runTest(testActor) {
 			runner(testActor.name, (t) => {
