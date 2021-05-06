@@ -4,3 +4,4 @@ coverage
 dist
 .npmrc
 docs/build
+.nyc_output

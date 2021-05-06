@@ -1,139 +1,95 @@
 import fixedId from "fixed-id";
 
-export default function createActorSystem({
-	transports = [],
+import localRealizer from "./localRealizer.js";
+
+function createActorSystem({
 	enhancers = [],
 	realizers = [],
+	transports = [],
 
-	onErr = console.error.bind(null, "Ingrates Error"),
+	onErr = console.error,
 } = {}) {
-	const roots = [];
-	const actors = {};
+	const knownActors = {};
 
-	const transporters = transports.map((x) => x(dispatchEnvelope));
+	const transporters = [defaultExternalTransport, ...transports].map((x) => x());
+	const contexts = [...realizers, localRealizer].map((x) =>
+		x({
+			doSpawn,
+			doDispatch,
+			runActor,
+		}),
+	);
 
-	const snoopers = [];
-
-	const shutdown = (id) => {
-		snoopers.forEach((f) => f("stop", { id }));
-		delete actors[id];
-
-		Object.entries(actors)
-			.filter((x) => x[1].parent === id)
-			.map((x) => x[0])
-			.forEach(shutdown);
-	};
-
-	const onActorError = (id, envelope, err) => {
-		onErr(id, actors[id], err);
-		shutdown(id);
-	};
-
-	function dispatchEnvelope(envelope) {
-		const { src, msg, snk } = envelope;
-		snoopers.forEach((f) => f("dispatch", envelope));
-
-		transporters.some((x) => x(envelope));
-
-		if (snk === "root") {
-			return roots.forEach((snk) =>
-				dispatchEnvelope(Object.assign({}, envelope, { snk })),
-			);
-		}
-
-		if (actors[snk]) {
-			const chonkyMsg = Object.assign({ src }, msg);
-			try {
-				Promise.resolve(actors[snk].itter.next(chonkyMsg)).then(
-					(x) => {
-						if (x.value) {
-							snoopers.forEach((f) =>
-								f("publish", { self: snk, state: x.value }),
-							);
-							actors[snk].state = x.value;
-						}
-						if (x.done) {
-							shutdown(snk);
-						}
-					},
-					(error) => {
-						onActorError(snk, envelope, error);
-					},
-				);
-			} catch (error) {
-				onActorError(snk, envelope, error);
-			}
-		}
+	function register(actorDefinition) {
+		knownActors[actorDefinition.name] = actorDefinition;
 	}
 
-	function spawnActor(_parent, gen, ...args) {
-		const { parent, state, self } =
-			_parent === null || typeof _parent === "string"
-				? {
-						parent: _parent,
-						state: undefined,
-						self: fixedId(),
-				  }
-				: _parent;
-
-		snoopers &&
-			snoopers
-				.filter(Boolean)
-				.forEach((f) => f("spawn", { parent, self, gen, args }));
-
-		const provisions = enhancers.reduce(
-			(provisions, enhancer) =>
-				Object.assign({}, provisions, enhancer(provisions)),
-			{
-				self,
-				parent,
-				spawn: spawnActor.bind(null, self),
-				state,
-
-				dispatch: (snk, msg) =>
-					Promise.resolve().then(() =>
-						dispatchEnvelope({ src: self, snk, msg }),
-					),
-			},
-		);
-
-		const itter = gen(provisions, ...args);
-
-		Promise.resolve(itter.next()).then(
-			(y) =>
-				y.value &&
-				snoopers &&
-				snoopers.forEach((f) => f("publish", { self, state: y.value })),
-		);
-
-		if (parent === null) {
-			roots.push(self);
+	function doSpawn(parent, nickname, { name, startup }) {
+		if (!knownActors[name]) {
+			onErr("Tried to spawn unknown actor", name);
+			return null;
 		}
 
-		actors[self] = {
-			itter,
-			parent,
-			provisions,
-		};
+		const self = fixedId();
+
+		contexts.some(({ update }) => update("spawn", { self, parent, name, nickname }));
+
+		const state = startup(getProvisionsForActor({ self, parent }));
+		if (state) {
+			contexts.some(({ update }) => update("publish", { self, state }));
+		}
 
 		return self;
 	}
 
-	if (realizers.length !== 0) {
-		return Promise.all(
-			realizers.map((realizer) =>
-				realizer({ spawnActor, dispatchEnvelope }).then((x) =>
-					snoopers.push(x),
-				),
-			),
-		).then(() => {
-			if (!Object.keys(actors).length) {
-				return spawnActor.bind(null, null);
-			} else {
-				return () => {};
-			}
-		});
-	} else {
-		return spawnActor.bind(null, null);
+	function doDispatch(src, snk, _msg_) {
+		const msg = Object.assign({ src }, _msg_);
+		if (!transporters.some((x) => x(snk, msg))) {
+			contexts.some(({ update }) => update("dispatch", { snk, msg }));
+		}
 	}
+
+	async function runActor({ self, parent, name, msg, state, children }) {
+		const provisions = {
+			...getProvisionsForActor({ self, parent }),
+			children,
+			state,
+			msg,
+		};
+
+		const newState = await knownActors[name](provisions);
+
+		if (newState) {
+			contexts.some(({ update }) => update("publish", { self, state: newState }));
+		}
+	}
+
+	function getProvisionsForActor({ self, parent }) {
+		const dispatch = doDispatch.bind(null, self);
+		const spawn = new Proxy(
+			{},
+			{
+				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),
+			},
+		);
+
+		return { self, parent, dispatch, spawn };
+	}
+
+	const defaultExternalTransportListeners = [];
+	function defaultExternalTransport() {
+		return (snk, msg) =>
+			snk === null ? (defaultExternalTransportListeners.forEach((x) => x(msg)), true) : false;
+	}
+
+	return {
+		register,
+		listen: defaultExternalTransportListeners.push,
+		...getProvisionsForActor({
+			self: null,
+			parent: null,
+		}),
+	};
 }
+
+export default createActorSystem;
