@@ -1,73 +1,67 @@
-export default function localRealizer({ doSpawn, doDispatch, runActor, getProvisionsForActor }) {
-	const argss = {};
-	const name = {};
-	const running = {};
-	const mailbox = {};
-	const children = {};
-	const parent = {};
-	const states = {};
-	const nicknames = {};
+export default function localRealizer({ runActor }) {
+	const bundles = {};
 
 	async function flush(self) {
 		if (
-			running[self] ||
-			!mailbox[self] ||
-			mailbox[self].length === 0 ||
-			states[self] === undefined
+			!bundles[self] ||
+			bundles[self].running ||
+			bundles[self].mailbox.length === 0 ||
+			bundles[self].state === undefined
 		) {
 			return;
 		}
 
-		await runActor({
-			self,
-			msg: mailbox[self].shift(),
-			state: states[self],
-			parent: parent[self],
-			name: name[self],
-			children: children[self],
-			args: argss[self],
-		});
+		bundles[self].running = true;
+
+		const bundle = bundles[self];
+
+		await runActor(
+			Object.assign(
+				{
+					self,
+					msg: bundle.mailbox.shift(),
+				},
+				bundle,
+			),
+		);
 
 		setTimeout(flush, 0, self);
+		bundles[self].running = false;
 	}
 
 	function spawn(meta) {
-		name[meta.self] = meta.name;
-		argss[meta.self] = meta.args;
-		mailbox[meta.self] = [];
-		running[meta.self] = false;
-		parent[meta.self] = meta.parent;
-		nicknames[meta.self] = meta.nickname;
-		children[meta.parent] = Object.assign(
+		bundles[meta.self] = Object.assign(
+			{
+				mailbox: [],
+				running: false,
+			},
+			meta,
+		);
+
+		bundles[meta.parent] = bundles[meta.parent] || {};
+		bundles[meta.parent].children = Object.assign(
 			{
 				[meta.nickname]: meta.self,
 			},
-			children[meta.parent],
+			(bundles[meta.parent] || {}).children || {},
 		);
 	}
 
 	function publish(meta) {
-		states[meta.self] = meta.state;
+		bundles[meta.self].state = meta.state;
 		setTimeout(flush, 0, meta.self);
 	}
 
 	function dispatch(meta) {
-		mailbox[meta.snk].push(Object.assign({ src: meta.src }, meta.msg));
+		bundles[meta.snk].mailbox.push(Object.assign({ src: meta.src }, meta.msg));
 		setTimeout(flush, 0, meta.snk);
 	}
 
 	function kill(meta) {
-		delete name[meta.self];
-		delete argss[meta.self];
-		delete mailbox[meta.self];
-		delete running[meta.self];
-		delete parent[meta.self];
+		bundles[meta.parent].children = Object.assign({}, bundles[meta.parent].children);
+		delete bundles[meta.parent].children[bundles[meta.self].nickname];
 
-		const nickname = nicknames[meta.self];
-		delete nicknames[meta.self];
-
-		children[meta.parent] = Object.assign({}, children[meta.parent]);
-		delete children[meta.parent][nickname];
+		delete bundles[meta.self];
 	}
 
 	return {
