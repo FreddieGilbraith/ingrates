@@ -39,43 +39,30 @@ export function queryEnhancer({ spawn }) {
 }
 
 export function createTestSystem({ actors, ...rest }) {
-	function runTest(testActor) {
-		test(testActor.name, (t) => {
-			const system = createActorSystem(rest);
+	function createSpecificTestRunner(runner) {
+		return function runTest(testActor) {
+			runner(testActor.name, (t) => {
+				const system = createActorSystem(rest);
 
-			for (const actor of actors) {
-				system.register(actor);
-			}
+				for (const actor of actors) {
+					system.register(actor);
+				}
 
-			system.register(testActor);
+				system.register(testActor);
 
-			new Promise((done, fail) => {
-				t.timeout(500);
-				system.dispatch(system.spawn.testRoot(testActor, { t, done, fail }), {
-					type: "START_TEST",
+				new Promise((done, fail) => {
+					t.timeout(500);
+					system.dispatch(system.spawn.testRoot(testActor, { t, done, fail }), {
+						type: "START_TEST",
+					});
 				});
 			});
-		});
+		};
 	}
 
-	runTest.only = (testActor) => {
-		test.only(testActor.name, (t) => {
-			const system = createActorSystem(rest);
+	const runDefault = createSpecificTestRunner(test);
+	runDefault.only = createSpecificTestRunner(test.only);
+	runDefault.todo = test.todo;
 
-			for (const actor of actors) {
-				system.register(actor);
-			}
-
-			system.register(testActor);
-
-			new Promise((done, fail) => {
-				t.timeout(500);
-				system.dispatch(system.spawn.testRoot(testActor, { t, done, fail }), {
-					type: "START_TEST",
-				});
-			});
-		});
-	};
-
-	return runTest;
+	return runDefault;
 }
