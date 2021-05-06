@@ -9,7 +9,12 @@ export default function localRealizer({ doSpawn, doDispatch, runActor, getProvis
 	const nicknames = {};
 
 	async function flush(self) {
-		if (running[self] || mailbox[self].length === 0) {
+		if (
+			running[self] ||
+			!mailbox[self] ||
+			mailbox[self].length === 0 ||
+			states[self] === undefined
+		) {
 			return;
 		}
 
@@ -43,6 +48,7 @@ export default function localRealizer({ doSpawn, doDispatch, runActor, getProvis
 
 	function publish(meta) {
 		states[meta.self] = meta.state;
+		setTimeout(flush, 0, meta.self);
 	}
 
 	function dispatch(meta) {

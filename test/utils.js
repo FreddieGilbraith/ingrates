@@ -5,12 +5,12 @@ export function flushPromises() {
 	return new Promise((done) => setImmediate(done));
 }
 
-export function pause() {
-	return new Promise((x) => setTimeout(x, Math.random() * 10));
-}
-
 export function sleep(y) {
 	return new Promise((x) => setTimeout(x, y));
+}
+
+export function pause() {
+	return sleep(Math.random() * 10);
 }
 
 export function queryEnhancer({ spawn }) {

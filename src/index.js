@@ -33,12 +33,12 @@ function createActorSystem({
 		const self = fixedId();
 
 		contexts.some((ctx) => ctx.spawn({ self, parent, name, nickname, args }));
-		if (startup) {
-			const state = startup(getProvisionsForActor({ self, parent }), ...args);
-			if (state) {
-				contexts.some((ctx) => ctx.publish({ self, state }));
-			}
-		}
+
+		Promise.resolve(
+			startup ? startup(getProvisionsForActor({ self, parent }), ...args) : null,
+		).then((state) => {
+			contexts.some((ctx) => ctx.publish({ self, state }));
+		});
 
 		return self;
 	}

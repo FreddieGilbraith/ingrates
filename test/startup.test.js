@@ -1,4 +1,4 @@
-import { createTestSystem } from "./utils.js";
+import { createTestSystem, pause } from "./utils.js";
 
 function ChildActor({ dispatch, msg }) {
 	if (msg.type === "PING") {
@@ -6,10 +6,11 @@ function ChildActor({ dispatch, msg }) {
 	}
 }
 
-function ActorWithStartupFunctionality({ self, dispatch, state, msg }, { t, done, fail }) {
+const test = createTestSystem({ actors: [ChildActor] });
+
+function ActorWithSyncStartupFunctionality({ self, dispatch, state, msg }, { t, done, fail }) {
 	switch (msg.type) {
 		case "START_TEST": {
-			t.plan(2);
 			t.like(state, { newState: true });
 			setTimeout(dispatch, 10, self, { type: "DONE" });
 			break;
@@ -32,7 +33,9 @@ function ActorWithStartupFunctionality({ self, dispatch, state, msg }, { t, done
 	}
 }
 
-ActorWithStartupFunctionality.startup = ({ spawn, dispatch }) => {
+ActorWithSyncStartupFunctionality.startup = ({ spawn, dispatch }, { t }) => {
+	t.plan(2);
+
 	const child = spawn.testChild(ChildActor);
 
 	dispatch(child, { type: "PING" });
@@ -42,6 +45,49 @@ ActorWithStartupFunctionality.startup = ({ spawn, dispatch }) => {
 	};
 };
 
-const test = createTestSystem({ actors: [ChildActor] });
+test(ActorWithSyncStartupFunctionality);
 
-test(ActorWithStartupFunctionality);
+function ActorWithAsyncStartupFunctionality({ self, dispatch, state, msg }, { t, done, fail }) {
+	switch (msg.type) {
+		case "START_TEST": {
+			t.like(state, { newState: true });
+			setTimeout(dispatch, 10, self, { type: "DONE" });
+			break;
+		}
+
+		case "PONG": {
+			t.like(msg, { type: "PONG" });
+			break;
+		}
+
+		case "DONE": {
+			done();
+			break;
+		}
+
+		default: {
+			fail();
+			break;
+		}
+	}
+}
+
+ActorWithAsyncStartupFunctionality.startup = async ({ spawn, dispatch }, { t }) => {
+	t.plan(2);
+
+	await pause();
+
+	const child = spawn.testChild(ChildActor);
+
+	await pause();
+
+	dispatch(child, { type: "PING" });
+
+	await pause();
+
+	return {
+		newState: true,
+	};
+};
+
+test(ActorWithAsyncStartupFunctionality);
