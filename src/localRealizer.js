@@ -31,10 +31,12 @@ export default function localRealizer({ doSpawn, doDispatch, runActor, getProvis
 		mailbox[meta.self] = [];
 		running[meta.self] = false;
 		parent[meta.self] = meta.parent;
-		children[meta.parent] = {
-			...children[meta.parent],
-			[meta.nickname]: meta.self,
-		};
+		children[meta.parent] = Object.assign(
+			{
+				[meta.nickname]: meta.self,
+			},
+			children[meta.parent],
+		);
 	}
 
 	function publish(meta) {

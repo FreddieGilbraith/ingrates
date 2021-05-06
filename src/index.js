@@ -50,12 +50,14 @@ function createActorSystem({
 	}
 
 	async function runActor({ self, parent, name, msg, state, children, args }) {
-		const provisions = {
-			...getProvisionsForActor({ self, parent }),
-			children,
-			state,
-			msg,
-		};
+		const provisions = Object.assign(
+			{
+				children,
+				state,
+				msg,
+			},
+			getProvisionsForActor({ self, parent }),
+		);
 
 		const newState = await knownActors[name](provisions, ...args);
 
@@ -91,14 +93,16 @@ function createActorSystem({
 		};
 	}
 
-	return {
-		register,
-		listen,
-		...getProvisionsForActor({
+	return Object.assign(
+		{
+			register,
+			listen,
+		},
+		getProvisionsForActor({
 			self: null,
 			parent: null,
 		}),
-	};
+	);
 }
 
 export default createActorSystem;
