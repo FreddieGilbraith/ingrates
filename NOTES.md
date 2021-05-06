@@ -1,3 +1,27 @@
+## Generators Vs Functions
+
+Pro Generator:
+
+- smaller code size
+- nice to find a use for them
+- minimal syntax
+- works natively with native iterators
+- can construct startup state inline
+
+Pro Functions:
+
+- Makes supervision much easier (possible at all?) to handle
+- Functions are pure
+- No new syntax to learn
+- Managing state inside the system and passing it in reduces duplication
+  - possibly opens the way to offloaded actors?
+
+Solved by neither:
+
+- The registration problem for realizers, might just have to bite the bullet on this one..?
+
+I'd have to pick one or the other, as Functions wouldn't contain state in their wrappers, instead the system would contain the state
+
 ## External Buffer
 
 If, instead of immediatly pushing messages into the itterator, we instead kept them in a queue outside it, and stored the actor iterator in a double buffered variable, we could potench handle crashes inside the actor in a cleaner way
