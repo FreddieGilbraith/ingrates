@@ -24,7 +24,7 @@ function createActorSystem({
 		knownActors[actorDefinition.name] = actorDefinition;
 	}
 
-	function doSpawn(parent, nickname, { name, startup }) {
+	function doSpawn(parent, nickname, { name, startup }, ...args) {
 		if (!knownActors[name]) {
 			onErr("Tried to spawn unknown actor", name);
 			return null;
@@ -32,11 +32,11 @@ function createActorSystem({
 
 		const self = fixedId();
 
-		contexts.some(({ update }) => update("spawn", { self, parent, name, nickname }));
+		contexts.some(({ spawn }) => spawn({ self, parent, name, nickname, args }));
 
-		const state = startup(getProvisionsForActor({ self, parent }));
+		const state = startup(getProvisionsForActor({ self, parent }), ...args);
 		if (state) {
-			contexts.some(({ update }) => update("publish", { self, state }));
+			contexts.some(({ publish }) => publish({ self, state }));
 		}
 
 		return self;
@@ -45,11 +45,11 @@ function createActorSystem({
 	function doDispatch(src, snk, _msg_) {
 		const msg = Object.assign({ src }, _msg_);
 		if (!transporters.some((x) => x(snk, msg))) {
-			contexts.some(({ update }) => update("dispatch", { snk, msg }));
+			contexts.some(({ dispatch }) => dispatch({ snk, msg }));
 		}
 	}
 
-	async function runActor({ self, parent, name, msg, state, children }) {
+	async function runActor({ self, parent, name, msg, state, children, args }) {
 		const provisions = {
 			...getProvisionsForActor({ self, parent }),
 			children,
@@ -57,10 +57,10 @@ function createActorSystem({
 			msg,
 		};
 
-		const newState = await knownActors[name](provisions);
+		const newState = await knownActors[name](provisions, ...args);
 
 		if (newState) {
-			contexts.some(({ update }) => update("publish", { self, state: newState }));
+			contexts.some(({ publish }) => publish({ self, state: newState }));
 		}
 	}
 
@@ -77,14 +77,23 @@ function createActorSystem({
 	}
 
 	const defaultExternalTransportListeners = [];
+	function listen(x) {
+		defaultExternalTransportListeners.push(x);
+	}
 	function defaultExternalTransport() {
-		return (snk, msg) =>
-			snk === null ? (defaultExternalTransportListeners.forEach((x) => x(msg)), true) : false;
+		return (snk, msg) => {
+			if (snk === null) {
+				defaultExternalTransportListeners.forEach((x) => x(msg));
+				return true;
+			} else {
+				return false;
+			}
+		};
 	}
 
 	return {
 		register,
-		listen: defaultExternalTransportListeners.push,
+		listen,
 		...getProvisionsForActor({
 			self: null,
 			parent: null,

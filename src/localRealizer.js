@@ -1,65 +1,54 @@
 export default function localRealizer({ doSpawn, doDispatch, runActor, getProvisionsForActor }) {
+	const argss = {};
 	const name = {};
 	const running = {};
 	const mailbox = {};
 	const children = {};
 	const parent = {};
-	const state = {};
+	const states = {};
 
 	async function flush(self) {
-		if (running[self]) {
-			return;
-		}
-
-		if (mailbox[self].length === 0) {
+		if (running[self] || mailbox[self].length === 0) {
 			return;
 		}
 
 		await runActor({
 			self,
+			msg: mailbox[self].shift(),
+			state: states[self],
 			parent: parent[self],
 			name: name[self],
-			msg: mailbox[self].shift(),
-			state: state[self],
 			children: children[self],
+			args: argss[self],
 		});
 
 		setTimeout(flush, 0, self);
 	}
 
-	function update(event, meta) {
-		console.log(JSON.stringify([...arguments]));
+	function spawn(meta) {
+		name[meta.self] = meta.name;
+		argss[meta.self] = meta.args;
+		mailbox[meta.self] = [];
+		running[meta.self] = false;
+		parent[meta.self] = meta.parent;
+		children[meta.parent] = {
+			...children[meta.parent],
+			[meta.nickname]: meta.self,
+		};
+	}
 
-		switch (event) {
-			case "spawn": {
-				name[meta.self] = meta.name;
-				mailbox[meta.self] = [];
-				running[meta.self] = false;
-				parent[meta.self] = meta.parent;
-				children[meta.parent] = {
-					...children[meta.parent],
-					[meta.nickname]: meta.self,
-				};
+	function publish(meta) {
+		states[meta.self] = meta.state;
+	}
 
-				break;
-			}
-
-			case "publish": {
-				state[meta.self] = meta.state;
-				break;
-			}
-
-			case "dispatch": {
-				mailbox[meta.snk].push(Object.assign({ src: meta.src }, meta.msg));
-				flush(meta.snk);
-				break;
-			}
-		}
-
-		return true;
+	function dispatch(meta) {
+		mailbox[meta.snk].push(Object.assign({ src: meta.src }, meta.msg));
+		setTimeout(flush, 0, meta.snk);
 	}
 
 	return {
-		update,
+		spawn,
+		publish,
+		dispatch,
 	};
 }
