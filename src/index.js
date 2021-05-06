@@ -81,7 +81,8 @@ function createActorSystem({
 			},
 		);
 
-		return { self, parent, dispatch, spawn, kill };
+		const baseProvisions = { self, parent, dispatch, spawn, kill };
+		return enhancers.reduce((acc, val) => Object.assign(val(acc), acc), baseProvisions);
 	}
 
 	return Object.assign(

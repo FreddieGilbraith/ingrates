@@ -16,8 +16,17 @@
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/index.modern.js",
 	"type": "module",
-	"files": ["dist", "src"],
-	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"actor",
+		"actors",
+		"browser",
+		"node",
+		"isomorphic"
+	],
 	"scripts": {
 		"docs:build": "mkdirp docs/build && run-p docs:build:**",
 		"docs:build:pages": "./docs/src/build.js",
@@ -42,7 +51,9 @@
 		"printWidth": 100,
 		"overrides": [
 			{
-				"files": ["**/*.md"],
+				"files": [
+					"**/*.md"
+				],
 				"options": {
 					"printWidth": 60,
 					"useTabs": false,
@@ -52,7 +63,9 @@
 		]
 	},
 	"babel": {
-		"presets": ["@babel/preset-env"]
+		"presets": [
+			"@babel/preset-env"
+		]
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.13.10",
@@ -81,9 +94,14 @@
 		"fixed-id": "^1.0.0"
 	},
 	"ava": {
-		"files": ["test/*.test.*"],
+		"files": [
+			"test/*.test.*"
+		],
 		"failFast": true,
 		"failWithoutAssertions": false,
-		"ignoredByWatcher": ["build", "coverage"]
+		"ignoredByWatcher": [
+			"build",
+			"coverage"
+		]
 	}
 }
