@@ -6,6 +6,7 @@ export default function localRealizer({ doSpawn, doDispatch, runActor, getProvis
 	const children = {};
 	const parent = {};
 	const states = {};
+	const nicknames = {};
 
 	async function flush(self) {
 		if (running[self] || mailbox[self].length === 0) {
@@ -31,6 +32,7 @@ export default function localRealizer({ doSpawn, doDispatch, runActor, getProvis
 		mailbox[meta.self] = [];
 		running[meta.self] = false;
 		parent[meta.self] = meta.parent;
+		nicknames[meta.self] = meta.nickname;
 		children[meta.parent] = Object.assign(
 			{
 				[meta.nickname]: meta.self,
@@ -48,9 +50,24 @@ export default function localRealizer({ doSpawn, doDispatch, runActor, getProvis
 		setTimeout(flush, 0, meta.snk);
 	}
 
+	function kill(meta) {
+		delete name[meta.self];
+		delete argss[meta.self];
+		delete mailbox[meta.self];
+		delete running[meta.self];
+		delete parent[meta.self];
+
+		const nickname = nicknames[meta.self];
+		delete nicknames[meta.self];
+
+		children[meta.parent] = Object.assign({}, children[meta.parent]);
+		delete children[meta.parent][nickname];
+	}
+
 	return {
 		spawn,
 		publish,
 		dispatch,
+		kill,
 	};
 }

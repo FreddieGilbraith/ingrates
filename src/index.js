@@ -50,6 +50,10 @@ function createActorSystem({
 		}
 	}
 
+	function doKill(parent, self) {
+		contexts.some((ctx) => ctx.kill({ self, parent }));
+	}
+
 	async function runActor({ self, parent, name, msg, state, children, args }) {
 		const provisions = Object.assign(
 			{
@@ -68,6 +72,7 @@ function createActorSystem({
 	}
 
 	function getProvisionsForActor({ self, parent }) {
+		const kill = doKill.bind(null, self);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
 			{},
@@ -76,7 +81,7 @@ function createActorSystem({
 			},
 		);
 
-		return { self, parent, dispatch, spawn };
+		return { self, parent, dispatch, spawn, kill };
 	}
 
 	return Object.assign(

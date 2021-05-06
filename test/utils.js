@@ -50,7 +50,7 @@ export function createTestSystem({ actors = [], ...rest } = {}) {
 
 				system.register(testActor);
 
-				new Promise((done, fail) => {
+				return new Promise((done, fail) => {
 					t.timeout(500);
 					system.dispatch(system.spawn.testRoot(testActor, { t, done, fail }), {
 						type: "START_TEST",

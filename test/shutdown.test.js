@@ -1,210 +1,46 @@
 import { createTestSystem } from "./utils.js";
-/*import "babel-polyfill";*/
-//import createActorSystem from "../src";
 
-//import { flushPromises, queryEnhancer } from "./utils.js";
+function SelfRequestKillActor() {}
+SelfRequestKillActor.startup = ({ dispatch, parent }) => {
+	dispatch(parent, { type: "PLEASE_KILL_ME" });
+};
 
-//describe("shutdown", () => {
-//test("actors should shutdown when their parents shutdown gracefully", (done) => {
-//expect.assertions(2);
+const test = createTestSystem({ actors: [SelfRequestKillActor] });
 
-//function* Eve({ dispatch }) {
-//while (true) {
-//const msg = yield;
-//if (msg.type === "PING") {
-//dispatch(msg.src, { type: "PONG" });
-//}
-//}
-//}
+test(function ShutdownChildTest({ kill, children, self, dispatch, msg, spawn }, { t, done, fail }) {
+	switch (msg.type) {
+		case "START_TEST": {
+			spawn.selfKillChild(SelfRequestKillActor);
+			setTimeout(dispatch, 10, self, {
+				type: "CHECK_CHILDREN_COUNT",
+				expect: ["selfKillChild"],
+			});
+			break;
+		}
 
-//function* Bob({ spawn, dispatch }) {
-//let running = true;
-//const eve = spawn(Eve);
+		case "CHECK_CHILDREN_COUNT": {
+			t.deepEqual(Object.keys(children), msg.expect);
 
-//while (running) {
-//const msg = yield;
-//switch (msg.type) {
-//case "REQUEST_EVE_ADDRESS": {
-//dispatch(msg.src, {
-//type: "RESPONSE_EVE_ADDRESS",
-//addr: eve,
-//});
-//break;
-//}
+			break;
+		}
 
-//case "STOP": {
-//running = false;
-//break;
-//}
-//default:
-//continue;
-//}
-//}
-//}
+		case "PLEASE_KILL_ME": {
+			kill(msg.src);
 
-//createActorSystem({
-//enhancers: [queryEnhancer],
-//})(async function* TestActor({ spawn, dispatch, query }) {
-//const bob = spawn(Bob);
-//const { addr: eve } = await query(bob, {
-//type: "REQUEST_EVE_ADDRESS",
-//});
+			dispatch(self, { type: "CHECK_CHILDREN_COUNT", expect: [] });
 
-//const response1 = await query(eve, { type: "PING" });
-//expect(response1.type).toBe("PONG");
+			dispatch(self, { type: "DONE" });
+			break;
+		}
 
-//dispatch(bob, { type: "STOP" });
+		case "DONE": {
+			done();
+			break;
+		}
 
-//await flushPromises();
-
-//try {
-//const _response1 = await query(eve, { type: "PING" });
-//done("Fail: Eve was still queryable");
-//} catch (e) {
-//expect(e.type).toBe("QUERY_TIMEOUT");
-//done();
-//}
-//});
-//});
-
-//test("actors should shutdown when their grandparents shutdown gracefully", (done) => {
-//function* Eve({ dispatch }) {
-//while (true) {
-//const msg = yield;
-//if (msg.type === "PING") {
-//dispatch(msg.src, { type: "PONG" });
-//}
-//}
-//}
-
-//function* Bob({ spawn, dispatch }) {
-//const eve = spawn(Eve);
-
-//while (true) {
-//const msg = yield;
-//switch (msg.type) {
-//case "REQUEST_EVE_ADDRESS":
-//dispatch(msg.src, {
-//type: "RESPONSE_EVE_ADDRESS",
-//addr: eve,
-//});
-//break;
-
-//default:
-//continue;
-//}
-//}
-//}
-
-//async function* Alice({ spawn, dispatch, query }) {
-//let running = true;
-//const bob = spawn(Bob);
-//const { addr: eve } = await query(bob, {
-//type: "REQUEST_EVE_ADDRESS",
-//});
-
-//while (running) {
-//const msg = yield;
-//switch (msg.type) {
-//case "REQUEST_EVE_ADDRESS": {
-//dispatch(msg.src, {
-//type: "RESPONSE_EVE_ADDRESS",
-//addr: eve,
-//});
-//break;
-//}
-
-//case "STOP": {
-//running = false;
-//break;
-//}
-//default:
-//continue;
-//}
-//}
-//}
-
-//createActorSystem({ enhancers: [queryEnhancer] })(
-//async function* TestActor({ spawn, dispatch, query }) {
-//const alice = spawn(Alice);
-//const { addr: eve } = await query(alice, {
-//type: "REQUEST_EVE_ADDRESS",
-//});
-
-//const response1 = await query(eve, { type: "PING" });
-//expect(response1.type).toBe("PONG");
-
-//dispatch(alice, { type: "STOP" });
-
-//await flushPromises();
-
-//try {
-//const _response2 = await query(eve, { type: "PING" });
-//done("Fail: Eve was still queryable");
-//} catch (e) {
-//expect(e.type).toBe("QUERY_TIMEOUT");
-//done();
-//}
-//},
-//);
-//});
-
-//test("actors should shutdown when their parents crash", (done) => {
-//expect.assertions(2);
-
-//function* Eve({ dispatch }) {
-//while (true) {
-//const msg = yield;
-//if (msg.type === "PING") {
-//dispatch(msg.src, { type: "PONG" });
-//}
-//}
-//}
-
-//function* Zed({ spawn, dispatch }) {
-//let running = true;
-//const eve = spawn(Eve);
-
-//while (running) {
-//const msg = yield;
-//switch (msg.type) {
-//case "REQUEST_EVE_ADDRESS": {
-//dispatch(msg.src, {
-//type: "RESPONSE_EVE_ADDRESS",
-//addr: eve,
-//});
-//break;
-//}
-
-//case "KILL": {
-//throw new Error("Zed's dead, Baby");
-//}
-//default:
-//continue;
-//}
-//}
-//}
-
-//createActorSystem({
-//enhancers: [queryEnhancer],
-//onErr: jest.fn(),
-//})(async function* TestActor({ spawn, dispatch, query }) {
-//const zed = spawn(Zed);
-//const { addr: eve } = await query(zed, {
-//type: "REQUEST_EVE_ADDRESS",
-//});
-
-//const response1 = await query(eve, { type: "PING" });
-//expect(response1.type).toBe("PONG");
-
-//dispatch(zed, { type: "KILL" });
-
-//try {
-//const _response2 = await query(eve, { type: "PING" });
-//done("Fail: Eve was still queryable");
-//} catch (e) {
-//expect(e.type).toBe("QUERY_TIMEOUT");
-//done();
-//}
-//});
-//});
+		default: {
+			fail();
+			break;
+		}
+	}
+});
