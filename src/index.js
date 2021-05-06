@@ -33,10 +33,11 @@ function createActorSystem({
 		const self = fixedId();
 
 		contexts.some((ctx) => ctx.spawn({ self, parent, name, nickname, args }));
-
-		const state = startup(getProvisionsForActor({ self, parent }), ...args);
-		if (state) {
-			contexts.some((ctx) => ctx.publish({ self, state }));
+		if (startup) {
+			const state = startup(getProvisionsForActor({ self, parent }), ...args);
+			if (state) {
+				contexts.some((ctx) => ctx.publish({ self, state }));
+			}
 		}
 
 		return self;

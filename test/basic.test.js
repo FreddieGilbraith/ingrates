@@ -1,72 +1,66 @@
-import test from "ava";
+import { createTestSystem } from "./utils.js";
 
-import createActorSystem from "../src/index.js";
-
-test("basic functionality sketch", (t) =>
-	new Promise((done, fail) => {
-		t.timeout(500);
-
-		function ChildActor({ parent, dispatch, msg, state }, startingValue) {
-			switch (msg.type) {
-				case "PLEASE_ADD": {
-					return {
-						...state,
-						value: state.value + msg.value,
-					};
-				}
-
-				case "PLEASE_GET": {
-					dispatch(msg.src, { type: "RESULT", value: state.value });
-					return state;
-				}
-
-				default: {
-					return state;
-				}
-			}
-		}
-
-		ChildActor.startup = ({ state }, startingValue) => {
+function ChildActor({ parent, dispatch, msg, state }, startingValue) {
+	switch (msg.type) {
+		case "PLEASE_ADD": {
 			return {
 				...state,
-				value: startingValue,
+				value: state.value + msg.value,
 			};
-		};
-
-		function RootActor({ spawn, dispatch, children, parent, msg }) {
-			switch (msg.type) {
-				case "ADD": {
-					dispatch(children.myChild, { type: "PLEASE_ADD", value: msg.value });
-					break;
-				}
-				case "GET": {
-					dispatch(children.myChild, { type: "PLEASE_GET", value: msg.value });
-					break;
-				}
-				case "RESULT": {
-					t.is(msg.value, 10);
-					done();
-					break;
-				}
-				default:
-					fail();
-					break;
-			}
 		}
 
-		RootActor.startup = ({ spawn }) => {
+		case "PLEASE_GET": {
+			dispatch(msg.src, { type: "RESULT", value: state.value });
+			return state;
+		}
+
+		default: {
+			return state;
+		}
+	}
+}
+
+ChildActor.startup = ({ state }, startingValue) => {
+	return {
+		...state,
+		value: startingValue,
+	};
+};
+
+const test = createTestSystem({ actors: [ChildActor] });
+
+test(function BasicFunctionalitySketch(
+	{ self, spawn, dispatch, children, msg },
+	{ t, done, fail },
+) {
+	switch (msg.type) {
+		case "START_TEST": {
 			spawn.myChild(ChildActor, 4);
-		};
+			dispatch(self, { type: "ADD", value: 1 });
+			dispatch(self, { type: "ADD", value: 2 });
+			dispatch(self, { type: "ADD", value: 3 });
+			dispatch(self, { type: "GET" });
+			break;
+		}
 
-		const system = createActorSystem();
+		case "ADD": {
+			dispatch(children.myChild, { type: "PLEASE_ADD", value: msg.value });
+			break;
+		}
 
-		system.register(RootActor);
-		system.register(ChildActor);
+		case "GET": {
+			dispatch(children.myChild, { type: "PLEASE_GET", value: msg.value });
+			break;
+		}
 
-		const root = system.spawn.root(RootActor);
+		case "RESULT": {
+			t.is(msg.value, 10);
+			done();
+			break;
+		}
 
-		system.dispatch(root, { type: "ADD", value: 1 });
-		system.dispatch(root, { type: "ADD", value: 2 });
-		system.dispatch(root, { type: "ADD", value: 3 });
-		system.dispatch(root, { type: "GET" });
-	}));
+		default:
+			fail();
+			break;
+	}
+});
