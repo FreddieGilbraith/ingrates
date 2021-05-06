@@ -39,7 +39,7 @@ export function queryEnhancer({ spawn }) {
 }
 
 export function createTestSystem({ actors, ...rest }) {
-	return function runTest(testActor) {
+	function runTest(testActor) {
 		test(testActor.name, (t) => {
 			const system = createActorSystem(rest);
 
@@ -56,5 +56,26 @@ export function createTestSystem({ actors, ...rest }) {
 				});
 			});
 		});
+	}
+
+	runTest.only = (testActor) => {
+		test.only(testActor.name, (t) => {
+			const system = createActorSystem(rest);
+
+			for (const actor of actors) {
+				system.register(actor);
+			}
+
+			system.register(testActor);
+
+			new Promise((done, fail) => {
+				t.timeout(500);
+				system.dispatch(system.spawn.testRoot(testActor, { t, done, fail }), {
+					type: "START_TEST",
+				});
+			});
+		});
 	};
+
+	return runTest;
 }
