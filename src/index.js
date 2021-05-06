@@ -11,7 +11,7 @@ function createActorSystem({
 } = {}) {
 	const knownActors = {};
 
-	const transporters = [defaultExternalTransport, ...transports].map((x) => x());
+	const transporters = transports.map((x) => x());
 	const contexts = [...realizers, localRealizer].map((x) =>
 		x({
 			doSpawn,
@@ -32,11 +32,11 @@ function createActorSystem({
 
 		const self = fixedId();
 
-		contexts.some(({ spawn }) => spawn({ self, parent, name, nickname, args }));
+		contexts.some((ctx) => ctx.spawn({ self, parent, name, nickname, args }));
 
 		const state = startup(getProvisionsForActor({ self, parent }), ...args);
 		if (state) {
-			contexts.some(({ publish }) => publish({ self, state }));
+			contexts.some((ctx) => ctx.publish({ self, state }));
 		}
 
 		return self;
@@ -45,7 +45,7 @@ function createActorSystem({
 	function doDispatch(src, snk, _msg_) {
 		const msg = Object.assign({ src }, _msg_);
 		if (!transporters.some((x) => x(snk, msg))) {
-			contexts.some(({ dispatch }) => dispatch({ snk, msg }));
+			contexts.some((ctx) => ctx.dispatch({ snk, msg }));
 		}
 	}
 
@@ -62,7 +62,7 @@ function createActorSystem({
 		const newState = await knownActors[name](provisions, ...args);
 
 		if (newState) {
-			contexts.some(({ publish }) => publish({ self, state: newState }));
+			contexts.some((ctx) => ctx.publish({ self, state: newState }));
 		}
 	}
 
@@ -78,25 +78,9 @@ function createActorSystem({
 		return { self, parent, dispatch, spawn };
 	}
 
-	const defaultExternalTransportListeners = [];
-	function listen(x) {
-		defaultExternalTransportListeners.push(x);
-	}
-	function defaultExternalTransport() {
-		return (snk, msg) => {
-			if (snk === null) {
-				defaultExternalTransportListeners.forEach((x) => x(msg));
-				return true;
-			} else {
-				return false;
-			}
-		};
-	}
-
 	return Object.assign(
 		{
 			register,
-			listen,
 		},
 		getProvisionsForActor({
 			self: null,
