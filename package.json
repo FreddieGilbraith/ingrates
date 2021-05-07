@@ -19,6 +19,7 @@
 	"files": ["dist", "src"],
 	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
 	"scripts": {
+		"size": "size-limit",
 		"bench": "node --enable-source-maps benchmark.js",
 		"build": "microbundle",
 		"docs:build": "mkdirp docs/build && run-p docs:build:**",
@@ -27,8 +28,8 @@
 		"docs:watch": "watch 'npm run docs:build' 'docs/src'",
 		"format": "prettier --write src/**/*",
 		"lint": "eslint . && prettier --check src/**/*",
-		"prepublishOnly": "npm run build",
-		"prepushOnly": "npm run format && && npm run test && npm run build",
+		"prepublishOnly": "npm run build && npm run size",
+		"prepushOnly": "npm run format && && npm run test && npm run build && npm run size",
 		"test": "NODE_ENV=test c8 --check-coverage --lines 100 --functions 100 --branches 100 --reporter=html --reporter=text ava",
 		"test:watch": "NODE_ENV=test ava --watch",
 		"watch": "microbundle watch"
@@ -60,6 +61,7 @@
 		"@babel/core": "^7.13.10",
 		"@babel/preset-env": "^7.13.10",
 		"@little-bonsai/eslint-config": "0.0.3",
+		"@size-limit/preset-small-lib": "^4.10.2",
 		"ava": "^3.15.0",
 		"babel-eslint": "^10.1.0",
 		"babel-jest": "^26.6.3",
@@ -76,6 +78,7 @@
 		"postcss-cli": "^8.3.1",
 		"prettier": "^2.2.1",
 		"ramda": "^0.27.1",
+		"size-limit": "^4.10.2",
 		"tailwindcss": "^2.0.4"
 	},
 	"dependencies": {
@@ -86,5 +89,10 @@
 		"failFast": true,
 		"failWithoutAssertions": false,
 		"ignoredByWatcher": ["build", "coverage"]
-	}
+	},
+	"size-limit": [
+		{ "name": "modern", "limit": "2 kB", "path": "./dist/index.modern.js" },
+		{ "name": "module", "limit": "2.5 kB", "path": "./dist/index.module.js" },
+		{ "name": "archaic", "limit": "2.5 kB", "path": "./dist/index.js" }
+	]
 }
