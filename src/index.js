@@ -1,6 +1,6 @@
 import fixedId from "fixed-id";
 
-import localRealizer from "./localRealizer.js";
+import defaultRAMRealizer from "./defaultRAMRealizer.js";
 
 function createActorSystem({
 	enhancers = [],
@@ -12,7 +12,7 @@ function createActorSystem({
 	const knownActors = {};
 
 	const transporters = transports.map((x) => x());
-	const contexts = [...realizers, localRealizer].map((x) =>
+	const contexts = [...realizers, defaultRAMRealizer].map((x) =>
 		x({
 			doSpawn,
 			doDispatch,
@@ -34,11 +34,17 @@ function createActorSystem({
 
 		contexts.some((ctx) => ctx.spawn({ self, parent, name, nickname, args }));
 
-		Promise.resolve(
-			startup ? startup(getProvisionsForActor({ self, parent }), ...args) : null,
-		).then((state) => {
-			contexts.some((ctx) => ctx.publish({ self, state }));
-		});
+		try {
+			Promise.resolve(
+				startup ? startup(getProvisionsForActor({ self, parent }), ...args) : null,
+			)
+				.then((state) => {
+					contexts.some((ctx) => ctx.publish({ self, state }));
+				})
+				.catch(onErr);
+		} catch (e) {
+			onErr("Error Starting Actor", e, { self, name });
+		}
 
 		return self;
 	}
@@ -64,10 +70,13 @@ function createActorSystem({
 			getProvisionsForActor({ self, parent }),
 		);
 
-		const newState = await knownActors[name](provisions, ...args);
-
-		if (newState) {
-			contexts.some((ctx) => ctx.publish({ self, state: newState }));
+		try {
+			const newState = await knownActors[name](provisions, ...args);
+			if (newState) {
+				contexts.some((ctx) => ctx.publish({ self, state: newState }));
+			}
+		} catch (e) {
+			onErr("Error Running Actor", e, { self, name, msg, state });
 		}
 	}
 

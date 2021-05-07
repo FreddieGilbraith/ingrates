@@ -1,4 +1,4 @@
-export default function localRealizer({ runActor }) {
+export default function defaultRAMRealizer({ runActor }) {
 	const bundles = {};
 
 	async function flush(self) {
@@ -6,7 +6,7 @@ export default function localRealizer({ runActor }) {
 			!bundles[self] ||
 			bundles[self].running ||
 			bundles[self].mailbox.length === 0 ||
-			bundles[self].state === undefined
+			!bundles[self].hasOwnProperty("state")
 		) {
 			return;
 		}
@@ -45,23 +45,33 @@ export default function localRealizer({ runActor }) {
 			},
 			(bundles[meta.parent] || {}).children || {},
 		);
+
+		return true;
 	}
 
 	function publish(meta) {
 		bundles[meta.self].state = meta.state;
 		setTimeout(flush, 0, meta.self);
+
+		return true;
 	}
 
 	function dispatch(meta) {
-		bundles[meta.snk].mailbox.push(Object.assign({ src: meta.src }, meta.msg));
+		bundles[meta.snk]?.mailbox?.push(Object.assign({ src: meta.src }, meta.msg));
 		setTimeout(flush, 0, meta.snk);
+
+		return true;
 	}
 
 	function kill(meta) {
 		bundles[meta.parent].children = Object.assign({}, bundles[meta.parent].children);
-		delete bundles[meta.parent].children[bundles[meta.self].nickname];
+		if (bundles[meta.self]) {
+			delete bundles[meta.parent].children[bundles[meta.self].nickname];
+		}
 
 		delete bundles[meta.self];
+
+		return true;
 	}
 
 	return {
