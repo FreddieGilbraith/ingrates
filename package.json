@@ -88,7 +88,8 @@
 		"files": ["test/*.test.*"],
 		"failFast": true,
 		"failWithoutAssertions": false,
-		"ignoredByWatcher": ["build", "coverage"]
+		"ignoredByWatcher": ["build", "coverage"],
+		"verbose": true
 	},
 	"size-limit": [
 		{ "name": "modern", "limit": "2 kB", "path": "./dist/index.modern.js" },
