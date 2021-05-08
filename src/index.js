@@ -32,14 +32,16 @@ function createActorSystem({
 
 		const self = fixedId();
 
-		contexts.some((ctx) => ctx.spawn({ self, parent, name, nickname, args }));
+		contexts.some((ctx) => ctx.spawn({ name, parent, nickname, self, args }));
 
 		try {
 			Promise.resolve(
-				startup ? startup(getProvisionsForActor({ self, parent }), ...args) : null,
+				startup ? startup(getProvisionsForActor({ self, parent }), ...args) : undefined,
 			)
 				.then((state) => {
-					contexts.some((ctx) => ctx.publish({ self, state }));
+					contexts.some((ctx) =>
+						ctx.spawn({ name, parent, nickname, self, args, state }),
+					);
 				})
 				.catch(onErr);
 		} catch (e) {
@@ -49,10 +51,10 @@ function createActorSystem({
 		return self;
 	}
 
-	function doDispatch(src, snk, _msg_) {
+	function doDispatch(src, self, _msg_) {
 		const msg = Object.assign({ src }, _msg_);
-		if (!transporters.some((x) => x(snk, msg))) {
-			contexts.some((ctx) => ctx.dispatch({ snk, msg }));
+		if (!transporters.some((x) => x(self, msg))) {
+			contexts.some((ctx) => ctx.dispatch({ self, msg }));
 		}
 	}
 
@@ -72,9 +74,7 @@ function createActorSystem({
 
 		try {
 			const newState = await knownActors[name](provisions, ...args);
-			if (newState) {
-				contexts.some((ctx) => ctx.publish({ self, state: newState }));
-			}
+			return newState;
 		} catch (e) {
 			onErr("Error Running Actor", e, { self, name, msg, state });
 		}

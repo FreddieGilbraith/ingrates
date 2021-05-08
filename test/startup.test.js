@@ -70,6 +70,8 @@ function ActorWithAsyncStartupFunctionality({ self, dispatch, state, msg }, { t,
 			break;
 		}
 	}
+
+	return state;
 }
 
 ActorWithAsyncStartupFunctionality.startup = async ({ spawn, dispatch }, { t }) => {

@@ -1,83 +1,86 @@
 export default function defaultRAMRealizer({ runActor }) {
+	let polling = false;
 	const bundles = {};
+	const effects = [];
+	const effectsBuffer = [];
 
-	async function flush(self) {
+	function enqueEffect(type, meta) {
 		if (
-			!bundles[self] ||
-			bundles[self].running ||
-			bundles[self].mailbox.length === 0 ||
-			!bundles[self].hasOwnProperty("state")
+			type !== "spawn" &&
+			(!bundles[meta.self] || !bundles[meta.self].hasOwnProperty("state"))
 		) {
+			effectsBuffer.push([type, meta]);
+			return true;
+		}
+
+		effects.push([type, meta]);
+		setTimeout(poll, 0);
+		return true;
+	}
+
+	function flushBuffer() {
+		let effect;
+		while ((effect = effectsBuffer.shift())) {
+			setTimeout(enqueEffect, 0, ...effect);
+		}
+	}
+
+	async function poll() {
+		if (polling || effects.length === 0) {
 			return;
 		}
+		polling = true;
 
-		bundles[self].running = true;
+		await handleEffect(...effects.shift());
 
-		const bundle = bundles[self];
-
-		await runActor(
-			Object.assign(
-				{
-					self,
-					msg: bundle.mailbox.shift(),
-				},
-				bundle,
-			),
-		);
-
-		setTimeout(flush, 0, self);
-		bundles[self].running = false;
+		setTimeout(flushBuffer, 0);
+		setTimeout(poll, 0);
+		polling = false;
 	}
 
-	function spawn(meta) {
-		bundles[meta.self] = Object.assign(
-			{
-				mailbox: [],
-				running: false,
-			},
-			meta,
-		);
+	async function handleEffect(type, meta) {
+		switch (type) {
+			case "spawn": {
+				bundles[meta.self] = Object.assign({}, meta);
 
-		bundles[meta.parent] = bundles[meta.parent] || {};
-		bundles[meta.parent].children = Object.assign(
-			{
-				[meta.nickname]: meta.self,
-			},
-			(bundles[meta.parent] || {}).children || {},
-		);
+				bundles[meta.parent] = bundles[meta.parent] || {};
+				bundles[meta.parent].children = Object.assign(
+					{
+						[meta.nickname]: meta.self,
+					},
+					(bundles[meta.parent] || {}).children || {},
+				);
+				break;
+			}
 
-		return true;
-	}
+			case "dispatch": {
+				const self = meta.self;
+				if (bundles[self]) {
+					bundles[self].state = await runActor(
+						Object.assign(
+							{
+								self,
+								msg: meta.msg,
+							},
+							bundles[self],
+						),
+					);
+				}
+				break;
+			}
 
-	function publish(meta) {
-		bundles[meta.self].state = meta.state;
-		setTimeout(flush, 0, meta.self);
+			case "kill": {
+				delete bundles[meta.parent].children[bundles[meta.self].nickname];
 
-		return true;
-	}
-
-	function dispatch(meta) {
-		bundles[meta.snk]?.mailbox?.push(Object.assign({ src: meta.src }, meta.msg));
-		setTimeout(flush, 0, meta.snk);
-
-		return true;
-	}
-
-	function kill(meta) {
-		bundles[meta.parent].children = Object.assign({}, bundles[meta.parent].children);
-		if (bundles[meta.self]) {
-			delete bundles[meta.parent].children[bundles[meta.self].nickname];
+				delete bundles[meta.self];
+				break;
+			}
 		}
-
-		delete bundles[meta.self];
-
-		return true;
 	}
 
 	return {
-		spawn,
-		publish,
-		dispatch,
-		kill,
+		spawn: enqueEffect.bind(null, "spawn"),
+		dispatch: enqueEffect.bind(null, "dispatch"),
+		kill: enqueEffect.bind(null, "kill"),
 	};
 }

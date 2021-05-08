@@ -7,7 +7,7 @@ const testEnhancerTwo = ({ goCrazy }) => ({
 
 const test = createTestSystem({ enhancers: [testEnhancerOne, testEnhancerTwo] });
 
-test.only(function JackTestance({ dispatch, self, goCrazy, overlook, msg }, { t, done, fail }) {
+test(function JackTestance({ dispatch, self, goCrazy, overlook, msg }, { t, done, fail }) {
 	switch (msg.type) {
 		case "START_TEST": {
 			t.plan(2);
