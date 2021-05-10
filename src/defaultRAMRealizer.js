@@ -1,3 +1,7 @@
+const spawn = 1;
+const dispatch = 2;
+const kill = 3;
+
 export default function defaultRAMRealizer({ runActor }) {
 	let polling = false;
 	const bundles = {};
@@ -6,7 +10,7 @@ export default function defaultRAMRealizer({ runActor }) {
 
 	function enqueEffect(type, meta) {
 		if (
-			type !== "spawn" &&
+			type !== spawn &&
 			(!bundles[meta.self] || !bundles[meta.self].hasOwnProperty("state"))
 		) {
 			effectsBuffer.push([type, meta]);
@@ -40,7 +44,7 @@ export default function defaultRAMRealizer({ runActor }) {
 
 	async function handleEffect(type, meta) {
 		switch (type) {
-			case "spawn": {
+			case spawn: {
 				bundles[meta.self] = Object.assign({}, meta);
 
 				bundles[meta.parent] = bundles[meta.parent] || {};
@@ -53,7 +57,7 @@ export default function defaultRAMRealizer({ runActor }) {
 				break;
 			}
 
-			case "dispatch": {
+			case dispatch: {
 				const self = meta.self;
 				if (bundles[self]) {
 					bundles[self].state = await runActor(
@@ -69,7 +73,7 @@ export default function defaultRAMRealizer({ runActor }) {
 				break;
 			}
 
-			case "kill": {
+			case kill: {
 				delete bundles[meta.parent].children[bundles[meta.self].nickname];
 
 				delete bundles[meta.self];
@@ -79,8 +83,8 @@ export default function defaultRAMRealizer({ runActor }) {
 	}
 
 	return {
-		spawn: enqueEffect.bind(null, "spawn"),
-		dispatch: enqueEffect.bind(null, "dispatch"),
-		kill: enqueEffect.bind(null, "kill"),
+		spawn: enqueEffect.bind(null, spawn),
+		dispatch: enqueEffect.bind(null, dispatch),
+		kill: enqueEffect.bind(null, kill),
 	};
 }
