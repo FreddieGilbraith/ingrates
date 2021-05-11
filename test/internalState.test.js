@@ -1,67 +1,69 @@
-//import "babel-polyfill";
-//import createActorSystem from "../src";
-
 import { createTestSystem } from "./utils.js";
-//function pause() {
-//return new Promise((x) => setTimeout(x, Math.random() * 10));
-//}
 
-//async function* countingActor({ dispatch }, name) {
-//const state = {
-//count: 0,
-//};
+const test = createTestSystem();
 
-//while (true) {
-//const msg = yield;
+function SyncActorWithInternalState({ dispatch, self, msg, state }, { t, done }) {
+	switch (msg.type) {
+		case "START_TEST": {
+			t.plan(1);
+			dispatch(self, { type: "INC" });
+			dispatch(self, { type: "INC" });
+			dispatch(self, { type: "INC" });
+			dispatch(self, { type: "DONE" });
+			break;
+		}
 
-////by getting the value before the wait, and using it after the wait,
-////we're opening ourselves up to race conditions if async generators don't properly enqueue messages
-//const count = state.count;
+		case "INC": {
+			return {
+				...state,
+				counter: state.counter + 1,
+			};
+		}
 
-//await pause();
+		case "DONE": {
+			t.is(state.counter, 6);
+			done();
+		}
+	}
 
-//switch (msg.type) {
-//case "INC": {
-//state.count = count + 1;
-//continue;
-//}
-//case "DEC": {
-//state.count = count - 1;
-//continue;
-//}
-//case "QUERY": {
-//dispatch(msg.src, {
-//type: "RESPONSE",
-//name,
-//count: state.count,
-//});
-//continue;
-//}
-//default:
-//continue;
-//}
-//}
-//}
+	return state;
+}
 
-//it("will update its internal state", (done) => {
-//createActorSystem()(async function* testActor({ spawn, dispatch }) {
-//const counter = spawn(countingActor, "count VonCount");
+SyncActorWithInternalState.startup = () => ({
+	counter: 3,
+});
 
-//dispatch(counter, { type: "INC" });
-//dispatch(counter, { type: "INC" });
-//dispatch(counter, { type: "DEC" });
-//dispatch(counter, { type: "INC" });
-//dispatch(counter, { type: "QUERY" });
+test(SyncActorWithInternalState);
 
-//const msg = yield;
+async function AsyncActorWithInternalState({ dispatch, self, msg, state }, { t, done }) {
+	switch (msg.type) {
+		case "START_TEST": {
+			t.plan(1);
+			dispatch(self, { type: "INC" });
+			dispatch(self, { type: "INC" });
+			dispatch(self, { type: "INC" });
+			dispatch(self, { type: "DONE" });
+			break;
+		}
 
-//expect(msg).toEqual({
-//type: "RESPONSE",
-//name: "count VonCount",
-//count: 2,
-//src: counter,
-//});
+		case "INC": {
+			return {
+				...state,
+				counter: state.counter + 1,
+			};
+		}
 
-//done();
-//});
-//});
+		case "DONE": {
+			t.is(state.counter, 6);
+			done();
+		}
+	}
+
+	return state;
+}
+
+AsyncActorWithInternalState.startup = async () => ({
+	counter: 3,
+});
+
+test(AsyncActorWithInternalState);
