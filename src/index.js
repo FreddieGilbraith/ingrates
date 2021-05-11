@@ -11,7 +11,7 @@ function createActorSystem({
 } = {}) {
 	const knownActors = {};
 
-	const transporters = transports.map((x) => x());
+	const transporters = transports.map((x) => x(doDispatch));
 	const contexts = [...realizers, defaultRAMRealizer].map((x) =>
 		x({
 			doSpawn,
