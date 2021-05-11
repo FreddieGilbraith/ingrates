@@ -26,7 +26,7 @@ function createActorSystem({
 
 	function doSpawn(parent, nickname, { name, startup }, ...args) {
 		if (!knownActors[name]) {
-			onErr("Tried to spawn unknown actor", name);
+			onErr("StartError", name);
 			return null;
 		}
 
@@ -43,9 +43,9 @@ function createActorSystem({
 						ctx.spawn({ name, parent, nickname, self, args, state }),
 					);
 				})
-				.catch(onErr);
+				.catch((e) => onErr("StartError", e, { self, name }));
 		} catch (e) {
-			onErr("Error Starting Actor", e, { self, name });
+			onErr("StartError", e, { self, name });
 		}
 
 		return self;
@@ -76,7 +76,7 @@ function createActorSystem({
 			const newState = await knownActors[name](provisions, ...args);
 			return newState;
 		} catch (e) {
-			onErr("Error Running Actor", e, { self, name, msg, state });
+			onErr("RunError", e, { self, name, msg, state, parent });
 		}
 	}
 

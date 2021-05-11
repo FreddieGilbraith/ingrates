@@ -31,7 +31,7 @@
 		"prepublishOnly": "npm run build && npm run size",
 		"prepushOnly": "npm run format && && npm run test && npm run build && npm run size",
 		"test": "NODE_ENV=test c8 --check-coverage --lines 100 --functions 100 --branches 100 --reporter=html --reporter=text ava",
-		"test:watch": "NODE_ENV=test ava --watch",
+		"test:watch": "NODE_ENV=test ava --watch --fail-fast",
 		"watch": "microbundle watch"
 	},
 	"eslintConfig": {
@@ -85,8 +85,7 @@
 		"fixed-id": "^1.0.0"
 	},
 	"ava": {
-		"files": ["test/*.test.*"],
-		"failFast": true,
+		"files": ["test/**/*.test.js"],
 		"failWithoutAssertions": false,
 		"ignoredByWatcher": ["build", "coverage"],
 		"verbose": true
