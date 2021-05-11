@@ -32,34 +32,68 @@ function createActorSystem({
 
 		const self = fixedId();
 
-		contexts.some((ctx) => ctx.spawn({ name, parent, nickname, self, args }));
+		new Promise(async (done) => {
+			for (const ctx of contexts) {
+				const handled = await ctx.spawn({ name, parent, nickname, self, args });
+				if (handled) {
+					break;
+				}
+			}
 
-		try {
-			Promise.resolve(
-				startup ? startup(getProvisionsForActor({ self, parent }), ...args) : undefined,
-			)
-				.then((state) => {
-					contexts.some((ctx) =>
-						ctx.spawn({ name, parent, nickname, self, args, state }),
-					);
-				})
-				.catch((e) => onErr("StartError", e, { self, name }));
-		} catch (e) {
-			onErr("StartError", e, { self, name });
-		}
+			try {
+				Promise.resolve(
+					startup ? startup(getProvisionsForActor({ self, parent }), ...args) : undefined,
+				)
+					.then(async (state) => {
+						for (const ctx of contexts) {
+							const handled = await ctx.spawn({
+								name,
+								parent,
+								nickname,
+								self,
+								args,
+								state,
+							});
+							if (handled) {
+								break;
+							}
+						}
+					})
+					.catch((e) => onErr("StartError", e, { self, name }));
+			} catch (e) {
+				onErr("StartError", e, { self, name });
+			}
+			done();
+		});
 
 		return self;
 	}
 
 	function doDispatch(src, self, _msg_) {
-		const msg = Object.assign({ src }, _msg_);
-		if (!transporters.some((x) => x(self, msg))) {
-			contexts.some((ctx) => ctx.dispatch({ self, msg }));
-		}
+		new Promise(async (done) => {
+			const msg = Object.assign({ src }, _msg_);
+			if (!transporters.some((x) => x(self, msg))) {
+				for (const ctx of contexts) {
+					const handled = await ctx.dispatch({ self, msg });
+					if (handled) {
+						break;
+					}
+				}
+			}
+			done();
+		});
 	}
 
 	function doKill(parent, self) {
-		contexts.some((ctx) => ctx.kill({ self, parent }));
+		new Promise(async (done) => {
+			for (const ctx of contexts) {
+				const handled = await ctx.kill({ self, parent });
+				if (handled) {
+					break;
+				}
+			}
+			done();
+		});
 	}
 
 	async function runActor({ self, parent, name, msg, state, children, args }) {
