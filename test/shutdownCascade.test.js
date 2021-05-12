@@ -15,7 +15,7 @@ ChildActor.startup = ({ spawn, parent, dispatch }) => {
 
 const test = createTestSystem({ actors: [ChildActor, GrandChildActor] });
 
-test(function WillKillChildrenOfShutdownActor(
+test.skip(function WillKillChildrenOfShutdownActor(
 	{ self, spawn, msg, dispatch, kill, children },
 	{ t, done, fail },
 ) {

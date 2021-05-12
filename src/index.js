@@ -3,6 +3,8 @@ import fixedId from "fixed-id";
 import defaultRAMRealizer from "./defaultRAMRealizer.js";
 export { defaultRAMRealizer };
 
+function noop() {}
+
 export default function createActorSystem({
 	enhancers = [],
 	realizers = [defaultRAMRealizer],
@@ -12,12 +14,13 @@ export default function createActorSystem({
 } = {}) {
 	const knownActors = {};
 
-	const transporters = transports.map((x) => x(doDispatch));
+	const transporters = transports.map((x) => x(doDispatch, createActorSystem));
 	const contexts = realizers.map((x) =>
 		x({
+			createActorSystem,
+			doDispatch,
 			doKill,
 			doSpawn,
-			doDispatch,
 			runActor,
 		}),
 	);
@@ -87,18 +90,11 @@ export default function createActorSystem({
 	}
 
 	function doKill(parent, self) {
-		new Promise(async (done) => {
-			for (const ctx of contexts) {
-				const handled = await ctx.kill({ self, parent });
-				if (handled) {
-					break;
-				}
-			}
-			done();
-		});
+		contexts.some((ctx) => ctx.kill({ self, parent }));
 	}
 
-	async function runActor({ self, parent, name, msg, state, children, args }) {
+	async function runActor(meta) {
+		const { self, parent, name, msg, state, children, args } = meta;
 		const provisions = Object.assign(
 			{
 				children,
@@ -111,8 +107,29 @@ export default function createActorSystem({
 		try {
 			const newState = await knownActors[name](provisions, ...args);
 			return newState;
-		} catch (e) {
-			onErr("RunError", e, { self, name, msg, state, parent });
+		} catch (error) {
+			onErr("RunError", error, { self, name, msg, state, parent });
+			const escalate = 1;
+			const restart = 2;
+			const resume = 3;
+			const retry = 4;
+			const stop = 5;
+
+			const supervisionResponse = (knownActors[name].supervision || noop)(error, meta, {
+				escalate,
+				restart,
+				resume,
+				retry,
+				stop,
+			});
+
+			switch (supervisionResponse) {
+				case escalate:
+					doDispatch(self, parent, { error, msg });
+				case stop:
+					doKill(parent, self);
+					break;
+			}
 		}
 	}
 

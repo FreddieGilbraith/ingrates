@@ -62,6 +62,7 @@ export function createTestSystem({ actors = [], ...rest } = {}) {
 
 	const runDefault = createSpecificTestRunner(test);
 	runDefault.only = createSpecificTestRunner(test.only);
+	runDefault.skip = createSpecificTestRunner(test.skip);
 	runDefault.todo = test.todo;
 
 	return runDefault;

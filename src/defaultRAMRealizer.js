@@ -1,6 +1,5 @@
 const spawn = 1;
 const dispatch = 2;
-const kill = 3;
 
 export default function defaultRAMRealizer({ runActor, doKill }) {
 	let polling = false;
@@ -56,6 +55,7 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 
 			case dispatch: {
 				const self = meta.self;
+
 				if (bundles[self]) {
 					return runActor(
 						Object.assign(
@@ -66,29 +66,27 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 							bundles[self],
 						),
 					).then((newState) => {
-						bundles[self].state = newState;
+						(bundles[self] || {}).state = newState;
 					});
 				}
-			}
-
-			case kill: {
-				if (bundles[meta.parent]) {
-					delete bundles[meta.parent].children[bundles[meta.self].nickname];
-				}
-
-				const children = bundles[meta.self].children;
-				Object.values(children || {}).forEach((child) => doKill(meta.self, child));
-
-				delete bundles[meta.self];
 				break;
 			}
 		}
 		return Promise.resolve();
 	}
 
+	function kill(meta) {
+		delete bundles[meta.parent].children[bundles[meta.self].nickname];
+
+		const children = (bundles[meta.self] && bundles[meta.self].children) || {};
+		Object.values(children).forEach((child) => kill({ parent: meta.self, self: child }));
+
+		delete bundles[meta.self];
+	}
+
 	return {
 		spawn: enqueEffect.bind(null, spawn),
 		dispatch: enqueEffect.bind(null, dispatch),
-		kill: enqueEffect.bind(null, kill),
+		kill,
 	};
 }
