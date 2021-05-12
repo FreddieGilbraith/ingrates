@@ -1,10 +1,11 @@
 import fixedId from "fixed-id";
 
 import defaultRAMRealizer from "./defaultRAMRealizer.js";
+export { defaultRAMRealizer };
 
-function createActorSystem({
+export default function createActorSystem({
 	enhancers = [],
-	realizers = [],
+	realizers = [defaultRAMRealizer],
 	transports = [],
 
 	onErr = console.error,
@@ -12,7 +13,7 @@ function createActorSystem({
 	const knownActors = {};
 
 	const transporters = transports.map((x) => x(doDispatch));
-	const contexts = [...realizers, defaultRAMRealizer].map((x) =>
+	const contexts = realizers.map((x) =>
 		x({
 			doSpawn,
 			doDispatch,
@@ -138,5 +139,3 @@ function createActorSystem({
 		}),
 	);
 }
-
-export default createActorSystem;
