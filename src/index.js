@@ -15,6 +15,7 @@ export default function createActorSystem({
 	const transporters = transports.map((x) => x(doDispatch));
 	const contexts = realizers.map((x) =>
 		x({
+			doKill,
 			doSpawn,
 			doDispatch,
 			runActor,

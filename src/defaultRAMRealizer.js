@@ -2,7 +2,7 @@ const spawn = 1;
 const dispatch = 2;
 const kill = 3;
 
-export default function defaultRAMRealizer({ runActor }) {
+export default function defaultRAMRealizer({ runActor, doKill }) {
 	let polling = false;
 	const bundles = {};
 	const effects = [];
@@ -74,7 +74,12 @@ export default function defaultRAMRealizer({ runActor }) {
 			}
 
 			case kill: {
-				delete bundles[meta.parent].children[bundles[meta.self].nickname];
+				if (bundles[meta.parent]) {
+					delete bundles[meta.parent].children[bundles[meta.self].nickname];
+				}
+
+				const children = bundles[meta.self].children;
+				Object.values(children || {}).forEach((child) => doKill(meta.self, child));
 
 				delete bundles[meta.self];
 				break;
