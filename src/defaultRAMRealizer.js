@@ -9,10 +9,7 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 	const effectsBuffer = [];
 
 	function enqueEffect(type, meta) {
-		if (
-			type !== spawn &&
-			(!bundles[meta.self] || !bundles[meta.self].hasOwnProperty("state"))
-		) {
+		if (type !== spawn && (!bundles[meta.self] || !("state" in bundles[meta.self]))) {
 			effectsBuffer.push([type, meta]);
 			return true;
 		}
