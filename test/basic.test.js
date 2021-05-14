@@ -30,7 +30,6 @@ ChildActor.startup = ({ state }, startingValue) => {
 const test = createTestSystem({ actors: [ChildActor] });
 
 test(function BasicFunctionalitySketch(ps, { t, done, fail }) {
-	console.log({ ps });
 	const { self, spawn, dispatch, children, msg } = ps;
 	switch (msg.type) {
 		case "START_TEST": {

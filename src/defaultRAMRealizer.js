@@ -1,78 +1,54 @@
-const spawn = 1;
-const dispatch = 2;
-
 export default function defaultRAMRealizer({ runActor, doKill }) {
 	let polling = false;
+
 	const bundles = {};
-	const effects = [];
-	const effectsBuffer = [];
 
-	function enqueEffect(type, meta) {
-		if (type !== spawn && (!bundles[meta.self] || !("state" in bundles[meta.self]))) {
-			effectsBuffer.push([type, meta]);
-			return true;
-		}
+	function poll(self) {
+		if (!polling && bundles[self]) {
+			polling = true;
 
-		effects.push([type, meta]);
-		setTimeout(poll, 0);
-		return true;
-	}
-
-	function flushBuffer() {
-		let effect;
-		while ((effect = effectsBuffer.shift())) {
-			setTimeout(enqueEffect, 0, ...effect);
+			handleMsg(bundles[self].msgs.shift()).then(() => {
+				polling = false;
+				setTimeout(poll, 0, self);
+			});
 		}
 	}
 
-	function poll() {
-		if (polling || effects.length === 0) {
-			return;
-		}
-		polling = true;
-
-		handleEffect(...effects.shift()).then(() => {
-			setTimeout(flushBuffer, 0);
-			setTimeout(poll, 0);
-			polling = false;
-		});
-	}
-
-	function handleEffect(type, meta) {
-		switch (type) {
-			case spawn: {
-				bundles[meta.self] = Object.assign({}, meta);
-
-				bundles[meta.parent] = bundles[meta.parent] || {};
-				bundles[meta.parent].children = Object.assign(
+	function handleMsg(input) {
+		if (input && bundles[input.self]) {
+			const { self, msg } = input;
+			return runActor(
+				Object.assign(
 					{
-						[meta.nickname]: meta.self,
+						self,
+						msg,
 					},
-					bundles[meta.parent].children || {},
-				);
-				break;
-			}
-
-			case dispatch: {
-				const self = meta.self;
-
-				if (bundles[self]) {
-					return runActor(
-						Object.assign(
-							{
-								self,
-								msg: meta.msg,
-							},
-							bundles[self],
-						),
-					).then((newState) => {
-						(bundles[self] || {}).state = newState;
-					});
-				}
-				break;
-			}
+					bundles[self],
+				),
+			).then((newState) => {
+				(bundles[self] || {}).state = newState;
+			});
 		}
 		return Promise.resolve();
+	}
+
+	function spawn(meta) {
+		bundles[meta.self] = Object.assign({ msgs: [] }, meta);
+
+		bundles[meta.parent] = bundles[meta.parent] || {};
+		bundles[meta.parent].children = Object.assign(
+			{
+				[meta.nickname]: meta.self,
+			},
+			bundles[meta.parent].children || {},
+		);
+	}
+
+	function dispatch(meta) {
+		if (bundles[meta.self]) {
+			bundles[meta.self].msgs.push(meta);
+			setTimeout(poll, 0, meta.self);
+		}
 	}
 
 	function kill(meta) {
@@ -85,8 +61,8 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 	}
 
 	return {
-		spawn: enqueEffect.bind(null, spawn),
-		dispatch: enqueEffect.bind(null, dispatch),
+		spawn,
+		dispatch,
 		kill,
 	};
 }
