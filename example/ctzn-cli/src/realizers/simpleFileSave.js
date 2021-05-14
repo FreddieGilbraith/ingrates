@@ -7,7 +7,6 @@ export default function createFileSaveRealizer(basePath) {
 		{ msg, log, name },
 		{ parent, nickname, self, args, state: initialState },
 	) {
-		log(msg, name);
 		switch (msg.type) {
 			case "MOUNT": {
 				break;
