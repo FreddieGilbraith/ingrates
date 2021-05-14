@@ -1,3 +1,5 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import { createActorSystem, defaultRAMRealizer } from "../../../dist/index.modern.js";
 import queryEnhancer from "@little-bonsai/ingrates-query-enhancer";
 
@@ -10,7 +12,10 @@ import RootActor from "./actors/Root.js";
 const actorSystem = createActorSystem({
 	transports: [ctznTransport],
 	enhancers: [logEnhancer("main"), queryEnhancer],
-	realizers: [simpleFileSaveRealizer, defaultRAMRealizer],
+	realizers: [
+		simpleFileSaveRealizer(path.resolve(fileURLToPath(import.meta.url), "..", "ingratesState")),
+		defaultRAMRealizer,
+	],
 });
 
 actorSystem.register(RootActor);

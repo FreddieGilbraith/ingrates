@@ -105,14 +105,14 @@ export function createActorSystem({
 
 	async function runActor(meta) {
 		const { self, parent, name, msg, state, children, args } = meta;
-		const provisions = Object.assign(
-			{
-				children,
-				state,
-				msg,
-			},
-			getProvisionsForActor({ self, parent }),
-		);
+		const provisions = getProvisionsForActor({
+			self,
+			parent,
+			name,
+			children,
+			state,
+			msg,
+		});
 
 		try {
 			const newState = await knownActors[name](provisions, ...args);
@@ -145,7 +145,8 @@ export function createActorSystem({
 		}
 	}
 
-	function getProvisionsForActor({ self, parent }) {
+	function getProvisionsForActor(inputs) {
+		const { self, parent } = inputs;
 		const kill = doKill.bind(null, self);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
@@ -155,17 +156,16 @@ export function createActorSystem({
 			},
 		);
 
-		const baseProvisions = { self, parent, dispatch, spawn, kill };
-		return enhancers.reduce((acc, val) => Object.assign(val(acc), acc), baseProvisions);
+		const baseProvisions = Object.assign(inputs, { dispatch, spawn, kill });
+		return Object.assign(
+			inputs,
+			enhancers.reduce((acc, val) => Object.assign(val(acc), acc), baseProvisions),
+		);
 	}
 
-	return Object.assign(
-		{
-			register,
-		},
-		getProvisionsForActor({
-			self: null,
-			parent: null,
-		}),
-	);
+	return getProvisionsForActor({
+		register,
+		self: null,
+		parent: null,
+	});
 }

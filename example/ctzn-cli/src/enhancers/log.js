@@ -3,16 +3,7 @@ export default (prefix) => (prov) => {
 
 	return {
 		log: (...args) => {
-			console.log(
-				prefix,
-				self,
-				new Error().stack
-					.split("\n")[2]
-					.replace(/^\s*at /, "")
-					.replace(/\s+.*/, ""),
-
-				...args,
-			);
+			console.log(prefix, self, prov.name, ...args);
 		},
 	};
 };
