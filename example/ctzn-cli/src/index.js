@@ -1,18 +1,19 @@
-import createActorSystem from "../../../dist/index.modern.js";
+import { createActorSystem, defaultRAMRealizer } from "../../../dist/index.modern.js";
 import queryEnhancer from "@little-bonsai/ingrates-query-enhancer";
 
-import simpleFileSaveRealizer from "./simpleFileSaveRealizer.js";
-import ctznTransport from "./ctznTransport.js";
-import logEnhancer from "./logEnhancer.js";
+import simpleFileSaveRealizer from "./realizers/simpleFileSave.js";
+import ctznTransport from "./transports/ctzn.js";
+import logEnhancer from "./enhancers/log.js";
 
 import RootActor from "./actors/Root.js";
 
-(async function main() {
-	const actorSystem = await createActorSystem({
-		transports: [ctznTransport],
-		enhancers: [logEnhancer("main"), queryEnhancer],
-		realizers: [simpleFileSaveRealizer],
-	});
+const actorSystem = createActorSystem({
+	transports: [ctznTransport],
+	enhancers: [logEnhancer("main"), queryEnhancer],
+	realizers: [simpleFileSaveRealizer, defaultRAMRealizer],
+});
 
-	actorSystem(RootActor);
-})();
+actorSystem.register(RootActor);
+actorSystem.spawn.root(RootActor);
+
+export default actorSystem;

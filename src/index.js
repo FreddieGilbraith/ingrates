@@ -5,7 +5,7 @@ export { defaultRAMRealizer };
 
 function noop() {}
 
-export default function createActorSystem({
+export function createActorSystem({
 	enhancers = [],
 	realizers = [defaultRAMRealizer],
 	transports = [],
@@ -13,6 +13,8 @@ export default function createActorSystem({
 	onErr = console.error,
 } = {}) {
 	const knownActors = {};
+
+	const mountingMsgs = {};
 
 	const transporters = transports.map((x) => x(doDispatch, createActorSystem));
 	const contexts = realizers.map((x) =>
@@ -37,14 +39,9 @@ export default function createActorSystem({
 
 		const self = fixedId();
 
-		new Promise(async (done) => {
-			for (const ctx of contexts) {
-				const handled = await ctx.spawn({ name, parent, nickname, self, args });
-				if (handled) {
-					break;
-				}
-			}
+		mountingMsgs[self] = [];
 
+		new Promise(async (done) => {
 			try {
 				Promise.resolve(
 					startup ? startup(getProvisionsForActor({ self, parent }), ...args) : undefined,
@@ -63,6 +60,13 @@ export default function createActorSystem({
 								break;
 							}
 						}
+
+						let msg;
+						const myMountingMsgs = mountingMsgs[self];
+						delete mountingMsgs[self];
+						while ((msg = myMountingMsgs.shift())) {
+							doDispatch(...msg);
+						}
 					})
 					.catch((e) => onErr("StartError", e, { self, name }));
 			} catch (e) {
@@ -75,6 +79,12 @@ export default function createActorSystem({
 	}
 
 	function doDispatch(src, self, _msg_) {
+		if (self in mountingMsgs) {
+			mountingMsgs[self].push([src, self, _msg_]);
+
+			return;
+		}
+
 		new Promise(async (done) => {
 			const msg = Object.assign({ src }, _msg_);
 			if (!transporters.some((x) => x(self, msg))) {
@@ -129,6 +139,8 @@ export default function createActorSystem({
 				case stop:
 					doKill(parent, self);
 					break;
+				default:
+				//onErr("RunError (unhandled)", error, { self, name, msg, state, parent });
 			}
 		}
 	}

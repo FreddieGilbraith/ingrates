@@ -1,3 +1,13 @@
+Ok, so, we're now building a system with fat realizers, known problems now are:
+
+- startup: should it be a function or a special message
+  - akka uses a fuctions
+- logic: the more thats stored in the base system, the greater the realizer API surface
+
+Good things about fat realizers include:
+
+- system doesn't need to know about all the actors, they don't have be stored in RAM, so the system can effectivly grow infinitly
+
 ## Generators Vs Functions
 
 Pro Generator:

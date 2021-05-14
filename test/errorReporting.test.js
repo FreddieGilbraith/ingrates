@@ -1,6 +1,6 @@
 import test from "ava";
 
-import createActorSystem from "../src/index.js";
+import { createActorSystem } from "../src/index.js";
 
 function SyncCrashingActor({ msg, state }) {
 	if (msg.type === "PLEASE_CRASH") {

@@ -1,5 +1,5 @@
 import test from "ava";
-import createActorSystem from "../src/index.js";
+import { createActorSystem } from "../src/index.js";
 
 export function flushPromises() {
 	return new Promise((done) => setImmediate(done));
