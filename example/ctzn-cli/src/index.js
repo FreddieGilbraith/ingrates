@@ -13,7 +13,9 @@ const actorSystem = createActorSystem({
 	transports: [ctznTransport],
 	enhancers: [logEnhancer("main"), queryEnhancer],
 	realizers: [
-		simpleFileSaveRealizer(path.resolve(fileURLToPath(import.meta.url), "..", "ingratesState")),
+		simpleFileSaveRealizer(
+			path.resolve(fileURLToPath(import.meta.url), "..", "..", "ingratesState"),
+		),
 		defaultRAMRealizer,
 	],
 });
