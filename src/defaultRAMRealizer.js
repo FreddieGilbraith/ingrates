@@ -26,20 +26,20 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 		}
 	}
 
-	async function poll() {
+	function poll() {
 		if (polling || effects.length === 0) {
 			return;
 		}
 		polling = true;
 
-		await handleEffect(...effects.shift());
-
-		setTimeout(flushBuffer, 0);
-		setTimeout(poll, 0);
-		polling = false;
+		handleEffect(...effects.shift()).then(() => {
+			setTimeout(flushBuffer, 0);
+			setTimeout(poll, 0);
+			polling = false;
+		});
 	}
 
-	async function handleEffect(type, meta) {
+	function handleEffect(type, meta) {
 		switch (type) {
 			case spawn: {
 				bundles[meta.self] = Object.assign({}, meta);
@@ -57,7 +57,7 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 			case dispatch: {
 				const self = meta.self;
 				if (bundles[self]) {
-					bundles[self].state = await runActor(
+					return runActor(
 						Object.assign(
 							{
 								self,
@@ -65,9 +65,10 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 							},
 							bundles[self],
 						),
-					);
+					).then((newState) => {
+						bundles[self].state = newState;
+					});
 				}
-				break;
 			}
 
 			case kill: {
@@ -82,6 +83,7 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 				break;
 			}
 		}
+		return Promise.resolve();
 	}
 
 	return {
