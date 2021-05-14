@@ -49,7 +49,7 @@ export default function defaultRAMRealizer({ runActor, doKill }) {
 					{
 						[meta.nickname]: meta.self,
 					},
-					(bundles[meta.parent] || {}).children || {},
+					bundles[meta.parent].children || {},
 				);
 				break;
 			}
