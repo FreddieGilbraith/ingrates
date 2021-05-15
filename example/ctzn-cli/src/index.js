@@ -1,26 +1,25 @@
+import fs from "fs";
+import { promisify } from "util";
 import path from "path";
-import { fileURLToPath } from "url";
-import { createActorSystem, defaultRAMRealizer } from "../../../dist/index.modern.js";
-import queryEnhancer from "@little-bonsai/ingrates-query-enhancer";
 
-import simpleFileSaveRealizer from "./realizers/simpleFileSave.js";
-import ctznTransport from "./transports/ctzn.js";
-import logEnhancer from "./enhancers/log.js";
+import system, { storageFolder } from "./system.js";
 
 import RootActor from "./actors/Root.js";
 
-const actorSystem = createActorSystem({
-	transports: [ctznTransport],
-	enhancers: [logEnhancer("main"), queryEnhancer],
-	realizers: [
-		simpleFileSaveRealizer(
-			path.resolve(fileURLToPath(import.meta.url), "..", "..", "ingratesState"),
-		),
-		defaultRAMRealizer,
-	],
-});
+const readdir = promisify(fs.readdir);
 
-actorSystem.register(RootActor);
-actorSystem.spawn.root(RootActor);
+async function aquireRootAddr() {
+	try {
+		const [rootActorBundle] = await readdir(path.resolve(storageFolder, "RootActor"));
 
-export default actorSystem;
+		return rootActorBundle.replace(".json", "");
+	} catch (e) {
+		console.log("starting the system for the first time");
+		return system.spawn.root(RootActor);
+	}
+}
+
+(async function main() {
+	const rootAddr = await aquireRootAddr();
+	system.dispatch(rootAddr, { type: "STARTUP" });
+})();

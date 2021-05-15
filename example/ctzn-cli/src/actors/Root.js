@@ -1,13 +1,28 @@
+import system from "../system.js";
+
 import SessionActor from "./Session.js";
 import PromptsCLIActor from "./PromptsCLI.js";
 import SocialGraphActor from "./SocialGraph.js";
 
-export default function RootActor({ msg, self, dispatch, spawn, state = {}, log }) {
-	log(msg);
+system.register(RootActor);
+export default function RootActor({
+	aquire,
+	children,
+	msg,
+	self,
+	dispatch,
+	spawn,
+	state = {},
+	log,
+}) {
 	switch (msg.type) {
 		case "STARTUP": {
-			log("started root");
+			const addr = aquire.session(SessionActor);
+			log({ addr });
 			break;
+		}
+		default: {
+			log(msg);
 		}
 	}
 
@@ -17,8 +32,7 @@ export default function RootActor({ msg, self, dispatch, spawn, state = {}, log 
 	};
 }
 
-RootActor.startup = ({ self, dispatch }) => {
-	dispatch(self, { type: "STARTUP" });
+RootActor.startup = () => {
 	return {
 		counter: 1,
 	};

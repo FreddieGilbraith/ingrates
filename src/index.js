@@ -34,7 +34,7 @@ export function createActorSystem({
 
 	function doSpawn(parent, nickname, { name, startup }, ...args) {
 		if (!knownActors[name]) {
-			onErr("StartError", name);
+			onErr("StartError", name, "unregistered actor");
 			return null;
 		}
 
@@ -103,7 +103,9 @@ export function createActorSystem({
 					.then((indexedBundle) =>
 						indexedBundle
 							? runActor(Object.assign({ msg }, indexedBundle[0])).then((state) =>
-									realizers[indexedBundle[1]].set({ self, state }),
+									realizers[indexedBundle[1]].set(
+										Object.assign({}, indexedBundle[0], { state }),
+									),
 							  )
 							: null,
 					),
