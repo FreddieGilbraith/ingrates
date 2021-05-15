@@ -1,68 +1,31 @@
-export default function defaultRAMRealizer({ runActor, doKill }) {
-	let polling = false;
+async function wait() {
+	await new Promise((x) => setTimeout(x, 3));
+}
 
+export default function createDefaultRAMRealizer() {
 	const bundles = {};
 
-	function poll(self) {
-		if (!polling && bundles[self]) {
-			polling = true;
-
-			handleMsg(bundles[self].msgs.shift()).then(() => {
-				polling = false;
-				setTimeout(poll, 0, self);
-			});
-		}
+	async function kill({ self, parent }) {
+		const { nickname } = bundles[self];
+		delete bundles[self];
+		delete bundles[parent].children[nickname];
+		return true;
 	}
 
-	function handleMsg(input) {
-		if (input && bundles[input.self]) {
-			const { self, msg } = input;
-			return runActor(
-				Object.assign(
-					{
-						self,
-						msg,
-					},
-					bundles[self],
-				),
-			).then((newState) => {
-				(bundles[self] || {}).state = newState;
-			});
-		}
-		return Promise.resolve();
+	async function get(self) {
+		await wait();
+		return bundles[self] || null;
 	}
 
-	function spawn(meta) {
-		bundles[meta.self] = Object.assign({ msgs: [] }, meta);
-
-		bundles[meta.parent] = bundles[meta.parent] || {};
-		bundles[meta.parent].children = Object.assign(
-			{
-				[meta.nickname]: meta.self,
-			},
-			bundles[meta.parent].children || {},
-		);
+	async function set(bundle) {
+		await wait();
+		bundles[bundle.self] = {
+			...bundles[bundle.self],
+			...bundle,
+		};
+		((bundles[bundle.parent] || {}).children || {})[bundle.nickname] = bundle.self;
+		return true;
 	}
 
-	function dispatch(meta) {
-		if (bundles[meta.self]) {
-			bundles[meta.self].msgs.push(meta);
-			setTimeout(poll, 0, meta.self);
-		}
-	}
-
-	function kill(meta) {
-		delete bundles[meta.parent].children[bundles[meta.self].nickname];
-
-		const children = (bundles[meta.self] && bundles[meta.self].children) || {};
-		Object.values(children).forEach((child) => kill({ parent: meta.self, self: child }));
-
-		delete bundles[meta.self];
-	}
-
-	return {
-		spawn,
-		dispatch,
-		kill,
-	};
+	return { kill, get, set };
 }

@@ -66,7 +66,7 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 		}
 
 		case "REVERSED": {
-			t.like(msg, { type: "REVERSED", src: "reverser", payload: "dlrow", calls: 3 });
+			t.like(msg, { type: "REVERSED", src: "reverser", payload: "dlrow", calls: 2 });
 			dispatch(self, { type: "MAYBE_DONE" });
 			return {
 				resolved: state.resolved + 1,

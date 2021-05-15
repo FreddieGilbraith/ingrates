@@ -1,31 +1,32 @@
 import fixedId from "fixed-id";
 
-import defaultRAMRealizer from "./defaultRAMRealizer.js";
-export { defaultRAMRealizer };
+import createDefaultRAMRealizer from "./defaultRAMRealizer.js";
+export { createDefaultRAMRealizer };
 
 function noop() {}
 
+async function promiseChain(ps) {
+	for (const p of ps) {
+		const x = await p();
+		if (x) {
+			return x;
+		}
+	}
+}
+
 export function createActorSystem({
 	enhancers = [],
-	realizers = [defaultRAMRealizer],
+	realizers = [createDefaultRAMRealizer()],
 	transports = [],
 
 	onErr = console.error,
 } = {}) {
+	let draining = {};
 	const knownActors = {};
-
-	const mountingMsgs = {};
+	const mountingActors = {};
+	const msgQueue = {};
 
 	const transporters = transports.map((x) => x(doDispatch, createActorSystem));
-	const contexts = realizers.map((x) =>
-		x({
-			createActorSystem,
-			doDispatch,
-			doKill,
-			doSpawn,
-			runActor,
-		}),
-	);
 
 	function register(actorDefinition) {
 		knownActors[actorDefinition.name] = actorDefinition;
@@ -39,34 +40,32 @@ export function createActorSystem({
 
 		const self = fixedId();
 
-		mountingMsgs[self] = [];
+		msgQueue[self] = [];
+		mountingActors[self] = true;
 
-		new Promise(async (done) => {
+		new Promise((done) => {
 			try {
 				Promise.resolve(
 					startup ? startup(getProvisionsForActor({ self, parent }), ...args) : undefined,
 				)
-					.then(async (state) => {
-						for (const ctx of contexts) {
-							const handled = await ctx.spawn({
-								name,
-								parent,
-								nickname,
-								self,
-								args,
-								state,
-							});
-							if (handled) {
-								break;
-							}
-						}
-
-						let msg;
-						const myMountingMsgs = mountingMsgs[self];
-						delete mountingMsgs[self];
-						while ((msg = myMountingMsgs.shift())) {
-							doDispatch(...msg);
-						}
+					.then((state) =>
+						promiseChain(
+							realizers.map((realizer) => () =>
+								realizer.set({
+									children: {},
+									name,
+									parent,
+									nickname,
+									self,
+									args,
+									state,
+								}),
+							),
+						),
+					)
+					.then(() => {
+						mountingActors[self] = false;
+						setTimeout(doDrain, 0, self);
 					})
 					.catch((e) => onErr("StartError", e, { self, name }));
 			} catch (e) {
@@ -79,28 +78,43 @@ export function createActorSystem({
 	}
 
 	function doDispatch(src, self, _msg_) {
-		if (self in mountingMsgs) {
-			mountingMsgs[self].push([src, self, _msg_]);
-
-			return;
+		const msg = Object.assign({ src }, _msg_);
+		if (msgQueue[self]) {
+			msgQueue[self].push(msg);
+		} else {
+			msgQueue[self] = [msg];
 		}
 
-		new Promise(async (done) => {
-			const msg = Object.assign({ src }, _msg_);
-			if (!transporters.some((x) => x(self, msg))) {
-				for (const ctx of contexts) {
-					const handled = await ctx.dispatch({ self, msg });
-					if (handled) {
-						break;
-					}
-				}
-			}
-			done();
+		setTimeout(doDrain, 0, self);
+	}
+
+	function doDrain(self) {
+		if (draining[self] || msgQueue[self].length === 0 || mountingActors[self]) {
+			return;
+		}
+		draining[self] = true;
+
+		const msg = msgQueue[self].shift();
+
+		Promise.resolve(
+			transporters.some((x) => x(self, msg)) ||
+				Promise.all(realizers.map((realizer) => realizer.get(self)))
+					.then((bundles) => bundles.map((b, i) => [b, i]).find((x) => !!x[0]))
+					.then((indexedBundle) =>
+						indexedBundle
+							? runActor(Object.assign({ msg }, indexedBundle[0])).then((state) =>
+									realizers[indexedBundle[1]].set({ self, state }),
+							  )
+							: null,
+					),
+		).then(() => {
+			setTimeout(doDrain, 0, self);
+			draining[self] = false;
 		});
 	}
 
 	function doKill(parent, self) {
-		contexts.some((ctx) => ctx.kill({ self, parent }));
+		realizers.forEach((realizer) => realizer.kill({ self, parent }));
 	}
 
 	async function runActor(meta) {
