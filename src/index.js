@@ -51,15 +51,18 @@ export function createActorSystem({
 					.then((state) =>
 						promiseChain(
 							realizers.map((realizer) => () =>
-								realizer.set({
-									children: {},
-									name,
-									parent,
-									nickname,
-									self,
-									args,
-									state,
-								}),
+								realizer.set(
+									{
+										children: {},
+										name,
+										parent,
+										nickname,
+										self,
+										args,
+										state,
+									},
+									knownActors,
+								),
 							),
 						),
 					)
@@ -98,13 +101,14 @@ export function createActorSystem({
 
 		Promise.resolve(
 			transporters.some((x) => x(self, msg)) ||
-				Promise.all(realizers.map((realizer) => realizer.get(self)))
+				Promise.all(realizers.map((realizer) => realizer.get(self, knownActors)))
 					.then((bundles) => bundles.map((b, i) => [b, i]).find((x) => !!x[0]))
 					.then((indexedBundle) =>
 						indexedBundle
 							? runActor(Object.assign({ msg }, indexedBundle[0])).then((state) =>
 									realizers[indexedBundle[1]].set(
 										Object.assign({}, indexedBundle[0], { state }),
+										knownActors,
 									),
 							  )
 							: null,
@@ -116,7 +120,7 @@ export function createActorSystem({
 	}
 
 	function doKill(parent, self) {
-		realizers.forEach((realizer) => realizer.kill({ self, parent }));
+		realizers.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
 	}
 
 	async function runActor(meta) {
