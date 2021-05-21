@@ -1,22 +1,40 @@
 import React from "react";
 import fixedId from "fixed-id";
 
-const SystemContext = React.createContext({ system: null });
+import system from "../system";
 
-export function SystemProvider({ system, children }) {
-	return <SystemContext.Provider value={{ system }}>{children}</SystemContext.Provider>;
+system.register(ReactHookActor);
+
+function ReactHookActor(provisions, handler, exposeState) {
+	const state = handler(provisions);
+	exposeState(state);
+	return state;
 }
 
-export default function createUseActor(actor) {
-	return function useActor() {
-		const { system } = React.useContext(SystemContext);
+ReactHookActor.startup = (provisions, handler, exposeState, exposeDispatch) => {
+	exposeDispatch({ dispatch: provisions.dispatch });
 
-		const [actorStuff] = React.useState(() => {
-			system.register(actor);
-			const self = system.spawn[fixedId()](actor);
-			return { self };
-		});
+	if (handler.startup) {
+		const state = handler.startup(provisions);
+		exposeState(state);
+		return state;
+	}
+};
 
-		return actorStuff;
-	};
+export default function useActor(actorFn) {
+	const [state, setState] = React.useState();
+	const [{ dispatch }, setDispatch] = React.useState({});
+
+	const [self] = React.useState(() => {
+		const addr = system.spawn[`useActor(${fixedId()})`](
+			ReactHookActor,
+			actorFn,
+			setState,
+			setDispatch,
+		);
+		system.dispatch(addr, { type: "MOUNT" });
+		return addr;
+	});
+
+	return { self, state, dispatch };
 }

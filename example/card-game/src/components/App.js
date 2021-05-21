@@ -1,21 +1,40 @@
 import React from "react";
 
-import createUseActor from "./useActor";
-
-function AppActor({ state, msg, dispatch }) {}
-
-AppActor.startup = () => ({ screen: "LOADING" });
-
-const useActor = createUseActor(AppActor);
+import useActor from "./useActor";
 
 export default function App({ rootAddr }) {
-	const { self, state, dispatch } = useActor();
+	const { self, state, dispatch } = useActor(function AppActor({ msg, dispatch, state, log }) {
+		log(msg);
+		switch (msg.type) {
+			case "MOUNT": {
+				return {
+					screen: "LOADING",
+				};
+			}
+		}
+		return state;
+	});
 
-	console.log({ self, state, dispatch });
+	React.useEffect(() => {
+		if (dispatch) {
+			dispatch(rootAddr, { type: "RENDERER_HAS_STARTED" });
+		}
+	}, [dispatch, rootAddr]);
+
+	if (!state) {
+		return null;
+	}
 
 	switch (state.screen) {
 		case "LOADING":
-			return <div>Loading</div>;
+			return (
+				<div>
+					Loading
+					<button onClick={dispatch.bind(null, self, { type: "START_LOGIN" })}>
+						Login
+					</button>
+				</div>
+			);
 
 		default:
 			return <div> unknown screen {state.screen}</div>;

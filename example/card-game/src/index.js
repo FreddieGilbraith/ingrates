@@ -17,4 +17,5 @@ function main() {
 	);
 }
 
-setTimeout(main, 0);
+main();
+//setTimeout(main, 0);

@@ -5,10 +5,10 @@ import SessionActor from "./Session";
 
 system.register(RootActor);
 
-export default function RootActor({ msg, dispatch, children }) {
+export default function RootActor({ msg, dispatch, children, log }) {
 	switch (msg.type) {
-		case "REQUEST_RENDERER_ADDR": {
-			dispatch(msg.src, { type: "RESPOND_RENDERER_ADDR", addr: children.renderer });
+		default: {
+			log(msg);
 			break;
 		}
 	}
