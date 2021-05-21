@@ -2,10 +2,14 @@ import { createActorSystem, createDefaultRAMRealizer } from "../../../dist/index
 
 import logEnhancer from "./enhancers/log.js";
 import aquireEnhancer from "./enhancers/aquire.js";
+import createLocalStorageRealizer from "./realizers/localStorage";
 
 const actorSystem = createActorSystem({
 	enhancers: [logEnhancer("main"), aquireEnhancer],
-	realizers: [createDefaultRAMRealizer()],
+	realizers: [
+		createLocalStorageRealizer(["RootActor", "SessionActor"]),
+		createDefaultRAMRealizer(),
+	],
 });
 
 export default actorSystem;

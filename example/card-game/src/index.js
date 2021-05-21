@@ -8,10 +8,11 @@ import App from "./components/App";
 import { SystemProvider } from "./components/useActor";
 
 function main() {
-	const rootAddr = system.spawn.root(RootActor);
+	localStorage.rootAddr = localStorage.rootAddr || system.spawn.root(RootActor);
+
 	ReactDOM.render(
 		<SystemProvider system={system}>
-			<App rootAddr={rootAddr} />
+			<App rootAddr={localStorage.rootAddr} />
 		</SystemProvider>,
 		document.getElementById("app"),
 	);

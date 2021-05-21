@@ -4,7 +4,6 @@ import useActor from "./useActor";
 
 export default function App({ rootAddr }) {
 	const { self, state, dispatch } = useActor(function AppActor({ msg, dispatch, state, log }) {
-		log(msg);
 		switch (msg.type) {
 			case "MOUNT": {
 				return {

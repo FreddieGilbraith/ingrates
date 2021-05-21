@@ -1,5 +1,5 @@
 async function wait() {
-	await new Promise((x) => setTimeout(x, 3));
+	await new Promise((x) => setTimeout(x, 1));
 }
 
 export default function createDefaultRAMRealizer() {
@@ -23,7 +23,6 @@ export default function createDefaultRAMRealizer() {
 			...bundles[bundle.self],
 			...bundle,
 		};
-		((bundles[bundle.parent] || {}).children || {})[bundle.nickname] = bundle.self;
 		return true;
 	}
 

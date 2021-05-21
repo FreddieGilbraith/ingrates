@@ -39,6 +39,12 @@ export function createActorSystem({
 		}
 
 		const self = fixedId();
+		(msgQueue[parent] || []).unshift({
+			special: "ADD_CHILD",
+			nickname,
+			child: self,
+		});
+		setTimeout(doDrain, 0, self);
 
 		msgQueue[self] = [];
 		mountingActors[self] = true;
@@ -98,6 +104,28 @@ export function createActorSystem({
 		draining[self] = true;
 
 		const msg = msgQueue[self].shift();
+
+		if (msg.special === "ADD_CHILD") {
+			Promise.all(
+				realizers.map((realizer) =>
+					realizer.get(self, knownActors).then((maybeBundle) =>
+						maybeBundle
+							? realizer.set({
+									...maybeBundle,
+									children: {
+										...maybeBundle.children,
+										[msg.nickname]: msg.child,
+									},
+							  })
+							: null,
+					),
+				),
+			).then(() => {
+				setTimeout(doDrain, 0, self);
+				draining[self] = false;
+			});
+			return;
+		}
 
 		Promise.resolve(
 			transporters.some((x) => x(self, msg)) ||
