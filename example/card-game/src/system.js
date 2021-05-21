@@ -7,7 +7,7 @@ import createLocalStorageRealizer from "./realizers/localStorage";
 const actorSystem = createActorSystem({
 	enhancers: [logEnhancer("main"), aquireEnhancer],
 	realizers: [
-		createLocalStorageRealizer(["RootActor", "SessionActor"]),
+		createLocalStorageRealizer({ blockList: ["ReactHookActor"] }),
 		createDefaultRAMRealizer(),
 	],
 });

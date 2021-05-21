@@ -1,16 +1,12 @@
-export default function createLocalStorageRealizer(actors) {
-	const actorsSet = new Set(actors);
+export default function createLocalStorageRealizer({ blockList, passList }) {
+	const blockSet = new Set(blockList);
 
 	async function get(self) {
 		return JSON.parse(localStorage[`actor_${self}`] || "false");
 	}
 
 	async function set(bundle) {
-		if (bundle.self === "CJuhviI7Q9y0ruSUyn3ugOr1") {
-			console.log("set", bundle);
-		}
-
-		if (actorsSet.has(bundle.name)) {
+		if (!blockSet.has(bundle.name)) {
 			localStorage[`actor_${bundle.self}`] = JSON.stringify(bundle);
 		}
 	}

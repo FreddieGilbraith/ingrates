@@ -8,8 +8,7 @@ system.register(RootActor);
 export default function RootActor({ aquire, msg, dispatch, children, log }) {
 	switch (msg.type) {
 		case "RENDERER_HAS_STARTED": {
-			const session = aquire.session(SessionActor);
-			log({ session });
+			dispatch(msg.src, { type: "INTRO_SESSION", session: children.session });
 			break;
 		}
 
@@ -22,4 +21,5 @@ export default function RootActor({ aquire, msg, dispatch, children, log }) {
 
 RootActor.startup = ({ dispatch, spawn }) => {
 	dispatch(spawn.renderer(RendererActor), { type: "STARTUP" });
+	spawn.session(SessionActor);
 };

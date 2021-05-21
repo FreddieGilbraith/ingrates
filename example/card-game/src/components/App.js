@@ -1,6 +1,7 @@
 import React from "react";
 
 import useActor from "./useActor";
+import GamePlay from "./GamePlay";
 
 export default function App({ rootAddr }) {
 	const { self, state, dispatch } = useActor(function AppActor({ msg, dispatch, state, log }) {
@@ -10,7 +11,35 @@ export default function App({ rootAddr }) {
 					screen: "LOADING",
 				};
 			}
+
+			case "INTRO_SESSION": {
+				dispatch(msg.session, { type: "REQUEST_CURRENT_GAME_STATUS" });
+				return {
+					...state,
+					session: msg.session,
+				};
+			}
+
+			case "RESPOND_CURRENT_GAME_STATUS": {
+				return {
+					...state,
+					screen: msg.gameRunningStatus,
+					skirmish: msg.skirmish,
+				};
+			}
+
+			case "START_SKIRMISH": {
+				dispatch(state.session, msg);
+				dispatch(state.session, { type: "REQUEST_CURRENT_GAME_STATUS" });
+				break;
+			}
+
+			default: {
+				log(msg);
+				break;
+			}
 		}
+
 		return state;
 	});
 
@@ -25,15 +54,22 @@ export default function App({ rootAddr }) {
 	}
 
 	switch (state.screen) {
-		case "LOADING":
+		case "NO_GAME":
 			return (
-				<div>
-					Loading
-					<button onClick={dispatch.bind(null, self, { type: "START_LOGIN" })}>
-						Login
+				<div className="flex flex-col items-center justify-center h-full">
+					<h1 className="text-6xl pb-8">No Game In Progress</h1>
+					<button
+						className="border rounded shadow px-4 py-2 text-3xl"
+						onClick={dispatch.bind(null, self, { type: "START_SKIRMISH" })}
+					>
+						Start Game
 					</button>
 				</div>
 			);
+
+		case "RUNNING": {
+			return <GamePlay session={state.session} skirmish={state.skirmish} />;
+		}
 
 		default:
 			return <div> unknown screen {state.screen}</div>;
