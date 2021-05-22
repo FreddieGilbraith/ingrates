@@ -2,9 +2,10 @@ import React from "react";
 
 import useActor from "./useActor";
 import PickHeros from "./PickHeros";
+import DeckBuild from "./DeckBuild";
 
 export default function GamePlay({ skirmish }) {
-	const { self, state, dispatch } = useActor(function ({ self, msg, dispatch, state = {}, log }) {
+	const { self, state } = useActor(function ({ self, msg, dispatch, state = {}, log }) {
 		switch (msg.type) {
 			case "MOUNT": {
 				dispatch(skirmish, { type: "REQUEST_TURN_INTRO" });
@@ -50,6 +51,10 @@ export default function GamePlay({ skirmish }) {
 	switch (state.view) {
 		case "PICK_HEROS": {
 			return <PickHeros gamePlayActor={self} skirmish={skirmish} />;
+		}
+
+		case "DECK_BUILD": {
+			return <DeckBuild gamePlayActor={self} skirmish={skirmish} />;
 		}
 
 		default: {

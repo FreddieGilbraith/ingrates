@@ -2,34 +2,48 @@ import system from "../system";
 
 import PlayerActor from "./Player";
 import SkirmishTurnActor from "./SkirmishTurnActor";
-import HerosActor from "./Heros";
+import HeroInstance from "./Heros";
 
 system.register(SkirmishActor);
 
-export default function SkirmishActor({ aquire, msg, children, dispatch, log, state = {} }) {
-	aquire.player1(PlayerActor);
-	aquire.player2(PlayerActor);
+export default function SkirmishActor({ spawn, aquire, msg, children, dispatch, log, state = {} }) {
+	aquire.player1(PlayerActor, 1);
+	aquire.player2(PlayerActor, 2);
 	aquire.turn(SkirmishTurnActor);
-	aquire.heros(HerosActor);
 
 	switch (msg.type) {
+		case "REQUEST_PLAYERS": {
+			const { player1, player2 } = children;
+			dispatch(msg.src, {
+				type: "RESPOND_PLAYERS",
+
+				player1,
+				player2,
+			});
+			break;
+		}
+
 		case "REQUEST_TURN_INTRO": {
-			dispatch(msg.src, { type: "RESPOND_TURN_INTRO", turn: children.turn });
+			const turn = aquire.turn(SkirmishTurnActor);
+			dispatch(msg.src, { type: "RESPOND_TURN_INTRO", turn: children.turn || turn });
 			break;
 		}
 
 		case "REQUEST_DRAUGHTABLE_HEROS": {
-			dispatch(children.heros, msg);
+			dispatch(msg.src, {
+				type: "RESPOND_DRAUGHTABLE_HEROS",
+				heros: ["ranger", "rouge", "warrior", "wizard"],
+			});
 			break;
 		}
 
 		case "PLAYERS_HAVE_PICKED_HEROS": {
 			for (const player of [1, 2]) {
 				for (const heroType of msg.picked[player]) {
-					dispatch(children.heros, {
-						type: "GENERATE_AND_ASSIGN_HERO",
-						player: children[`player${player}`],
-						heroType,
+					const hero = spawn[`player${player}${heroType}`](HeroInstance, heroType);
+					dispatch(children[`player${player}`], {
+						type: "ASSIGN_HERO",
+						hero,
 					});
 				}
 			}
@@ -40,7 +54,7 @@ export default function SkirmishActor({ aquire, msg, children, dispatch, log, st
 			const playersWithDraughtedHeros = [...(state.playersWithDraughtedHeros || []), msg.src];
 
 			if (playersWithDraughtedHeros.length > 1) {
-				dispatch(children.turn, { type: "ADVANCE_TO_CARD_DRAW" });
+				dispatch(children.turn, { type: "ADVANCE_TO_DECK_BUILD" });
 			}
 
 			return {

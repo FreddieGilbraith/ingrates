@@ -4,7 +4,7 @@ import SkirmishActor from "./Skirmish";
 
 system.register(SessionActor);
 
-export default async function SessionActor({ aquire, msg, dispatch, children, state, log }) {
+export default async function SessionActor({ self, aquire, msg, dispatch, children, state, log }) {
 	switch (msg.type) {
 		case "REQUEST_CURRENT_GAME_STATUS": {
 			dispatch(msg.src, {
@@ -17,6 +17,7 @@ export default async function SessionActor({ aquire, msg, dispatch, children, st
 
 		case "START_SKIRMISH": {
 			aquire.skirmish(SkirmishActor);
+			dispatch(self, { type: "REQUEST_CURRENT_GAME_STATUS", src: msg.src });
 		}
 
 		default: {
