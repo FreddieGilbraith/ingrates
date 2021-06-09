@@ -11,21 +11,23 @@ let fetchesInFlight = 0;
 const PAGE_FETCH_TIME = 1000;
 async function fetchPage(n) {
 	fetchesInFlight++;
-	await wait(Math.random() * (DATA_PROCESS_TIME + PAGE_FETCH_TIME * fetchesInFlight));
 
-	fetchesInFlight--;
-
-	return new Array(Math.ceil(Math.random() * 10)).fill(null).map(() => ({
+	const data = new Array(Math.ceil(Math.random() * 10)).fill(null).map(() => ({
 		i: objectsFetched++,
 		id: fixedId(),
 	}));
+
+	await wait(Math.random() * (DATA_PROCESS_TIME + PAGE_FETCH_TIME * (fetchesInFlight / 2)));
+
+	fetchesInFlight--;
+	return data;
 }
 
 const DATA_PROCESS_TIME = 200;
 async function processObject(obj) {
-	console.log("process", obj);
-	await wait((1 + Math.random()) * DATA_PROCESS_TIME);
-	console.log("processed", obj);
+	const duration = Math.floor((1 + Math.random()) * DATA_PROCESS_TIME);
+	await wait(duration);
+	console.log("processed", duration, obj);
 }
 
 (async function main() {
@@ -35,7 +37,7 @@ async function processObject(obj) {
 		i++;
 		await processObject(obj);
 
-		if (i % 4) {
+		if (i % 10 === 0) {
 			console.log(await serialPager.getStats());
 		}
 	}

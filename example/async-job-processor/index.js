@@ -1,59 +1,60 @@
 import { createActorSystem } from "../../src/index.js";
 
+import OrderingChannel from "./src/OrderingChannel.js";
+import Statistician from "./src/Statistician.js";
+
 export function createSerialPager(pageFetcher) {
-	function DataQueue({ msg, dispatch, self, state = { dataQueue: [] } }) {
+	function BufferedQueue(
+		{ msg, dispatch, self, state = { data: [], pullRequests: [] } },
+		statistician,
+	) {
+		dispatch(statistician, msg);
+
 		switch (msg.type) {
-			case "REQUEST_NEXT": {
-				if (state.dataQueue.length === 0) {
-					return {
-						...state,
-						doneBuff: msg.done,
-					};
-				} else {
-					const [value, ...rest] = state.dataQueue;
-
-					msg.done({ value, done: false });
-
-					return {
-						...state,
-						dataQueue: rest,
-					};
-				}
-			}
-
-			case "ENEUQUE_DATA": {
-				if (state.doneBuff) {
-					dispatch(self, { type: "REQUEST_NEXT", done: state.doneBuff });
-					delete state.doneBuff;
-				}
+			case "RESOLVED_PAGE": {
+				state.pullRequests.forEach(dispatch.bind(null, self));
 
 				return {
 					...state,
-					dataQueue: [...state.dataQueue, msg.page],
+					pullRequests: [],
+					data: [...state.data, ...msg.page],
 				};
 			}
 
+			case "REQUEST_NEXT": {
+				if (state.data.length) {
+					const [head, ...tail] = state.data;
+					msg.done(head);
+					return {
+						...state,
+						data: tail,
+					};
+				} else {
+					return {
+						...state,
+						pullRequests: [...state.pullRequests, msg],
+					};
+				}
+			}
+
 			default: {
-				console.log("DataQueue", msg);
+				console.log("BufferedQueue", msg);
 			}
 		}
 		return state;
 	}
 
-	async function PageFetcher({ msg, dispatch, parent, state = { pageI: 0 } }) {
+	async function PageFetcher({ self, msg, dispatch, parent, state = 0 }, downstream) {
 		switch (msg.type) {
 			case "REQUEST_PAGE": {
-				const page = await pageFetcher(state.pageI);
-
-				dispatch(parent, { type: "ENEUQUE_DATA", page });
-
-				return {
-					...state,
-					pageI: state.pageI + 1,
-				};
+				const i = state;
+				pageFetcher(i).then((page) =>
+					dispatch(downstream, { type: "RESOLVED_PAGE", i, page }),
+				);
+				return state + 1;
 			}
 			default: {
-				console.log("RootActor", msg);
+				console.log("PageFetcher", msg);
 			}
 		}
 
@@ -63,12 +64,14 @@ export function createSerialPager(pageFetcher) {
 	function RootActor({ msg, dispatch, children }) {
 		switch (msg.type) {
 			case "REQUEST_NEXT": {
-				dispatch(children.dataQueue, msg);
-				break;
+				dispatch(children.statistician, msg);
+				dispatch(children.queue, msg);
+				return;
 			}
-			case "ENEUQUE_DATA": {
-				dispatch(children.dataQueue, msg);
-				break;
+
+			case "REQUEST_STATS": {
+				dispatch(children.statistician, msg);
+				return;
 			}
 
 			default: {
@@ -78,14 +81,26 @@ export function createSerialPager(pageFetcher) {
 	}
 
 	RootActor.startup = ({ spawn, dispatch }) => {
-		spawn.dataQueue(DataQueue);
-		dispatch(spawn.pageFetcher(PageFetcher), { type: "REQUEST_PAGE" });
+		const statistician = spawn.statistician(Statistician);
+		const queue = spawn.queue(BufferedQueue, statistician);
+		const orderer = spawn.orderer(OrderingChannel, queue);
+		const source = spawn.fetcher(PageFetcher, orderer);
+
+		dispatch(statistician, { type: "INTRO_SOURCE", source });
+
+		dispatch(source, { type: "REQUEST_PAGE" });
+		dispatch(source, { type: "REQUEST_PAGE" });
+		dispatch(source, { type: "REQUEST_PAGE" });
 	};
 
+	//////////////////////////////
+
 	const system = createActorSystem();
-	system.register(DataQueue);
+	system.register(BufferedQueue);
+	system.register(OrderingChannel);
 	system.register(PageFetcher);
 	system.register(RootActor);
+	system.register(Statistician);
 
 	const rootAddr = system.spawn.root(RootActor);
 
@@ -93,7 +108,12 @@ export function createSerialPager(pageFetcher) {
 		return new Promise((done) => system.dispatch(rootAddr, { type: "REQUEST_STATS", done }));
 	}
 	function next() {
-		return new Promise((done) => system.dispatch(rootAddr, { type: "REQUEST_NEXT", done }));
+		return new Promise((done) =>
+			system.dispatch(rootAddr, { type: "REQUEST_NEXT", done }),
+		).then((value) => ({
+			value,
+			done: false,
+		}));
 	}
 
 	return {
