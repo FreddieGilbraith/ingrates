@@ -44,10 +44,15 @@ export function createSerialPager(pageFetcher) {
 		return state;
 	}
 
-	async function PageFetcher({ self, msg, dispatch, parent, state = 0 }, downstream) {
+	async function PageFetcher(
+		{ self, msg, dispatch, parent, state = 0 },
+		downstream,
+		statistician,
+	) {
 		switch (msg.type) {
 			case "REQUEST_PAGE": {
 				const i = state;
+				dispatch(statistician, { ...msg, i });
 				pageFetcher(i).then((page) =>
 					dispatch(downstream, { type: "RESOLVED_PAGE", i, page }),
 				);
@@ -64,7 +69,6 @@ export function createSerialPager(pageFetcher) {
 	function RootActor({ msg, dispatch, children }) {
 		switch (msg.type) {
 			case "REQUEST_NEXT": {
-				dispatch(children.statistician, msg);
 				dispatch(children.queue, msg);
 				return;
 			}
@@ -84,7 +88,7 @@ export function createSerialPager(pageFetcher) {
 		const statistician = spawn.statistician(Statistician);
 		const queue = spawn.queue(BufferedQueue, statistician);
 		const orderer = spawn.orderer(OrderingChannel, queue);
-		const source = spawn.fetcher(PageFetcher, orderer);
+		const source = spawn.fetcher(PageFetcher, orderer, statistician);
 
 		dispatch(statistician, { type: "INTRO_SOURCE", source });
 
