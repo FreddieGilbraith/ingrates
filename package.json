@@ -1,6 +1,6 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.7.0",
+	"version": "0.8.0",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
 	"homepage": "https://ingrates.littlebonsai.co.uk/",
@@ -16,8 +16,17 @@
 	"unpkg": "dist/index.umd.js",
 	"exports": "./dist/index.modern.js",
 	"type": "module",
-	"files": ["dist", "src"],
-	"keywords": ["actor", "actors", "browser", "node", "isomorphic"],
+	"files": [
+		"dist",
+		"src"
+	],
+	"keywords": [
+		"actor",
+		"actors",
+		"browser",
+		"node",
+		"isomorphic"
+	],
 	"scripts": {
 		"size": "size-limit",
 		"bench": "node --enable-source-maps benchmark.js",
@@ -44,7 +53,9 @@
 		"printWidth": 100,
 		"overrides": [
 			{
-				"files": ["**/*.md"],
+				"files": [
+					"**/*.md"
+				],
 				"options": {
 					"printWidth": 60,
 					"useTabs": false,
@@ -54,7 +65,9 @@
 		]
 	},
 	"babel": {
-		"presets": ["@babel/preset-env"]
+		"presets": [
+			"@babel/preset-env"
+		]
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.13.10",
@@ -85,9 +98,14 @@
 		"fixed-id": "^1.0.0"
 	},
 	"ava": {
-		"files": ["test/**/*.test.js"],
+		"files": [
+			"test/**/*.test.js"
+		],
 		"failWithoutAssertions": false,
-		"ignoredByWatcher": ["build", "coverage"],
+		"ignoredByWatcher": [
+			"build",
+			"coverage"
+		],
 		"verbose": true
 	},
 	"size-limit": [
