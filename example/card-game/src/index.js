@@ -7,15 +7,19 @@ function App({ state, dispatch }) {
 	console.log("App", state);
 
 	React.useEffect(() => {
-		dispatch("abc", { type: "helloWorld" });
-	}, [state.foo.baz, dispatch]);
+		if (state?.engine?.addr) {
+			dispatch(state.engine.addr, {
+				type: "RenderReady",
+			});
+		}
+	}, [state?.engine?.addr]);
 
-	return <div />;
+	return <div style={{ whiteSpace: "pre" }}>{JSON.stringify(state, null, 2)}</div>;
 }
 
 function main() {
 	let state = {};
-	const logicWorker = new Worker("./logic/system.js");
+	const logicWorker = new Worker("./logic/index.js");
 
 	function applySingleDelta(delta) {
 		if (delta.value === undefined) {
