@@ -14,7 +14,9 @@
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": ["**/*.md"],
+				"files": [
+					"**/*.md"
+				],
 				"options": {
 					"printWidth": 60,
 					"useTabs": false,
@@ -25,7 +27,9 @@
 	},
 	"author": "",
 	"license": "ISC",
-	"browserslist": ["last 2 versions"],
+	"browserslist": [
+		"last 2 versions"
+	],
 	"dependencies": {
 		"@babel/runtime": "^7.14.6",
 		"@little-bonsai/ingrates": "^0.8.0",
@@ -36,9 +40,13 @@
 		"babel": "^6.23.0",
 		"babel-core": "^6.26.3",
 		"babel-polyfill": "^6.26.0",
+		"classnames": "^2.3.1",
+		"cn": "^0.1.1",
 		"prompts": "^2.4.1",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
+		"react-router": "^5.2.0",
+		"react-router-dom": "^5.2.0",
 		"websocket": "^1.0.34"
 	},
 	"devDependencies": {

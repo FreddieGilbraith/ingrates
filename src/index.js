@@ -52,7 +52,9 @@ export function createActorSystem({
 		new Promise((done) => {
 			try {
 				Promise.resolve(
-					startup ? startup(getProvisionsForActor({ self, parent }), ...args) : undefined,
+					startup
+						? startup(getProvisionsForActor({ self, parent, name }), ...args)
+						: undefined,
 				)
 					.then((state) =>
 						promiseChain(
@@ -95,6 +97,8 @@ export function createActorSystem({
 		}
 
 		setTimeout(doDrain, 0, self);
+
+		return self;
 	}
 
 	function doDrain(self) {
@@ -164,7 +168,11 @@ export function createActorSystem({
 
 		try {
 			const newState = await knownActors[name](provisions, ...args);
-			return newState;
+			if (typeof newState === "function") {
+				return newState(state);
+			} else {
+				return newState;
+			}
 		} catch (error) {
 			onErr("RunError", error, { self, name, msg, state, parent });
 			const escalate = 1;

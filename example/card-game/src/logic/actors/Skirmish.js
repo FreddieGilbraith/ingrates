@@ -1,65 +1,28 @@
 import system from "../system";
 
-import PlayerActor from "./Player";
-import SkirmishTurnActor from "./SkirmishTurnActor";
-import HeroInstance from "./Heros";
+import Hand from "./Hand";
+import Deck from "./Deck";
 
-system.register(SkirmishActor);
+system.register(Skirmish);
 
-export default function SkirmishActor({ spawn, aquire, msg, children, dispatch, log, state = {} }) {
-	aquire.player1(PlayerActor, 1);
-	aquire.player2(PlayerActor, 2);
-	aquire.turn(SkirmishTurnActor);
-
+export default function Skirmish(
+	{ children, state, dispatch, assert, msg, log },
+	[party1, party2],
+) {
 	switch (msg.type) {
-		case "REQUEST_PLAYERS": {
-			const { player1, player2 } = children;
-			dispatch(msg.src, {
-				type: "RESPOND_PLAYERS",
+		case "StartMulliganPhase": {
+			assert(state.phase === "init");
 
-				player1,
-				player2,
-			});
-			break;
-		}
+			dispatch("render", { path: ["ui", "route"], value: `/skirmish/mulligan/${party1}` });
+			dispatch("render", { path: ["skirmish", "turn"], value: party1 });
 
-		case "REQUEST_TURN_INTRO": {
-			const turn = aquire.turn(SkirmishTurnActor);
-			dispatch(msg.src, { type: "RESPOND_TURN_INTRO", turn: children.turn || turn });
-			break;
-		}
-
-		case "REQUEST_DRAUGHTABLE_HEROS": {
-			dispatch(msg.src, {
-				type: "RESPOND_DRAUGHTABLE_HEROS",
-				heros: ["ranger", "rouge", "warrior", "wizard"],
-			});
-			break;
-		}
-
-		case "PLAYERS_HAVE_PICKED_HEROS": {
-			for (const player of [1, 2]) {
-				for (const heroType of msg.picked[player]) {
-					const hero = spawn[`player${player}${heroType}`](HeroInstance, heroType);
-					dispatch(children[`player${player}`], {
-						type: "ASSIGN_HERO",
-						hero,
-					});
-				}
-			}
-			break;
-		}
-
-		case "PLAYER_HAS_ALL_HEROS": {
-			const playersWithDraughtedHeros = [...(state.playersWithDraughtedHeros || []), msg.src];
-
-			if (playersWithDraughtedHeros.length > 1) {
-				dispatch(children.turn, { type: "ADVANCE_TO_DECK_BUILD" });
-			}
+			dispatch(children.hand1, { type: "DrawCard" });
+			dispatch(children.hand1, { type: "DrawCard" });
+			dispatch(children.hand1, { type: "DrawCard" });
 
 			return {
-				...state,
-				playersWithDraughtedHeros,
+				phase: "mulligan",
+				turn: party1,
 			};
 		}
 
@@ -68,6 +31,16 @@ export default function SkirmishActor({ spawn, aquire, msg, children, dispatch, 
 			break;
 		}
 	}
-
-	return state;
 }
+
+Skirmish.startup = ({ self, dispatch, spawn }, [party1, party2]) => {
+	dispatch("render", { path: ["skirmish", "addr"], value: self });
+	dispatch("render", { path: ["skirmish", "parties"], value: [party1, party2] });
+
+	spawn.hand1(Hand, spawn.deck1(Deck, party1));
+	spawn.hand2(Hand, spawn.deck2(Deck, party2));
+
+	return {
+		phase: "init",
+	};
+};

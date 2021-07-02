@@ -3,19 +3,7 @@ import { dissocPath, assocPath } from "ramda";
 import React from "react";
 import ReactDOM from "react-dom";
 
-function App({ state, dispatch }) {
-	console.log("App", state);
-
-	React.useEffect(() => {
-		if (state?.engine?.addr) {
-			dispatch(state.engine.addr, {
-				type: "RenderReady",
-			});
-		}
-	}, [state?.engine?.addr]);
-
-	return <div style={{ whiteSpace: "pre" }}>{JSON.stringify(state, null, 2)}</div>;
-}
+import App from "./render/components/App";
 
 function main() {
 	let state = {};

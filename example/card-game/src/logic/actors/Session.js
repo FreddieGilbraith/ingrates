@@ -1,23 +1,24 @@
 import system from "../system";
 
-import SkirmishActor from "./Skirmish";
+import Skirmish from "./Skirmish";
 
-system.register(SessionActor);
+system.register(Session);
 
-export default async function SessionActor({ self, aquire, msg, dispatch, children, state, log }) {
+export default async function Session({ query, spawn, log, msg, state }) {
 	switch (msg.type) {
-		case "REQUEST_CURRENT_GAME_STATUS": {
-			dispatch(msg.src, {
-				type: "RESPOND_CURRENT_GAME_STATUS",
-				gameRunningStatus: children.skirmish ? "RUNNING" : "NO_GAME",
-				skirmish: children.skirmish,
-			});
-			break;
-		}
+		case "BeginSkirmish": {
+			if (state.skirmishInProgress) {
+				break;
+			}
 
-		case "START_SKIRMISH": {
-			aquire.skirmish(SkirmishActor);
-			dispatch(self, { type: "REQUEST_CURRENT_GAME_STATUS", src: msg.src });
+			const { parties } = await query(msg.campaign, { type: "TestGetSkirmishParties" });
+
+			spawn.skirmish(Skirmish, parties);
+
+			return {
+				campaign: msg.campaign,
+				skirmishInProgress: true,
+			};
 		}
 
 		default: {
@@ -28,3 +29,11 @@ export default async function SessionActor({ self, aquire, msg, dispatch, childr
 
 	return state;
 }
+
+Session.startup = ({ dispatch, parent }) => {
+	dispatch(parent, { type: "Ready" });
+
+	return {
+		skirmishInProgress: false,
+	};
+};
