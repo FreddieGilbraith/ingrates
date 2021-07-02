@@ -5,7 +5,6 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"start": "parcel index.html"
 	},
 	"prettier": {
@@ -29,21 +28,18 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@babel/runtime": "^7.14.0",
-		"@little-bonsai/ingrates": "^0.7.0",
-		"@little-bonsai/ingrates-query-enhancer": "^0.1.2",
+		"@babel/runtime": "^7.14.6",
+		"@little-bonsai/ingrates": "^0.8.0",
+		"@little-bonsai/ingrates-acquire-enhancer": "^0.1.2",
+		"@little-bonsai/ingrates-assert-enhancer": "^0.0.1",
+		"@little-bonsai/ingrates-log-enhancer": "^0.0.2",
+		"@little-bonsai/ingrates-query-enhancer": "^0.2.2",
 		"babel": "^6.23.0",
 		"babel-polyfill": "^6.26.0",
-		"preact": "^10.5.13",
 		"prompts": "^2.4.1",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
 		"websocket": "^1.0.34"
-	},
-	"alias": {
-		"react": "preact/compat",
-		"react-dom/test-utils": "preact/test-utils",
-		"react-dom": "preact/compat"
 	},
 	"devDependencies": {
 		"parcel-bundler": "^1.12.5"
