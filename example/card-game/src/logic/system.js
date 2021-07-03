@@ -26,7 +26,19 @@ function createWorkerTransport() {
 }
 
 const actorSystem = createActorSystem({
-	enhancers: [createLogEnhancer("logic"), acquireEnhancer, assertEnhancer, createQueryEnhancer()],
+	enhancers: [
+		createLogEnhancer("logic", {
+			log: (...args) =>
+				postMessage({
+					snk: "console",
+					method: "log",
+					args,
+				}),
+		}),
+		acquireEnhancer,
+		assertEnhancer,
+		createQueryEnhancer(),
+	],
 	transports: [createWorkerTransport()],
 	realizers: [createDefaultRAMRealizer()],
 });

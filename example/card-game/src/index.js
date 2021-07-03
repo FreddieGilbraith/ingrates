@@ -19,10 +19,17 @@ function main() {
 
 	logicWorker.addEventListener("message", (event) => {
 		const msg = event.data;
-		if (Array.isArray(msg)) {
-			msg.forEach(applySingleDelta);
-		} else {
-			applySingleDelta(msg);
+
+		if (msg.snk === "render") {
+			if (Array.isArray(msg)) {
+				msg.forEach(applySingleDelta);
+			} else {
+				applySingleDelta(msg);
+			}
+		}
+
+		if (msg.snk === "console") {
+			console[msg.method ?? "log"](...msg.args);
 		}
 
 		renderApp();

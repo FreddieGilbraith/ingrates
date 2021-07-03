@@ -3,7 +3,7 @@ import cn from "classnames";
 import * as R from "ramda";
 import { useRouteMatch } from "react-router";
 
-import { useGameDispatch, useGameState } from "../useGameState";
+import { useGameState } from "../useGameState";
 
 function PartyDisplay({ partyAddr }) {
 	const party = useGameState(R.path(["party", partyAddr]));
@@ -25,8 +25,8 @@ function PartyDisplay({ partyAddr }) {
 				"transform",
 				"origin-top",
 				{
-					"text-xl border-b-4": partyAddr === turn,
-					"scale-110": partyAddr === turn,
+					"border-b-4": partyAddr === turn,
+					"scale-125": partyAddr === turn,
 				},
 			)}
 		>
@@ -40,14 +40,20 @@ function SkirmishPhase() {
 		params: { phase },
 	} = useRouteMatch("/skirmish/:phase");
 
-	switch (phase) {
-		case "mulligan": {
-			return <h2 className="text-xl text-blue-800">Mulligan</h2>;
-		}
+	return (
+		<h2 className="text-xl text-blue-800">
+			{(() => {
+				switch (phase) {
+					case "mulligan": {
+						return "Mulligan";
+					}
 
-		default:
-			return null;
-	}
+					default:
+						return "Begin";
+				}
+			})()}
+		</h2>
+	);
 }
 
 export default function SkirmishWrapper({ children }) {

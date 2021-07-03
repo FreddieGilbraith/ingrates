@@ -16,9 +16,9 @@ export default function Skirmish(
 			dispatch("render", { path: ["ui", "route"], value: `/skirmish/mulligan/${party1}` });
 			dispatch("render", { path: ["skirmish", "turn"], value: party1 });
 
-			dispatch(children.hand1, { type: "DrawCard" });
-			dispatch(children.hand1, { type: "DrawCard" });
-			dispatch(children.hand1, { type: "DrawCard" });
+			dispatch(children.hand1, { type: "DrawCardFromDeck" });
+			dispatch(children.hand1, { type: "DrawCardFromDeck" });
+			dispatch(children.hand1, { type: "DrawCardFromDeck" });
 
 			return {
 				phase: "mulligan",

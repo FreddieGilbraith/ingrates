@@ -6,7 +6,7 @@ import { useGameState } from "./useGameState";
 import Skirmish from "./Skirmish";
 
 function BrowserRouteDriver() {
-	const route = useGameState((s) => s.ui.route);
+	const route = useGameState((s) => s?.ui?.route ?? "/");
 	const history = useHistory();
 
 	React.useEffect(() => {

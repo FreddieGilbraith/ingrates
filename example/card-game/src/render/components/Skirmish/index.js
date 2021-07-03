@@ -1,9 +1,5 @@
 import React from "react";
-import cn from "classnames";
-import * as R from "ramda";
 import { Route } from "react-router";
-
-import { useGameDispatch, useGameState } from "../useGameState";
 
 import Wrapper from "./Wrapper";
 import Start from "./Start";
