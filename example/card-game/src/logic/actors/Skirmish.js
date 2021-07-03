@@ -6,14 +6,12 @@ import Deck from "./Deck";
 
 system.register(Skirmish);
 
-export default function Skirmish(
-	{ children, state, dispatch, self, assert, msg, log },
-	[party1, party2],
-) {
+export default function Skirmish({ state, dispatch, self, assert, msg, log }, [party1, party2]) {
 	switch (msg.type) {
 		case "TransitionToNextTurn": {
 			assert(msg.src === self);
 
+			dispatch(self, { type: "UpdateRenderTurn" });
 			return R.pipe(
 				R.ifElse(
 					R.propEq("turn", party1),
@@ -22,6 +20,12 @@ export default function Skirmish(
 				),
 				R.over(R.lensProp("round"), R.inc),
 			);
+		}
+
+		case "UpdateRenderTurn": {
+			dispatch("render", { path: ["skirmish", "phase"], value: state.phase });
+			dispatch("render", { path: ["skirmish", "turn"], value: state.turn });
+			break;
 		}
 
 		case "StartMulliganPhase": {
@@ -34,9 +38,8 @@ export default function Skirmish(
 		case "StartMulliganForCurrentParty": {
 			dispatch("render", {
 				path: ["ui", "route"],
-				value: `/skirmish/mulligan/${state.turn}`,
+				value: "/skirmish/mulligan",
 			});
-			dispatch("render", { path: ["skirmish", "turn"], value: state.turn });
 
 			dispatch(state.parties[state.turn].hand, { type: "DrawCardFromDeck" });
 			dispatch(state.parties[state.turn].hand, { type: "DrawCardFromDeck" });
@@ -54,6 +57,11 @@ export default function Skirmish(
 			if (state.round === 1) {
 				dispatch(self, { type: "TransitionToNextTurn" });
 				dispatch(self, { type: "StartMulliganForCurrentParty" });
+			} else if (state.round === 2) {
+				dispatch(self, { type: "TransitionToNextTurn" });
+				return R.assoc("phase", "main");
+			} else {
+				assert(false, "Can't complete mulligan if turn > 2");
 			}
 
 			break;

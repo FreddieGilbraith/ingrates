@@ -37,7 +37,7 @@ export function Block(x) {
 //Deal <PPP play={2} place={3} prepare={4} /> damage
 system.register(Slash);
 export function Slash(x) {
-	return genericCardHandler("Brutal Smash", 1, false, x);
+	return genericCardHandler("Slash", 1, false, x);
 }
 
 //Your opponent must shuffle all but{" "}

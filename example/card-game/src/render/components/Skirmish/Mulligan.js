@@ -61,17 +61,16 @@ function MulliganCard({ cardAddr, i, rejected, onClick }) {
 	);
 }
 
-export default function Mulligan({
-	match: {
-		params: { partyId },
-	},
-}) {
+export default function Mulligan() {
 	const dispatch = useGameDispatch();
-	const hand = useGameState(R.pathOr([], ["skirmish", partyId, "hand"]));
+	const turn = useGameState(R.pathOr([], ["skirmish", "turn"]));
+	const hand = useGameState(R.pathOr([], ["skirmish", turn, "hand"]));
 	const skirmish = useGameState(R.path(["skirmish", "addr"]));
 	const [rejected, setRejected] = React.useState({});
 
-	React.useEffect( () => setRejected({}), [ partyId]);
+	console.log(useGameState(R.identity));
+
+	React.useEffect(() => setRejected({}), [turn]);
 
 	if (hand.length !== 3) {
 		return null;
@@ -95,7 +94,7 @@ export default function Mulligan({
 				color="blue"
 				onClick={dispatch.bind(null, skirmish, {
 					type: "CompleteMulliganForParty",
-					party: partyId,
+					party: turn,
 					rejected: Object.entries(rejected)
 						.filter((x) => x[1])
 						.map((x) => x[0]),

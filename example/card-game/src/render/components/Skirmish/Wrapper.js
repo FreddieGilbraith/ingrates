@@ -43,20 +43,23 @@ function PartyDisplay({ partyAddr, side }) {
 }
 
 function SkirmishPhase() {
-	const {
-		params: { phase },
-	} = useRouteMatch("/skirmish/:phase");
+	const phase = useGameState(R.path(["skirmish", "phase"]));
 
 	return (
 		<h2 className="text-xl text-blue-800">
 			{(() => {
 				switch (phase) {
+					case "main": {
+						return "Main";
+					}
+
 					case "mulligan": {
 						return "Mulligan";
 					}
 
-					default:
+					case "init": {
 						return "Begin";
+					}
 				}
 			})()}
 		</h2>

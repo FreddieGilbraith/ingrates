@@ -9,7 +9,7 @@ export default function Skirmish() {
 	return (
 		<Wrapper>
 			<Route path="/skirmish/start" component={Start} />
-			<Route path="/skirmish/mulligan/:partyId" component={Mulligan} />
+			<Route path="/skirmish/mulligan" component={Mulligan} />
 		</Wrapper>
 	);
 }

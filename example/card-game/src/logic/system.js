@@ -43,7 +43,7 @@ const actorSystem = createActorSystem({
 		createLogEnhancer("logic", {
 			log: (...args) =>
 				postMessage({
-					snk: "console",
+					id: "_console_",
 					method: "log",
 					args,
 				}),
