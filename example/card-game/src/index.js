@@ -9,7 +9,7 @@ function main() {
 	let state = {};
 	const logicWorker = new Worker("./logic/index.js");
 
-	function applySingleDelta(delta) {
+	function applySingleDelta({ msg: delta }) {
 		if (delta.value === undefined) {
 			state = dissocPath(delta.path, state);
 		} else {
@@ -20,15 +20,15 @@ function main() {
 	logicWorker.addEventListener("message", (event) => {
 		const msg = event.data;
 
-		if (msg.snk === "render") {
-			if (Array.isArray(msg)) {
-				msg.forEach(applySingleDelta);
+		if (msg.id === "_render_") {
+			if (Array.isArray(msg.payload)) {
+				msg.payload.forEach(applySingleDelta);
 			} else {
-				applySingleDelta(msg);
+				applySingleDelta(msg.payload);
 			}
 		}
 
-		if (msg.snk === "console") {
+		if (msg.id === "_console_") {
 			console[msg.method ?? "log"](...msg.args);
 		}
 

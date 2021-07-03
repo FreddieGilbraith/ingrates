@@ -14,12 +14,25 @@ function createWorkerTransport() {
 			}
 		};
 
+		let outputQueue = [];
+		let sendFnId;
+
+		function flushQueue() {
+			postMessage({
+				id: "_render_",
+				payload: outputQueue,
+			});
+
+			sendFnId = null;
+			outputQueue = [];
+		}
+
 		return function handle(snk, msg) {
 			if (snk === "render") {
-				postMessage({
-					snk,
-					...msg,
-				});
+				outputQueue.push({ snk, msg });
+				if (!sendFnId) {
+					sendFnId = setTimeout(flushQueue, 16);
+				}
 			}
 		};
 	};

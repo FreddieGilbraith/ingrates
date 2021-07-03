@@ -5,21 +5,26 @@ import { useRouteMatch } from "react-router";
 
 import { useGameState } from "../useGameState";
 
-function PartyDisplay({ partyAddr }) {
+function PartyDisplay({ partyAddr, side }) {
 	const party = useGameState(R.path(["party", partyAddr]));
 	const turn = useGameState(R.path(["skirmish", "turn"]));
+	const cardsInDeck = useGameState(R.path(["skirmish", partyAddr, "inDeck"]));
 
 	if (!party) {
 		return null;
 	}
 
 	return (
-		<h3
+		<div
 			className={cn(
-				"px-4",
-				"py-2",
-				"text-lg",
-				"font-bold",
+				"px-2",
+				"flex",
+				"items-center",
+				{
+					"flex-row-reverse": side === "right",
+					"flex-row": side === "left",
+				},
+
 				"border-blue-500",
 				"transition-transform",
 				"transform",
@@ -30,8 +35,10 @@ function PartyDisplay({ partyAddr }) {
 				},
 			)}
 		>
-			{party?.name}
-		</h3>
+			<div>({cardsInDeck})</div>
+
+			<h3 className={cn("px-2", "py-2", "text-lg", "font-bold")}>{party?.name}</h3>
+		</div>
 	);
 }
 
@@ -66,8 +73,8 @@ export default function SkirmishWrapper({ children }) {
 				<h1 className="text-xl font-bold">Skirmish</h1>
 				<SkirmishPhase />
 				<div className="flex">
-					<PartyDisplay partyAddr={parties[0]} />
-					<PartyDisplay partyAddr={parties[1]} />
+					<PartyDisplay partyAddr={parties[0]} side="left" />
+					<PartyDisplay partyAddr={parties[1]} side="right" />
 				</div>
 
 				<div className="flex-1 flex flex items-center justify-center">{children}</div>
