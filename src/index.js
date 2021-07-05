@@ -206,7 +206,9 @@ export function createActorSystem({
 		const kill = doKill.bind(null, self);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
-			{},
+			function nakedSpawn(){
+				return doSpawn(self, fixedId(), ...arguments)
+			},
 			{
 				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),
 			},
