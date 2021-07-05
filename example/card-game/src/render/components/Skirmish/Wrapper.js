@@ -80,7 +80,7 @@ export default function SkirmishWrapper({ children }) {
 					<PartyDisplay partyAddr={parties[1]} side="right" />
 				</div>
 
-				<div className="flex-1 flex flex items-center justify-center">{children}</div>
+				<div className="flex-1 flex flex-col items-center justify-center">{children}</div>
 			</div>
 		</React.Fragment>
 	);

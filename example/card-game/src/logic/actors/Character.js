@@ -1,4 +1,3 @@
-import fixedId from "fixed-id";
 import system from "../system";
 
 import * as CardDefinitions from "./CardDefinition";
@@ -18,7 +17,7 @@ function getRandom(arr, n) {
 	return result;
 }
 
-export default function Character({ children, state, dispatch, msg, log }, characterClass) {
+export default function Character({ state, dispatch, msg, log }) {
 	switch (msg.type) {
 		case "RequestCardsToBuildSkirmishDeck": {
 			dispatch(msg.src, {
@@ -39,16 +38,16 @@ Character.startup = ({ log, spawn }, characterClass) => {
 		case "Warrior": {
 			return {
 				cardPool: [
-					spawn[`card${fixedId()}`](CardDefinitions.BrutalSmash),
-					spawn[`card${fixedId()}`](CardDefinitions.SuperiorStrategist),
-					spawn[`card${fixedId()}`](CardDefinitions.SuperiorStrategist),
-					spawn[`card${fixedId()}`](CardDefinitions.Block),
-					spawn[`card${fixedId()}`](CardDefinitions.Block),
-					spawn[`card${fixedId()}`](CardDefinitions.Block),
-					spawn[`card${fixedId()}`](CardDefinitions.Slash),
-					spawn[`card${fixedId()}`](CardDefinitions.Slash),
-					spawn[`card${fixedId()}`](CardDefinitions.Slash),
-					spawn[`card${fixedId()}`](CardDefinitions.Slash),
+					spawn(CardDefinitions.BrutalSmash),
+					spawn(CardDefinitions.SuperiorStrategist),
+					spawn(CardDefinitions.SuperiorStrategist),
+					spawn(CardDefinitions.Block),
+					spawn(CardDefinitions.Block),
+					spawn(CardDefinitions.Block),
+					spawn(CardDefinitions.Slash),
+					spawn(CardDefinitions.Slash),
+					spawn(CardDefinitions.Slash),
+					spawn(CardDefinitions.Slash),
 				],
 			};
 		}
@@ -56,22 +55,22 @@ Character.startup = ({ log, spawn }, characterClass) => {
 		case "Rouge": {
 			return {
 				cardPool: [
-					spawn[`card${fixedId()}`](CardDefinitions.Dissarray),
-					spawn[`card${fixedId()}`](CardDefinitions.SlightOfHand),
-					spawn[`card${fixedId()}`](CardDefinitions.SlightOfHand),
-					spawn[`card${fixedId()}`](CardDefinitions.LookBehindYou),
-					spawn[`card${fixedId()}`](CardDefinitions.LookBehindYou),
-					spawn[`card${fixedId()}`](CardDefinitions.LookBehindYou),
-					spawn[`card${fixedId()}`](CardDefinitions.TripWire),
-					spawn[`card${fixedId()}`](CardDefinitions.TripWire),
-					spawn[`card${fixedId()}`](CardDefinitions.TripWire),
-					spawn[`card${fixedId()}`](CardDefinitions.Soobataag),
-					spawn[`card${fixedId()}`](CardDefinitions.Soobataag),
-					spawn[`card${fixedId()}`](CardDefinitions.Soobataag),
-					spawn[`card${fixedId()}`](CardDefinitions.ThrownKnife),
-					spawn[`card${fixedId()}`](CardDefinitions.ThrownKnife),
-					spawn[`card${fixedId()}`](CardDefinitions.ThrownKnife),
-					spawn[`card${fixedId()}`](CardDefinitions.ThrownKnife),
+					spawn(CardDefinitions.Dissarray),
+					spawn(CardDefinitions.SlightOfHand),
+					spawn(CardDefinitions.SlightOfHand),
+					spawn(CardDefinitions.LookBehindYou),
+					spawn(CardDefinitions.LookBehindYou),
+					spawn(CardDefinitions.LookBehindYou),
+					spawn(CardDefinitions.TripWire),
+					spawn(CardDefinitions.TripWire),
+					spawn(CardDefinitions.TripWire),
+					spawn(CardDefinitions.Soobataag),
+					spawn(CardDefinitions.Soobataag),
+					spawn(CardDefinitions.Soobataag),
+					spawn(CardDefinitions.ThrownKnife),
+					spawn(CardDefinitions.ThrownKnife),
+					spawn(CardDefinitions.ThrownKnife),
+					spawn(CardDefinitions.ThrownKnife),
 				],
 			};
 		}
@@ -79,30 +78,28 @@ Character.startup = ({ log, spawn }, characterClass) => {
 		case "Wizard": {
 			return {
 				cardPool: [
-					spawn[`card${fixedId()}`](CardDefinitions.Imolate),
-					spawn[`card${fixedId()}`](CardDefinitions.Heal),
-					spawn[`card${fixedId()}`](CardDefinitions.Heal),
-					spawn[`card${fixedId()}`](CardDefinitions.ScryingTrance),
-					spawn[`card${fixedId()}`](CardDefinitions.ScryingTrance),
-					spawn[`card${fixedId()}`](CardDefinitions.TimeWizard),
-					spawn[`card${fixedId()}`](CardDefinitions.TimeWizard),
-					spawn[`card${fixedId()}`](CardDefinitions.TimeWizard),
-					spawn[`card${fixedId()}`](CardDefinitions.SummoningCircle),
-					spawn[`card${fixedId()}`](CardDefinitions.SummoningCircle),
-					spawn[`card${fixedId()}`](CardDefinitions.SummoningCircle),
-					spawn[`card${fixedId()}`](CardDefinitions.MissileOfMagic),
-					spawn[`card${fixedId()}`](CardDefinitions.MissileOfMagic),
-					spawn[`card${fixedId()}`](CardDefinitions.MissileOfMagic),
-					spawn[`card${fixedId()}`](CardDefinitions.MissileOfMagic),
+					spawn(CardDefinitions.Imolate),
+					spawn(CardDefinitions.Heal),
+					spawn(CardDefinitions.Heal),
+					spawn(CardDefinitions.ScryingTrance),
+					spawn(CardDefinitions.ScryingTrance),
+					spawn(CardDefinitions.TimeWizard),
+					spawn(CardDefinitions.TimeWizard),
+					spawn(CardDefinitions.TimeWizard),
+					spawn(CardDefinitions.SummoningCircle),
+					spawn(CardDefinitions.SummoningCircle),
+					spawn(CardDefinitions.SummoningCircle),
+					spawn(CardDefinitions.MissileOfMagic),
+					spawn(CardDefinitions.MissileOfMagic),
+					spawn(CardDefinitions.MissileOfMagic),
+					spawn(CardDefinitions.MissileOfMagic),
 				],
 			};
 		}
 
 		case "Ranger": {
 			return {
-				cardPool: new Array(10)
-					.fill(null)
-					.map(() => spawn[`card${fixedId()}`](CardDefinitions.Longbow)),
+				cardPool: new Array(10).fill(null).map(() => spawn(CardDefinitions.Longbow)),
 			};
 		}
 
