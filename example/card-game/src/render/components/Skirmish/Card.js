@@ -18,7 +18,7 @@ export function CardFace({ cardAddr, className, ...props }) {
 				"rounded",
 				"shadow",
 				"transform",
-				"transition-transform",
+				"transition-all",
 				"origin-bottom",
 				"hover:shadow-xl",
 				"bg-white",
@@ -53,52 +53,74 @@ const rotateClassnameTuples = [
 	],
 ];
 
-function useRotateClassName(nth, ofN) {
-	const [rotateClassName, setRotateClassName] = React.useState("rotate-0");
+function useOnMountClassname(initial, then, time = 64) {
+	const [className, setClassname] = React.useState(initial);
+
 	React.useEffect(() => {
 		const id = setTimeout(() => {
-			setRotateClassName(rotateClassnameTuples[ofN - 1][nth]);
-		}, 64);
+			setClassname(then);
+		}, time);
 
 		return () => clearTimeout(id);
-	}, [nth, ofN]);
+	}, [initial, then]);
 
-	return rotateClassName;
-}
-
-export function RotatedArcCard({ nth, ofN, className, ...props }) {
-	const rotateClassName = useRotateClassName(nth, ofN);
-	console.log({ rotateClassName });
-
-	return <CardFace {...props} className={cn(className, rotateClassName)} />;
+	return className;
 }
 
 export function MulliganCard({ nth, ofN, cardAddr, rejected, onClick }) {
+	const rotateClassName = useOnMountClassname("rotate-0", rotateClassnameTuples[ofN - 1][nth]);
+	const slowMountClassName = useOnMountClassname("duration-500", "duration-100", 1000);
+	const delayMountClassName = useOnMountClassname(
+		["", "delay-100", "delay-200", ...new Array(10).fill("delay-300")][nth],
+		"",
+		1000,
+	);
+	const fadeInAndUpClassName = useOnMountClassname(
+		"opacity-0 translate-y-64",
+		cn({
+			"opacity-60 hover:opacity-80 scale-90": rejected,
+			"hover:opacity-40": !rejected,
+		}),
+	);
+
 	return (
-		<RotatedArcCard
-			nth={nth}
-			ofN={ofN}
+		<CardFace
 			cardAddr={cardAddr}
 			onClick={onClick}
-			className={cn("m-4", {
-				"opacity-60 hover:opacity-80 scale-90": rejected,
-				"hover:opacity-40": !rejected,
-			})}
+			className={cn(
+				"m-4",
+				delayMountClassName,
+				rotateClassName,
+				slowMountClassName,
+				fadeInAndUpClassName,
+			)}
 		/>
 	);
 }
 
 export function HandCard({ nth, ofN, cardAddr, picked, onClick }) {
+	const rotateClassName = useOnMountClassname("rotate-0", rotateClassnameTuples[ofN - 1][nth]);
+	const slowMountClassName = useOnMountClassname("duration-500", "duration-100", 1000);
+	const fadeInAndUpClassName = useOnMountClassname("opacity-0 translate-y-64", "opacity-100");
+	const delayMountClassName = useOnMountClassname(
+		["", "delay-100", "delay-200", ...new Array(10).fill("delay-300")][nth],
+		"",
+		1000,
+	);
+
 	return (
-		<RotatedArcCard
-			nth={nth}
-			ofN={ofN}
+		<CardFace
 			cardAddr={cardAddr}
 			onClick={onClick}
 			className={cn(
 				"my-4",
 				"-mx-4",
 				picked ? null : "hover:z-10 hover:scale-110 hover:-translate-y-8 hover:rotate-0",
+
+				delayMountClassName,
+				rotateClassName,
+				slowMountClassName,
+				fadeInAndUpClassName,
 			)}
 		/>
 	);
