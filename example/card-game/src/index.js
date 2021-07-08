@@ -1,5 +1,5 @@
 import "babel-polyfill";
-import { dissocPath, assocPath } from "ramda";
+import { mergeDeepRight, dissocPath, assocPath } from "ramda";
 import React from "react";
 import ReactDOM from "react-dom";
 
@@ -9,30 +9,18 @@ function main() {
 	let state = {};
 	const logicWorker = new Worker("./logic/index.js");
 
-	function applySingleDelta({ msg: delta }) {
-		if (delta.value === undefined) {
-			state = dissocPath(delta.path, state);
-		} else {
-			state = assocPath(delta.path, delta.value, state);
-		}
-	}
-
 	logicWorker.addEventListener("message", (event) => {
 		const msg = event.data;
 
-		if (msg.id === "_render_") {
-			if (Array.isArray(msg.payload)) {
-				msg.payload.forEach(applySingleDelta);
-			} else {
-				applySingleDelta(msg.payload);
-			}
+		if (msg.type === "RENDER_DIFF_BUFFER") {
+			console.log(msg);
+			state = mergeDeepRight(state, msg.payload);
+			renderApp();
 		}
 
 		if (msg.id === "_console_") {
 			console[msg.method ?? "log"](...msg.args);
 		}
-
-		renderApp();
 	});
 
 	function dispatch(snk, msg) {

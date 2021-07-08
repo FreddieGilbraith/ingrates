@@ -4,35 +4,24 @@ import assertEnhancer from "@little-bonsai/ingrates-assert-enhancer";
 import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";
 import { createQueryEnhancer, QueryActor } from "@little-bonsai/ingrates-query-enhancer";
 
-function createWorkerTransport() {
-	return function workerTransport(dispatch) {
-		onmessage = function onMessage(event) {
-			const msg = event.data;
-
-			if (msg.type === "_ingrates_") {
-				dispatch("render", msg.snk, msg.msg);
-			}
-		};
-
-		let outputQueue = [];
-		let sendFnId;
-
-		function flushQueue() {
-			postMessage({
-				id: "_render_",
-				payload: outputQueue,
-			});
-
-			sendFnId = null;
-			outputQueue = [];
-		}
+function createSignpostTransport({ read, write }) {
+	return function signpostTransport(doDispatch, _, knownActors) {
+		const signpostContainer = read();
 
 		return function handle(snk, msg) {
-			if (snk === "render") {
-				outputQueue.push({ snk, msg });
-				if (!sendFnId) {
-					sendFnId = setTimeout(flushQueue, 16);
+			if (snk === "singletonSignpost") {
+				if (msg.type === "register") {
+					signpostContainer[msg.name] = msg.src;
+					write(signpostContainer);
 				}
+
+				return true;
+			}
+
+			const addr = signpostContainer[snk];
+			if (addr) {
+				doDispatch(msg.src, addr, msg);
+				return true;
 			}
 		};
 	};
@@ -52,7 +41,19 @@ const actorSystem = createActorSystem({
 		assertEnhancer,
 		createQueryEnhancer(),
 	],
-	transports: [createWorkerTransport()],
+	transports: [
+		createSignpostTransport(
+			(() => {
+				let signpostContainer = {};
+				const read = () => signpostContainer;
+				const write = (newContainer) => {
+					signpostContainer = newContainer;
+				};
+
+				return { read, write };
+			})(),
+		),
+	],
 	realizers: [createDefaultRAMRealizer()],
 });
 

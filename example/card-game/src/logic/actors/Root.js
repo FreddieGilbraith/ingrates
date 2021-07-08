@@ -3,6 +3,7 @@ import system from "../system";
 
 import Session from "./Session";
 import Campaign from "./Campaign";
+import RenderGraph from "./RenderGraph";
 
 system.register(Root);
 
@@ -32,6 +33,7 @@ export default function Root({ msg, log, state, dispatch, children, self }) {
 }
 
 Root.startup = ({ dispatch, spawn, self }) => {
+	spawn.renderGraph(RenderGraph);
 	dispatch("render", { path: ["ui", "route"], value: "/loading" });
 	dispatch("render", { path: ["engine", "addr"], value: self });
 	dispatch("render", { path: ["engine", "status"], value: "init" });
