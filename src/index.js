@@ -194,6 +194,7 @@ export function createActorSystem({
 			switch (supervisionResponse) {
 				case escalate:
 					doDispatch(self, parent, { error, msg });
+				//eslint-disable-next-line
 				case stop:
 					doKill(parent, self);
 					break;
@@ -204,7 +205,7 @@ export function createActorSystem({
 	}
 
 	function getProvisionsForActor(inputs) {
-		const { self, parent } = inputs;
+		const { self } = inputs;
 		const kill = doKill.bind(null, self);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
