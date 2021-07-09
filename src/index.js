@@ -137,12 +137,16 @@ export function createActorSystem({
 					.then((bundles) => bundles.map((b, i) => [b, i]).find((x) => !!x[0]))
 					.then((indexedBundle) =>
 						indexedBundle
-							? runActor(Object.assign({ msg }, indexedBundle[0])).then((state) =>
-									realizers[indexedBundle[1]].set(
+							? runActor(Object.assign({ msg }, indexedBundle[0])).then((output) => {
+									const state =
+										typeof output === "undefined"
+											? indexedBundle[0].state
+											: output;
+									return realizers[indexedBundle[1]].set(
 										Object.assign({}, indexedBundle[0], { state }),
 										knownActors,
-									),
-							  )
+									);
+							  })
 							: null,
 					),
 		).then(() => {
@@ -206,8 +210,8 @@ export function createActorSystem({
 		const kill = doKill.bind(null, self);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
-			function nakedSpawn(){
-				return doSpawn(self, fixedId(), ...arguments)
+			function nakedSpawn() {
+				return doSpawn(self, fixedId(), ...arguments);
 			},
 			{
 				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),

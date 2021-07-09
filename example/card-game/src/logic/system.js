@@ -54,6 +54,8 @@ const actorSystem = createActorSystem({
 			})(),
 		),
 	],
+	// TODO if we flip the order, and put the persisting realizer below the RAM
+	// realizer, we can automatically use it as a caching layer
 	realizers: [createDefaultRAMRealizer()],
 });
 

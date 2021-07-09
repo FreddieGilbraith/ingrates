@@ -84,6 +84,10 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 			done();
 			break;
 		}
+
+		default: {
+			break;
+		}
 	}
 
 	return state;
