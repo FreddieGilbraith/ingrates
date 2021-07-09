@@ -1,7 +1,3 @@
-async function wait() {
-	await new Promise((x) => setTimeout(x, 1));
-}
-
 export default function createDefaultRAMRealizer() {
 	const bundles = {};
 
@@ -13,12 +9,10 @@ export default function createDefaultRAMRealizer() {
 	}
 
 	async function get(self) {
-		await wait();
 		return bundles[self] || null;
 	}
 
 	async function set(bundle) {
-		await wait();
 		bundles[bundle.self] = {
 			...bundles[bundle.self],
 			...bundle,

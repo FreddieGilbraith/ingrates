@@ -5,7 +5,7 @@ import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";
 import { createQueryEnhancer, QueryActor } from "@little-bonsai/ingrates-query-enhancer";
 
 function createSignpostTransport({ read, write }) {
-	return function signpostTransport(doDispatch, _, knownActors) {
+	return function signpostTransport(doDispatch) {
 		const signpostContainer = read();
 
 		return function handle(snk, msg) {
