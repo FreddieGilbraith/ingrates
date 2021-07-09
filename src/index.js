@@ -139,9 +139,7 @@ export function createActorSystem({
 						indexedBundle
 							? runActor(Object.assign({ msg }, indexedBundle[0])).then((output) => {
 									const state =
-										typeof output === "undefined"
-											? indexedBundle[0].state
-											: output;
+										output === undefined ? indexedBundle[0].state : output;
 									return realizers[indexedBundle[1]].set(
 										Object.assign({}, indexedBundle[0], { state }),
 										knownActors,

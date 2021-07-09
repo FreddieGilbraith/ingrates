@@ -58,7 +58,7 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 		}
 
 		case "PONG": {
-			t.like(msg, { type: "PONG", src: "pinger", calls: 2 });
+			t.like(msg, { type: "PONG", src: "pinger", calls: 3 });
 			dispatch(self, { type: "MAYBE_DONE" });
 			return {
 				resolved: state.resolved + 1,
@@ -66,7 +66,7 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 		}
 
 		case "REVERSED": {
-			t.like(msg, { type: "REVERSED", src: "reverser", payload: "dlrow", calls: 2 });
+			t.like(msg, { type: "REVERSED", src: "reverser", payload: "dlrow", calls: 3 });
 			dispatch(self, { type: "MAYBE_DONE" });
 			return {
 				resolved: state.resolved + 1,
@@ -89,6 +89,4 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 			break;
 		}
 	}
-
-	return state;
 });
