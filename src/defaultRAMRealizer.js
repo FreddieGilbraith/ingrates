@@ -9,7 +9,9 @@ export default function createDefaultRAMRealizer() {
 	}
 
 	async function get(self) {
-		return bundles[self] || null;
+		const bundle = bundles[self] || null;
+
+		return bundle;
 	}
 
 	async function set(bundle) {

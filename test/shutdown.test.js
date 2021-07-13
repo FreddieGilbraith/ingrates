@@ -6,6 +6,8 @@ function SelfRequestKillActor({ msg, dispatch }) {
 			dispatch(msg.src, { type: "PONG" });
 			break;
 		}
+		default:
+			break;
 	}
 }
 

@@ -1,6 +1,6 @@
 import { createTestSystem } from "./utils.js";
 
-function ChildActor({ parent, dispatch, msg, state }, startingValue) {
+function ChildActor({ dispatch, msg, state }) {
 	switch (msg.type) {
 		case "PLEASE_ADD": {
 			return {

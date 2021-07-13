@@ -43,5 +43,8 @@ test.skip(function WillKillChildrenOfShutdownActor(
 			done();
 			break;
 		}
+
+		default:
+			fail(msg);
 	}
 });

@@ -16,7 +16,7 @@ async function promiseChain(ps) {
 
 export function createActorSystem({
 	enhancers = [],
-	realizers = [createDefaultRAMRealizer()],
+	realizers = [createDefaultRAMRealizer],
 	transports = [],
 
 	onErr = console.error,
@@ -27,6 +27,7 @@ export function createActorSystem({
 	const msgQueue = {};
 
 	const transporters = transports.map((x) => x(doDispatch, createActorSystem));
+	const realizerInstances = realizers.map((x) => x(createActorSystem));
 
 	function register(actorDefinition) {
 		knownActors[actorDefinition.name] = actorDefinition;
@@ -57,8 +58,8 @@ export function createActorSystem({
 						: undefined,
 				)
 					.then((state) =>
-						promiseChain(
-							realizers.map((realizer) => () =>
+						Promise.all(
+							realizerInstances.map((realizer) =>
 								realizer.set(
 									{
 										children: {},
@@ -101,7 +102,7 @@ export function createActorSystem({
 		return self;
 	}
 
-	function doDrain(self) {
+	async function doDrain(self) {
 		if (draining[self] || msgQueue[self].length === 0 || mountingActors[self]) {
 			return;
 		}
@@ -110,62 +111,63 @@ export function createActorSystem({
 		const msg = msgQueue[self].shift();
 
 		if (msg.special === "ADD_CHILD") {
-			Promise.all(
-				realizers.map((realizer) =>
-					realizer.get(self, knownActors).then((maybeBundle) =>
-						maybeBundle
-							? realizer.set({
-									...maybeBundle,
-									children: {
-										...maybeBundle.children,
-										[msg.nickname]: msg.child,
-									},
-							  })
-							: null,
+			await promiseChain(
+				realizerInstances.map((realizer) => () => realizer.get(self, knownActors)),
+			).then((bundle) =>
+				Promise.all(
+					realizerInstances.map((realizer) =>
+						realizer.set({
+							...bundle,
+							children: {
+								...bundle.children,
+								[msg.nickname]: msg.child,
+							},
+						}),
 					),
 				),
-			).then(() => {
-				setTimeout(doDrain, 0, self);
-				draining[self] = false;
-			});
-			return;
-		}
-
-		Promise.resolve(
-			transporters.some((x) => x(self, msg)) ||
-				Promise.all(realizers.map((realizer) => realizer.get(self, knownActors)))
-					.then((bundles) => bundles.map((b, i) => [b, i]).find((x) => !!x[0]))
-					.then((indexedBundle) =>
-						indexedBundle
-							? runActor(Object.assign({ msg }, indexedBundle[0])).then((output) => {
-									const state =
-										output === undefined ? indexedBundle[0].state : output;
-									return realizers[indexedBundle[1]].set(
-										Object.assign({}, indexedBundle[0], { state }),
-										knownActors,
-									);
-							  })
+			);
+		} else {
+			await Promise.resolve(
+				transporters.some((x) => x(self, msg)) ||
+					promiseChain(
+						realizerInstances.map((realizer) => () => realizer.get(self, knownActors)),
+					).then((bundle) =>
+						bundle
+							? runActor(Object.assign({ msg }, bundle))
+									.then((output) =>
+										Object.assign({}, bundle, {
+											state: output === undefined ? bundle.state : output,
+										}),
+									)
+									.then((bundle) =>
+										Promise.all(
+											realizerInstances.map((realizer) =>
+												realizer.set(bundle),
+											),
+										),
+									)
 							: null,
 					),
-		).then(() => {
-			setTimeout(doDrain, 0, self);
-			draining[self] = false;
-		});
+			);
+		}
+
+		setTimeout(doDrain, 0, self);
+		draining[self] = false;
 	}
 
 	function doKill(parent, self) {
-		realizers.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
+		realizerInstances.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
 	}
 
 	async function runActor(meta) {
-		const { self, parent, name, msg, state, children, args } = meta;
+		const { args, children, msg, name, parent, self, state } = meta;
 		const provisions = getProvisionsForActor({
-			self,
-			parent,
-			name,
 			children,
-			state,
 			msg,
+			name,
+			parent,
+			self,
+			state,
 		});
 
 		try {
