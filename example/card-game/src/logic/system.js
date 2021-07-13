@@ -4,6 +4,9 @@ import assertEnhancer from "@little-bonsai/ingrates-assert-enhancer";
 import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";
 import { createQueryEnhancer, QueryActor } from "@little-bonsai/ingrates-query-enhancer";
 
+import createIndexDbRealizer from "./createIndexDbRealizer";
+import getDb from "./getIndexDb";
+
 function createSignpostTransport({ read, write }) {
 	return function signpostTransport(doDispatch) {
 		const signpostContainer = read();
@@ -56,7 +59,7 @@ const actorSystem = createActorSystem({
 	],
 	// TODO if we flip the order, and put the persisting realizer below the RAM
 	// realizer, we can automatically use it as a caching layer
-	realizers: [createDefaultRAMRealizer()],
+	realizers: [createDefaultRAMRealizer, createIndexDbRealizer.bind(null, getDb)],
 });
 
 actorSystem.register(QueryActor);
