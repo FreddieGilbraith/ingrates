@@ -15,10 +15,7 @@ export default function createDefaultRAMRealizer() {
 	}
 
 	async function set(bundle) {
-		bundles[bundle.self] = {
-			...bundles[bundle.self],
-			...bundle,
-		};
+		bundles[bundle.self] = Object.assign({}, bundles[bundle.self], bundle);
 		return true;
 	}
 

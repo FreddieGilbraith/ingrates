@@ -116,13 +116,13 @@ export function createActorSystem({
 			).then((bundle) =>
 				Promise.all(
 					realizerInstances.map((realizer) =>
-						realizer.set({
-							...bundle,
-							children: {
-								...bundle.children,
-								[msg.nickname]: msg.child,
-							},
-						}),
+						realizer.set(
+							Object.assign({}, bundle, {
+								children: Object.assign({}, bundle.children, {
+									[msg.nickname]: msg.child,
+								}),
+							}),
+						),
 					),
 				),
 			);
