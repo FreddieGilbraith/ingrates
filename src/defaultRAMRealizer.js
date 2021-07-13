@@ -8,8 +8,8 @@ export default function createDefaultRAMRealizer() {
 		return true;
 	}
 
-	async function get(self) {
-		const bundle = bundles[self] || null;
+	async function get(addr) {
+		const bundle = bundles[addr] || null;
 
 		return bundle;
 	}

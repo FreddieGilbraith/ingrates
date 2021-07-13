@@ -89,8 +89,8 @@ export function createActorSystem({
 		return self;
 	}
 
-	function doDispatch(src, self, _msg_) {
-		const msg = Object.assign({ src }, _msg_);
+	function doDispatch(src, self, rawMessage) {
+		const msg = Object.assign({ src }, rawMessage);
 		if (msgQueue[self]) {
 			msgQueue[self].push(msg);
 		} else {
