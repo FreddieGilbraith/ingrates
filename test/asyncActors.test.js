@@ -10,6 +10,9 @@ async function SlowPokeActor({ dispatch, msg, state }) {
 			dispatch(msg.src, { type: "PONG", calls });
 			break;
 		}
+
+		default:
+			break;
 	}
 
 	return {
@@ -20,9 +23,9 @@ async function SlowPokeActor({ dispatch, msg, state }) {
 
 const test = createTestSystem({ actors: [SlowPokeActor] });
 
-test(function RunAsyncActorTest({ self, spawn, dispatch, msg }, { t, done, fail }) {
+test(function RunAsyncActorTest({ self, spawn, dispatch, msg }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			t.plan(3);
 			const snail = spawn.snail(SlowPokeActor);
 			dispatch(snail, { type: "PING" });
@@ -33,7 +36,7 @@ test(function RunAsyncActorTest({ self, spawn, dispatch, msg }, { t, done, fail 
 
 		case "PONG": {
 			t.like(msg, { type: "PONG" });
-			if (msg.calls === 3) {
+			if (msg.calls === 5) {
 				dispatch(self, { type: "DONE" });
 			}
 			break;
@@ -44,8 +47,7 @@ test(function RunAsyncActorTest({ self, spawn, dispatch, msg }, { t, done, fail 
 			break;
 		}
 
-		default: {
-			fail();
-		}
+		default:
+			break;
 	}
 });

@@ -4,13 +4,15 @@ const test = createTestSystem();
 
 function SyncActorWithInternalState({ dispatch, self, msg, state }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			t.plan(1);
 			dispatch(self, { type: "INC" });
 			dispatch(self, { type: "INC" });
 			dispatch(self, { type: "INC" });
 			dispatch(self, { type: "DONE" });
-			break;
+			return {
+				counter: 3,
+			};
 		}
 
 		case "INC": {
@@ -23,27 +25,29 @@ function SyncActorWithInternalState({ dispatch, self, msg, state }, { t, done })
 		case "DONE": {
 			t.is(state.counter, 6);
 			done();
+			break;
 		}
+
+		default:
+			break;
 	}
 
 	return state;
 }
-
-SyncActorWithInternalState.startup = () => ({
-	counter: 3,
-});
 
 test(SyncActorWithInternalState);
 
 async function AsyncActorWithInternalState({ dispatch, self, msg, state }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			t.plan(1);
 			dispatch(self, { type: "INC" });
 			dispatch(self, { type: "INC" });
 			dispatch(self, { type: "INC" });
 			dispatch(self, { type: "DONE" });
-			break;
+			return {
+				counter: 3,
+			};
 		}
 
 		case "INC": {
@@ -56,14 +60,14 @@ async function AsyncActorWithInternalState({ dispatch, self, msg, state }, { t, 
 		case "DONE": {
 			t.is(state.counter, 6);
 			done();
+			break;
 		}
+
+		default:
+			break;
 	}
 
 	return state;
 }
-
-AsyncActorWithInternalState.startup = async () => ({
-	counter: 3,
-});
 
 test(AsyncActorWithInternalState);

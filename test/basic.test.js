@@ -1,7 +1,13 @@
 import { createTestSystem } from "./utils.js";
 
-function ChildActor({ dispatch, msg, state }) {
+function ChildActor({ dispatch, msg, state }, startingValue) {
 	switch (msg.type) {
+		case "Mount": {
+			return {
+				value: startingValue,
+			};
+		}
+
 		case "PLEASE_ADD": {
 			return {
 				...state,
@@ -20,19 +26,12 @@ function ChildActor({ dispatch, msg, state }) {
 	}
 }
 
-ChildActor.startup = ({ state }, startingValue) => {
-	return {
-		...state,
-		value: startingValue,
-	};
-};
-
 const test = createTestSystem({ actors: [ChildActor] });
 
 test(function BasicFunctionalitySketch(ps, { t, done, fail }) {
 	const { self, spawn, dispatch, children, msg } = ps;
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			spawn.myChild(ChildActor, 4);
 			dispatch(self, { type: "ADD", value: 1 });
 			dispatch(self, { type: "ADD", value: 2 });
@@ -58,7 +57,6 @@ test(function BasicFunctionalitySketch(ps, { t, done, fail }) {
 		}
 
 		default:
-			fail();
 			break;
 	}
 });

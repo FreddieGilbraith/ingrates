@@ -21,7 +21,7 @@ function reverserTransport(rawDispatch) {
 	let calls = 0;
 	return (snk, msg) => {
 		calls++;
-		if (snk === "reverser") {
+		if (snk === "reverser" && msg.type === "REVERSE") {
 			rawDispatch("reverser", msg.src, {
 				type: "REVERSED",
 				payload: msg.payload.split("").reverse().join(""),
@@ -39,7 +39,7 @@ const test = createTestSystem({
 
 test(function TransportCallingActor({ self, dispatch, msg, state, spawn, children }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			dispatch(spawn.echoer(EchoActor), { type: "ECHO", payload: "hello" });
 			dispatch("pinger", { type: "PING" });
 			dispatch("reverser", { type: "REVERSE", payload: "world" });
@@ -58,7 +58,7 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 		}
 
 		case "PONG": {
-			t.like(msg, { type: "PONG", src: "pinger", calls: 3 });
+			t.like(msg, { type: "PONG", src: "pinger", calls: 11 });
 			dispatch(self, { type: "MAYBE_DONE" });
 			return {
 				resolved: state.resolved + 1,
@@ -66,7 +66,7 @@ test(function TransportCallingActor({ self, dispatch, msg, state, spawn, childre
 		}
 
 		case "REVERSED": {
-			t.like(msg, { type: "REVERSED", src: "reverser", payload: "dlrow", calls: 3 });
+			t.like(msg, { type: "REVERSED", src: "reverser", payload: "dlrow", calls: 10 });
 			dispatch(self, { type: "MAYBE_DONE" });
 			return {
 				resolved: state.resolved + 1,

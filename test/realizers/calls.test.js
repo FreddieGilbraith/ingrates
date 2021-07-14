@@ -69,7 +69,7 @@ test.beforeEach((t) => {
 	});
 });
 
-test("it will try to get the realizer state from realizers in order", async (t) => {
+test.skip("it will try to get the realizer state from realizers in order", async (t) => {
 	await new Promise((done) => {
 		function ChildActor() {}
 

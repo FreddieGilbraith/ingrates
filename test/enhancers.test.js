@@ -9,7 +9,7 @@ const test = createTestSystem({ enhancers: [testEnhancerOne, testEnhancerTwo] })
 
 test(function JackTestance({ dispatch, self, goCrazy, overlook, msg }, { t, done, fail }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			t.plan(2);
 			goCrazy({ type: "SANE" });
 			overlook();
@@ -31,9 +31,8 @@ test(function JackTestance({ dispatch, self, goCrazy, overlook, msg }, { t, done
 			done();
 			break;
 		}
-		default: {
-			fail();
+
+		default:
 			break;
-		}
 	}
 });

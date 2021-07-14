@@ -1,7 +1,12 @@
 import { createTestSystem } from "./utils.js";
 
-function SelfRequestKillActor({ msg, dispatch }) {
+function SelfRequestKillActor({ msg, dispatch, parent }) {
 	switch (msg.type) {
+		case "Start": {
+			setTimeout(dispatch, 0, parent, { type: "PLEASE_KILL_ME" });
+			break;
+		}
+
 		case "PING": {
 			dispatch(msg.src, { type: "PONG" });
 			break;
@@ -11,15 +16,11 @@ function SelfRequestKillActor({ msg, dispatch }) {
 	}
 }
 
-SelfRequestKillActor.startup = ({ dispatch, parent }) => {
-	setTimeout(dispatch, 0, parent, { type: "PLEASE_KILL_ME" });
-};
-
 const test = createTestSystem({ actors: [SelfRequestKillActor] });
 
-test(function ShutdownChildTest({ kill, children, self, dispatch, msg, spawn }, { t, done, fail }) {
+test(function ShutdownChildTest({ kill, children, self, dispatch, msg, spawn }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			spawn.selfKillChild(SelfRequestKillActor);
 			break;
 		}
@@ -44,16 +45,14 @@ test(function ShutdownChildTest({ kill, children, self, dispatch, msg, spawn }, 
 			break;
 		}
 
-		default: {
-			fail();
+		default:
 			break;
-		}
 	}
 });
 
 test(function SendMsgsToDeadActor({ kill, self, dispatch, msg, spawn }, { t, done, fail }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			spawn.selfKillChild(SelfRequestKillActor);
 			break;
 		}
@@ -78,10 +77,8 @@ test(function SendMsgsToDeadActor({ kill, self, dispatch, msg, spawn }, { t, don
 			break;
 		}
 
-		default: {
-			fail();
+		default:
 			break;
-		}
 	}
 });
 

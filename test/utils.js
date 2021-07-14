@@ -52,9 +52,7 @@ export function createTestSystem({ actors = [], ...rest } = {}) {
 
 				return new Promise((done, fail) => {
 					t.timeout(500);
-					system.dispatch(system.spawn.testRoot(testActor, { t, done, fail }), {
-						type: "START_TEST",
-					});
+					system.spawn.testRoot(testActor, { t, done, fail });
 				});
 			});
 		};

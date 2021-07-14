@@ -20,7 +20,7 @@ test.skip(function WillKillChildrenOfShutdownActor(
 	{ t, done, fail },
 ) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			spawn.myChild(ChildActor);
 			break;
 		}

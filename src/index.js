@@ -33,7 +33,7 @@ export function createActorSystem({
 		knownActors[actorDefinition.name] = actorDefinition;
 	}
 
-	function doSpawn(parent, nickname, { name, startup }, ...args) {
+	function doSpawn(parent, nickname, { name }, ...args) {
 		if (!knownActors[name]) {
 			onErr("StartError", name, "unregistered actor");
 			return null;
@@ -47,44 +47,33 @@ export function createActorSystem({
 		});
 		setTimeout(doDrain, 0, self);
 
-		msgQueue[self] = [];
+		msgQueue[self] = [
+			{ type: "Start", src: null },
+			{ type: "Mount", src: null },
+		];
 		mountingActors[self] = true;
 
-		new Promise((done) => {
-			try {
-				Promise.resolve(
-					startup
-						? startup(getProvisionsForActor({ self, parent, name }), ...args)
-						: undefined,
-				)
-					.then((state) =>
-						Promise.all(
-							realizerInstances.map((realizer) =>
-								realizer.set(
-									{
-										children: {},
-										name,
-										parent,
-										nickname,
-										self,
-										args,
-										state,
-									},
-									knownActors,
-								),
-							),
-						),
-					)
-					.then(() => {
-						mountingActors[self] = false;
-						setTimeout(doDrain, 0, self);
-					})
-					.catch((e) => onErr("StartError", e, { self, name }));
-			} catch (e) {
-				onErr("StartError", e, { self, name });
-			}
-			done();
-		});
+		Promise.all(
+			realizerInstances.map((realizer) =>
+				realizer.set(
+					{
+						children: {},
+						name,
+						parent,
+						nickname,
+						self,
+						args,
+						state: undefined,
+					},
+					knownActors,
+				),
+			),
+		)
+			.then(() => {
+				mountingActors[self] = false;
+				setTimeout(doDrain, 0, self);
+			})
+			.catch((e) => onErr("StartError", e, { self, name }));
 
 		return self;
 	}
@@ -94,7 +83,9 @@ export function createActorSystem({
 		if (msgQueue[self]) {
 			msgQueue[self].push(msg);
 		} else {
-			msgQueue[self] = [msg];
+			// TODO test that Mount is being called when first dispatching to an actor that
+			// existed in a persisted realizer
+			msgQueue[self] = [{ type: "Mount", src: null }, msg];
 		}
 
 		setTimeout(doDrain, 0, self);
@@ -156,6 +147,7 @@ export function createActorSystem({
 	}
 
 	function doKill(parent, self) {
+		// TODO change the parent param to callerBundle. Detect if it's a valid call here
 		realizerInstances.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
 	}
 

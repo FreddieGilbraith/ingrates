@@ -6,7 +6,7 @@ const test = createTestSystem({ actors: [ChildActor] });
 
 test(function CanAccessOwnChildren({ spawn, children, dispatch, self, msg }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			spawn.testChild(ChildActor);
 			dispatch(self, { type: "CHECK_CHILDREN" });
 			break;

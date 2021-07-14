@@ -2,6 +2,10 @@ import { createTestSystem } from "./utils.js";
 
 function StatefulTestActor({ msg, dispatch, state }) {
 	switch (msg.type) {
+		case "Start": {
+			return 1;
+		}
+
 		case "foo": {
 			return (x) => x + 1;
 		}
@@ -12,6 +16,7 @@ function StatefulTestActor({ msg, dispatch, state }) {
 
 		case "query": {
 			dispatch(msg.src, { type: "response", state });
+			break;
 		}
 
 		default: {
@@ -19,7 +24,6 @@ function StatefulTestActor({ msg, dispatch, state }) {
 		}
 	}
 }
-StatefulTestActor.startup = () => 1;
 
 const test = createTestSystem({
 	actors: [StatefulTestActor],
@@ -27,7 +31,7 @@ const test = createTestSystem({
 
 test(function RetainsStateIfActorReturnsUndefined({ msg, spawn, dispatch }, { t, done }) {
 	switch (msg.type) {
-		case "START_TEST": {
+		case "Mount": {
 			const addr = spawn(StatefulTestActor);
 
 			dispatch(addr, { type: "foo" });
@@ -42,6 +46,7 @@ test(function RetainsStateIfActorReturnsUndefined({ msg, spawn, dispatch }, { t,
 		case "response": {
 			t.is(msg.state, 5);
 			done();
+			break;
 		}
 
 		default: {
