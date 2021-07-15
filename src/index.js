@@ -222,5 +222,9 @@ export function createActorSystem({
 		register,
 		self: null,
 		parent: null,
+		mount: (addr) => {
+			msgQueue[addr] = [{ type: "Mount", src: null }];
+			setTimeout(doDrain, 0, addr);
+		},
 	});
 }
