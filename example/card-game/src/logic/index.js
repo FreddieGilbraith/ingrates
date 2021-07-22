@@ -20,7 +20,7 @@ async function main() {
 	const db = await getDb();
 	const rootAddr = (await getRootAddr(db)) || system.spawn.root(Root);
 
-	system.dispatch(rootAddr, { type: "FirstSystemMount" });
+	system.dispatch(rootAddr, { type: "Noop" });
 }
 
 main();

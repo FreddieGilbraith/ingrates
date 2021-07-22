@@ -21,8 +21,27 @@ function buildDiff(o, path = []) {
 	}
 }
 
-export default function RenderGraph({ msg, log, dispatch, self, state }) {
+export default function RenderGraph({ parent, msg, log, dispatch, self, state = {} }) {
 	switch (msg.type) {
+		case "Mount": {
+			dispatch(parent, { type: "IsReady" });
+
+			dispatch("singletonSignpost", {
+				type: "register",
+				name: "render",
+			});
+
+			onmessage = function onMessage(event) {
+				const msg = event.data;
+
+				if (msg.type === "_ingrates_") {
+					dispatch(msg.snk, { ...msg.msg, src: "render" });
+				}
+			};
+
+			return R.identity;
+		}
+
 		case "flushDiffBuffer": {
 			if (state.diffBuffer) {
 				postMessage({
@@ -50,27 +69,9 @@ export default function RenderGraph({ msg, log, dispatch, self, state }) {
 			);
 		}
 
-		default:
-			log(msg);
-			return state;
-	}
-
-	return state;
-}
-
-RenderGraph.startup = ({ dispatch }) => {
-	dispatch("singletonSignpost", {
-		type: "register",
-		name: "render",
-	});
-
-	onmessage = function onMessage(event) {
-		const msg = event.data;
-
-		if (msg.type === "_ingrates_") {
-			dispatch(msg.snk, { ...msg.msg, src: "render" });
+		default: {
+			if (msg.type !== "Noop") log(msg);
+			break;
 		}
-	};
-
-	return {};
-};
+	}
+}

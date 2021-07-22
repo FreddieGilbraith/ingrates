@@ -1,44 +1,27 @@
-import system from "../system";
+import * as R from "ramda";
 
-import Player from "./Player";
-import Party from "./Party";
-import Character from "./Character";
+import system from "../system";
 
 system.register(Campaign);
 
-export default function Campaign({ msg, log, children, dispatch }) {
+export default function Campaign({ parent, msg, log, dispatch, self }) {
+	if (msg.type === "UpdateTimestamp") {
+		const timestamp = new Date().toISOString();
+		dispatch("render", { path: ["campaign", self, "timestamp"], value: timestamp });
+		return R.assoc("timestamp", timestamp);
+	} else {
+		dispatch(self, { type: "UpdateTimestamp" });
+	}
+
 	switch (msg.type) {
-		case "TestGetSkirmishParties": {
-			dispatch(msg.src, {
-				type: "SetSkirmishParties",
-				parties: [children.testParty1, children.testParty2],
-			});
+		case "Mount": {
+			dispatch(parent, { type: "IsReady" });
 			break;
 		}
 
 		default: {
-			log(msg);
+			if (msg.type !== "Noop") log(msg);
 			break;
 		}
 	}
 }
-
-Campaign.startup = ({ dispatch, parent, spawn }) => {
-	dispatch(spawn.protag(Player), {
-		type: "AssignParty",
-		party: dispatch(spawn.testParty1(Party, "Player Party"), {
-			type: "AddMembers",
-			members: [
-				spawn.testRanger1(Character, "Ranger"),
-				spawn.testWizard1(Character, "Wizard"),
-			],
-		}),
-	});
-
-	dispatch(spawn.testParty2(Party, "Enemy Party"), {
-		type: "AddMembers",
-		members: [spawn.testRouge1(Character, "Rouge"), spawn.testWarrior1(Character, "Warrior")],
-	});
-
-	dispatch(parent, { type: "Ready" });
-};

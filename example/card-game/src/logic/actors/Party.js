@@ -4,8 +4,15 @@ import system from "../system";
 
 system.register(Party);
 
-export default function Party({ msg, log, state, dispatch }) {
+export default function Party({ self, msg, log, state, dispatch }, partyName) {
 	switch (msg.type) {
+		case "Mount": {
+			dispatch("render", {
+				path: ["party", self, "name"],
+				value: partyName,
+			});
+		}
+
 		case "AddMembers": {
 			return R.over(R.lensProp("members"), R.pipe(R.defaultTo([]), R.concat(msg.members)));
 		}
@@ -23,10 +30,3 @@ export default function Party({ msg, log, state, dispatch }) {
 
 	return state;
 }
-
-Party.startup = ({ self, dispatch }, partyName) => {
-	dispatch("render", {
-		path: ["party", self, "name"],
-		value: partyName,
-	});
-};

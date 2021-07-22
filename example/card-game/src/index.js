@@ -13,7 +13,6 @@ function main() {
 		const msg = event.data;
 
 		if (msg.type === "RENDER_DIFF_BUFFER") {
-			console.log(msg);
 			state = mergeDeepRight(state, msg.payload);
 			renderApp();
 		}

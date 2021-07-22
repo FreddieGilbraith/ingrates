@@ -1,43 +1,49 @@
 import * as R from "ramda";
 import system from "../system";
 
-import Session from "./Session";
-import Campaign from "./Campaign";
 import RenderGraph from "./RenderGraph";
+import CampaignManager from "./CampaignManager";
 
 system.register(Root);
 
 export default function Root({ acquire, msg, log, state, dispatch, children, self }) {
 	switch (msg.type) {
-		case "FirstSystemMount": {
-			acquire.renderGraph(RenderGraph);
+		case "Mount": {
+			const renderGraph = acquire.renderGraph(RenderGraph);
+			const campaignManager = acquire.campaignManager(CampaignManager);
 
-			dispatch("render", { path: ["ui", "route"], value: "/loading" });
-			dispatch("render", { path: ["engine", "addr"], value: self });
-			dispatch("render", { path: ["engine", "status"], value: "init" });
+			dispatch(renderGraph, { type: "Noop" });
+			dispatch(campaignManager, { type: "Noop" });
 
-			const session = acquire.session(Session);
-			const campaign = acquire.campaign(Campaign);
+			dispatch(renderGraph, { path: ["engine", "status"], value: "Loading" });
+			dispatch(renderGraph, { path: ["engine", "addr"], value: self });
 
-			return { waiting: { [session]: "session", [campaign]: "campaign" } };
+			return R.pipe(
+				R.assocPath(["waiting", renderGraph], "renderGraph"),
+				R.assocPath(["waiting", campaignManager], "campaignManager"),
+			);
 		}
 
-		// case "Ready": {
-		// 	dispatch(self, { type: "CheckAllReady" });
-		// 	return R.dissocPath(["waiting", msg.src]);
-		// }
+		case "IsReady": {
+			dispatch(self, { type: "CheckEngineStatus" });
+			return R.dissocPath(["waiting", msg.src]);
+		}
 
-		// case "CheckAllReady": {
-		// 	if (Object.keys(state.waiting).length === 0) {
-		// 		dispatch("render", { path: ["engine", "status"], value: "running" });
-		// 		dispatch("render", { path: ["ui", "route"], value: "/skirmish/start" });
-		// 		dispatch(children.session, { type: "BeginSkirmish", campaign: children.campaign });
-		// 	}
-		// 	break;
-		// }
+		case "CheckEngineStatus": {
+			if (R.keys(state.waiting).length === 0) {
+				dispatch(children.renderGraph, { path: ["engine", "status"], value: "Running" });
+			}
+			return;
+		}
+
+		case "RenderCampaignsList":
+		case "CreateNewCampaign": {
+			dispatch(children.campaignManager, msg);
+			break;
+		}
 
 		default: {
-			log(msg);
+			if (msg.type !== "Noop") log(msg);
 			break;
 		}
 	}

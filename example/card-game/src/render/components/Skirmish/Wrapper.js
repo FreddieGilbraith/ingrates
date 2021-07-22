@@ -1,9 +1,9 @@
 import React from "react";
 import cn from "classnames";
 import * as R from "ramda";
-import { useRouteMatch } from "react-router";
 
 import { useGameState } from "../useGameState";
+import Wrapper from "../Wrapper";
 
 function PartyDisplay({ partyAddr, side }) {
 	const party = useGameState(R.path(["party", partyAddr]));
@@ -70,18 +70,14 @@ export default function SkirmishWrapper({ children }) {
 	const parties = useGameState(R.pathOr([], ["skirmish", "parties"]));
 
 	return (
-		<React.Fragment>
-			<div className="absolute inset-2 border-2 rounded border-black shadow-inner" />
-			<div className="absolute inset-2 flex flex-col items-center p-2">
-				<h1 className="text-xl font-bold">Skirmish</h1>
-				<SkirmishPhase />
-				<div className="flex">
-					<PartyDisplay partyAddr={parties[0]} side="left" />
-					<PartyDisplay partyAddr={parties[1]} side="right" />
-				</div>
-
-				<div className="flex-1 flex flex-col items-center justify-center">{children}</div>
+		<Wrapper title="Skirmish">
+			<SkirmishPhase />
+			<div className="flex">
+				<PartyDisplay partyAddr={parties[0]} side="left" />
+				<PartyDisplay partyAddr={parties[1]} side="right" />
 			</div>
-		</React.Fragment>
+
+			<div className="flex-1 flex flex-col items-center justify-center">{children}</div>
+		</Wrapper>
 	);
 }

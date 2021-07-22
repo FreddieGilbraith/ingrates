@@ -6,8 +6,31 @@ import Deck from "./Deck";
 
 system.register(Skirmish);
 
-export default function Skirmish({ state, dispatch, self, assert, msg, log }, [party1, party2]) {
+export default function Skirmish(
+	{ spawn, state, dispatch, self, assert, msg, log },
+	[party1, party2],
+) {
 	switch (msg.type) {
+		case "Mount": {
+			dispatch("render", { path: ["skirmish", "addr"], value: self });
+			dispatch("render", { path: ["skirmish", "parties"], value: [party1, party2] });
+
+			const deck1 = spawn.deck1(Deck, party1);
+			const hand1 = spawn.hand1(Hand, deck1, party1);
+
+			const deck2 = spawn.deck2(Deck, party2);
+			const hand2 = spawn.hand2(Hand, deck2, party2);
+
+			return {
+				phase: "init",
+				round: 0,
+				parties: {
+					[party1]: { deck: deck1, hand: hand1 },
+					[party2]: { deck: deck2, hand: hand2 },
+				},
+			};
+		}
+
 		case "TransitionToNextTurn": {
 			assert(msg.src === self);
 
@@ -84,23 +107,3 @@ export default function Skirmish({ state, dispatch, self, assert, msg, log }, [p
 
 	return state;
 }
-
-Skirmish.startup = ({ self, dispatch, spawn }, [party1, party2]) => {
-	dispatch("render", { path: ["skirmish", "addr"], value: self });
-	dispatch("render", { path: ["skirmish", "parties"], value: [party1, party2] });
-
-	const deck1 = spawn.deck1(Deck, party1);
-	const hand1 = spawn.hand1(Hand, deck1, party1);
-
-	const deck2 = spawn.deck2(Deck, party2);
-	const hand2 = spawn.hand2(Hand, deck2, party2);
-
-	return {
-		phase: "init",
-		round: 0,
-		parties: {
-			[party1]: { deck: deck1, hand: hand1 },
-			[party2]: { deck: deck2, hand: hand2 },
-		},
-	};
-};

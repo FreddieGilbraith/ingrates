@@ -1,10 +1,12 @@
 import React from "react";
 import cn from "classnames";
 
-export default function Button({ color, move, ...props }) {
+export default function Button({ color, move, as = "button", className, ...props }) {
+	const Component = as;
 	return (
-		<button
+		<Component
 			className={cn(
+				className,
 				"bold",
 				"px-6",
 				"py-3",
@@ -12,6 +14,7 @@ export default function Button({ color, move, ...props }) {
 				"shadow",
 				"text-3xl",
 				"text-white",
+				"cursor-pointer",
 
 				"transition-all",
 				"transform",

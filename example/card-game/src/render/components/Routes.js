@@ -1,31 +1,42 @@
 import React from "react";
-import { useHistory, Route } from "react-router-dom";
+import { Switch, useHistory, Route } from "react-router-dom";
 
 import { useGameState } from "./useGameState";
 
 import Skirmish from "./Skirmish";
-
-function BrowserRouteDriver() {
-	const route = useGameState((s) => s?.ui?.route ?? "/");
-	const history = useHistory();
-
-	React.useEffect(() => {
-		history.push(route);
-	}, [route, history]);
-
-	return null;
-}
+import SelectCampaign from "./SelectCampaign";
+import CampaignDashboard from "./CampaignDashboard";
 
 function Loading() {
+	const history = useHistory();
+	const engineStatus = useGameState((s) => s.engine.status);
+
+	React.useEffect(() => {
+		if (engineStatus === "Running") {
+			history.push("/campaign");
+		}
+	}, [history, engineStatus]);
+
 	return <div>Loading...</div>;
+}
+
+function Noop() {
+	return null;
 }
 
 export default function Routes() {
 	return (
 		<React.Fragment>
-			<BrowserRouteDriver />
-			<Route path="/skirmish" component={Skirmish} />
-			<Route path="/loading" component={Loading} />
+			<Switch>
+				<Route path="/campaign/:campaign/config/party" component={Noop} />
+				<Route path="/campaign/:campaign/config/party/:partyId" component={Noop} />
+				<Route path="/campaign/:campaign/skirmish" component={Skirmish} />
+				<Route path="/campaign/:campaign" component={CampaignDashboard} />
+
+				<Route path="/campaign" component={SelectCampaign} />
+
+				<Route component={Loading} />
+			</Switch>
 		</React.Fragment>
 	);
 }
