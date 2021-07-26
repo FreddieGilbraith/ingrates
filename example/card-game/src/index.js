@@ -1,5 +1,5 @@
 import "babel-polyfill";
-import { mergeDeepRight, dissocPath, assocPath } from "ramda";
+import { mergeDeepRight } from "ramda";
 import React from "react";
 import ReactDOM from "react-dom";
 

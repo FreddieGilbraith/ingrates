@@ -4,17 +4,23 @@ import system from "../system";
 
 system.register(Party);
 
-export default function Party({ self, msg, log, state, dispatch }, partyName) {
+export default function Party({ self, msg, log, state, dispatch }) {
 	switch (msg.type) {
 		case "Mount": {
-			dispatch("render", {
-				path: ["party", self, "name"],
-				value: partyName,
-			});
+			return R.pipe(
+				R.over(R.lensProp("name"), R.defaultTo("New Party")),
+				R.over(R.lensProp("members"), R.defaultTo([])),
+			);
+		}
+
+		case "RequestRender": {
+			dispatch("render", { path: ["party", self, "name"], value: state.name });
+			dispatch("render", { path: ["party", self, "members"], value: state.members });
+			break;
 		}
 
 		case "AddMembers": {
-			return R.over(R.lensProp("members"), R.pipe(R.defaultTo([]), R.concat(msg.members)));
+			return R.over(R.lensProp("members"), R.concat(msg.members));
 		}
 
 		case "RequestCardsToBuildSkirmishDeck": {

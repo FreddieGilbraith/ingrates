@@ -6,6 +6,7 @@ import { useGameState } from "./useGameState";
 import Skirmish from "./Skirmish";
 import SelectCampaign from "./SelectCampaign";
 import CampaignDashboard from "./CampaignDashboard";
+import CampaignPartyConfig from "./CampaignPartyConfig";
 
 function Loading() {
 	const history = useHistory();
@@ -28,11 +29,13 @@ export default function Routes() {
 	return (
 		<React.Fragment>
 			<Switch>
-				<Route path="/campaign/:campaign/config/party" component={Noop} />
-				<Route path="/campaign/:campaign/config/party/:partyId" component={Noop} />
+				<Route
+					path="/campaign/:campaign/config/party/:partyAddr?"
+					component={CampaignPartyConfig}
+				/>
+
 				<Route path="/campaign/:campaign/skirmish" component={Skirmish} />
 				<Route path="/campaign/:campaign" component={CampaignDashboard} />
-
 				<Route path="/campaign" component={SelectCampaign} />
 
 				<Route component={Loading} />
