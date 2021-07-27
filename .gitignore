@@ -5,3 +5,4 @@ dist
 .npmrc
 docs/build
 .nyc_output
+example/card-game/.pijul
