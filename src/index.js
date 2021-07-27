@@ -78,19 +78,19 @@ export function createActorSystem({
 		return self;
 	}
 
-	function doDispatch(src, self, rawMessage) {
+	function doDispatch(src, snk, rawMessage) {
 		const msg = Object.assign({ src }, rawMessage);
-		if (msgQueue[self]) {
-			msgQueue[self].push(msg);
+		if (msgQueue[snk]) {
+			msgQueue[snk].push(msg);
 		} else {
 			// TODO test that Mount is being called when first dispatching to an actor that
 			// existed in a persisted realizer
-			msgQueue[self] = [{ type: "Mount", src: null }, msg];
+			msgQueue[snk] = [{ type: "Mount", src: null }, msg];
 		}
 
-		setTimeout(doDrain, 0, self);
+		setTimeout(doDrain, 0, snk);
 
-		return self;
+		return snk;
 	}
 
 	async function doDrain(self) {

@@ -7,7 +7,7 @@ import App from "./components/App";
 
 function main() {
 	let state = {};
-	const logicWorker = new Worker("./system/start.js");
+	const logicWorker = new Worker("./actors/start.js");
 
 	logicWorker.addEventListener("message", (event) => {
 		const msg = event.data;
