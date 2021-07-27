@@ -95,6 +95,12 @@ export default async function CampaignManager({ self, msg, log, state, dispatch 
 			const campaignDb = await getSpecificCampaignDb(msg.campaign);
 			const campaignActorSystem = await createCampaignActorSystem(campaignDb);
 			await bootCampaignActorSystem(campaignDb, campaignActorSystem);
+
+			dispatch("DynamicSystemTransport", {
+				type: "RegisterNewSubSystem",
+				system: campaignActorSystem,
+				namespace: "Campaign",
+			});
 			break;
 		}
 

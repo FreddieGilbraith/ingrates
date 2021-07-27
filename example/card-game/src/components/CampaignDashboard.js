@@ -25,7 +25,7 @@ export default function CampaignDashboard({
 		>
 			<div className="flex-1 flex flex-row self-stretch items-stretch">
 				<div className="flex-1 flex flex-col items-center justify-center">
-					<Button color="green" move="down">
+					<Button color="green" move="wild">
 						Play
 					</Button>
 				</div>
@@ -33,7 +33,7 @@ export default function CampaignDashboard({
 				<div className="flex-1 flex flex-col ">
 					<div className="flex-1 flex flex-col items-center justify-center">
 						<Button
-							move="down"
+							move="wild"
 							color="blue"
 							as={Link}
 							to={`/campaign/${campaignAddr}/config/party`}
@@ -43,7 +43,7 @@ export default function CampaignDashboard({
 					</div>
 
 					<div className="flex-1 flex flex-col items-center justify-center">
-						<Button color="blue" move="up">
+						<Button color="blue" move="wild">
 							Config
 						</Button>
 					</div>

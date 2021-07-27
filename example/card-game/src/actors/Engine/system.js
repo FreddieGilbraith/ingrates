@@ -1,10 +1,11 @@
-import { createActorSystem, } from "../../../../../src/index.js";
+import { createActorSystem } from "../../../../../src/index.js";
 import acquireEnhancer from "@little-bonsai/ingrates-acquire-enhancer";
 import assertEnhancer from "@little-bonsai/ingrates-assert-enhancer";
 import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";
 import { createQueryEnhancer, QueryActor } from "@little-bonsai/ingrates-query-enhancer";
 
 import createSignpostTransport from "../../actorSystemTools/createSignpostTransport";
+import createDynamicSystemTransport from "../../actorSystemTools/createDynamicSystemTransport";
 
 const actorDefinitions = [];
 
@@ -30,6 +31,7 @@ export default function createEngineActorSystem(staticSystemTransport) {
 
 		transports: [
 			staticSystemTransport,
+			createDynamicSystemTransport(),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};
