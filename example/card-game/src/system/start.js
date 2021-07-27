@@ -2,8 +2,8 @@ import "babel-core/register";
 import "babel-polyfill";
 
 import getDb from "./getIndexDb";
-import system from "./system";
-import Root from "./actors/Root";
+import system from ".";
+import Root from "../actors/Root";
 
 async function getRootAddr(db) {
 	return new Promise((done, fail) => {

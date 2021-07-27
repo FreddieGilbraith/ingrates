@@ -58,8 +58,15 @@ export default function CampaignPartyConfig({
 				color="green"
 				move="down"
 				onClick={dispatch.bind(null, campaignAddr, { type: "CreateNewParty" })}
+				onKeyDown={console.bind}
 			>
 				Create New Party
+			</Button>
+
+			<div className="py-2" />
+
+			<Button color="red" move="down" as={Link} to={`/campaign/${campaignAddr}`}>
+				Back
 			</Button>
 		</Wrapper>
 	);

@@ -24,15 +24,28 @@ export default function SelectCampaign() {
 
 				<ol className="p-6">
 					{(campaigns || []).map((campaignAddr) => (
-						<li key={campaignAddr} className="p-6">
+						<li key={campaignAddr} className="p-6 flex items-center">
 							<Button
-								className="font-mono"
-								move="down"
-								color="blue"
 								as={Link}
+								className="font-mono"
+								color="blue"
+								move="down"
 								to={`/campaign/${campaignAddr}`}
 							>
 								{campaignAddr}
+							</Button>
+
+							<div className="px-2" />
+
+							<Button
+								color="red"
+								move="down"
+								onClick={dispatch.bind(null, engineAddr, {
+									type: "DeleteCampaign",
+									campaignAddr,
+								})}
+							>
+								✕
 							</Button>
 						</li>
 					))}

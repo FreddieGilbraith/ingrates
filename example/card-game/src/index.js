@@ -3,11 +3,11 @@ import { mergeDeepRight } from "ramda";
 import React from "react";
 import ReactDOM from "react-dom";
 
-import App from "./render/components/App";
+import App from "./components/App";
 
 function main() {
 	let state = {};
-	const logicWorker = new Worker("./logic/index.js");
+	const logicWorker = new Worker("./system/start.js");
 
 	logicWorker.addEventListener("message", (event) => {
 		const msg = event.data;

@@ -3,7 +3,6 @@ import { Switch, useHistory, Route } from "react-router-dom";
 
 import { useGameState } from "./useGameState";
 
-import Skirmish from "./Skirmish";
 import SelectCampaign from "./SelectCampaign";
 import CampaignDashboard from "./CampaignDashboard";
 import CampaignPartyConfig from "./CampaignPartyConfig";
@@ -34,7 +33,7 @@ export default function Routes() {
 					component={CampaignPartyConfig}
 				/>
 
-				<Route path="/campaign/:campaign/skirmish" component={Skirmish} />
+				<Route path="/campaign/:campaign/skirmish" component={Noop} />
 				<Route path="/campaign/:campaign" component={CampaignDashboard} />
 				<Route path="/campaign" component={SelectCampaign} />
 
