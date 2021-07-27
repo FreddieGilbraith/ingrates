@@ -17,6 +17,7 @@ function PartyListItem({ partyAddr, campaignAddr }) {
 	return (
 		<div className="p-2">
 			<Link
+				data-keyboard-focusable
 				className="p-2 border-2 border-black shadow rounded block"
 				to={`/campaign/${campaignAddr}/config/party/${partyAddr}`}
 			>
