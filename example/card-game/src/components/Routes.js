@@ -1,7 +1,7 @@
 import React from "react";
 import { Switch, useHistory, Route } from "react-router-dom";
 
-import { useGameState } from "./useGameState";
+import { useGameDispatch, useGameState } from "./useGameState";
 
 import SelectCampaign from "./SelectCampaign";
 import CampaignDashboard from "./CampaignDashboard";
@@ -24,6 +24,23 @@ function Noop() {
 	return null;
 }
 
+function CampaignMounter({
+	match: {
+		params: { campaign },
+	},
+}) {
+	const engineAddr = useGameState((s) => s.engine.addr);
+	const dispatch = useGameDispatch();
+
+	React.useEffect(() => {
+		if (engineAddr) {
+			dispatch(engineAddr, { type: "MountCampaign", campaign });
+		}
+	}, [dispatch, engineAddr, campaign]);
+
+	return null;
+}
+
 export default function Routes() {
 	return (
 		<React.Fragment>
@@ -39,6 +56,7 @@ export default function Routes() {
 
 				<Route component={Loading} />
 			</Switch>
+			<Route path="/campaign/:campaign" component={CampaignMounter} />
 		</React.Fragment>
 	);
 }

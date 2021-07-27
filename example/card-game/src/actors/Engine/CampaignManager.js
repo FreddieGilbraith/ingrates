@@ -2,10 +2,12 @@ import * as R from "ramda";
 import fixedId from "fixed-id";
 
 import { register } from "./system";
+import createCampaignActorSystem from "../Campaign/system";
+import bootCampaignActorSystem from "../Campaign/boot";
 
 register(CampaignManager);
 
-async function createKnownCampaignsDb() {
+async function getKnownCampaignsDb() {
 	const openDbRequest = indexedDB.open("knownCampaigns", 1);
 
 	const db = await new Promise((done) => {
@@ -21,7 +23,7 @@ async function createKnownCampaignsDb() {
 	return db;
 }
 
-async function createSpecificCampaignDb(id) {
+async function getSpecificCampaignDb(id) {
 	const openDbRequest = indexedDB.open(`Campaign:${id}`, 1);
 
 	const db = await new Promise((done) => {
@@ -43,14 +45,11 @@ async function createSpecificCampaignDb(id) {
 
 export default async function CampaignManager({ self, msg, log, state, dispatch }) {
 	switch (msg.type) {
-		case "Start": {
-			const db = await createKnownCampaignsDb();
-			return R.assoc("db", db);
-		}
-
 		case "RenderCampaignsList": {
+			const knownCampaignsDb = await getKnownCampaignsDb();
+
 			const knownCampaigns = await new Promise((done, fail) => {
-				const transaction = state.db.transaction(["knownCampaigns"], "readwrite");
+				const transaction = knownCampaignsDb.transaction(["knownCampaigns"], "readwrite");
 				transaction.onerror = fail;
 
 				const request = transaction.objectStore("knownCampaigns").getAll();
@@ -70,10 +69,13 @@ export default async function CampaignManager({ self, msg, log, state, dispatch 
 		}
 
 		case "CreateNewCampaign": {
+			const knownCampaignsDb = await getKnownCampaignsDb();
+
 			const newCampaignId = fixedId();
-			await createSpecificCampaignDb(newCampaignId);
+			await getSpecificCampaignDb(newCampaignId);
+
 			await new Promise((done, fail) => {
-				const transaction = state.db.transaction(["knownCampaigns"], "readwrite");
+				const transaction = knownCampaignsDb.transaction(["knownCampaigns"], "readwrite");
 				transaction.onerror = fail;
 
 				const request = transaction
@@ -85,6 +87,14 @@ export default async function CampaignManager({ self, msg, log, state, dispatch 
 			});
 
 			dispatch(self, { type: "RenderCampaignsList" });
+
+			break;
+		}
+
+		case "MountCampaign": {
+			const campaignDb = await getSpecificCampaignDb(msg.campaign);
+			const campaignActorSystem = await createCampaignActorSystem(campaignDb);
+			await bootCampaignActorSystem(campaignDb, campaignActorSystem);
 			break;
 		}
 

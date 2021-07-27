@@ -1,11 +1,10 @@
-export default function createIndexDbRealizer(getDb) {
+export default function createIndexDbRealizer(db) {
 	async function* makePersistenceSerializer() {
 		let response;
 		while (true) {
 			const [action, meta] = yield response;
 
 			try {
-				const db = await getDb();
 				switch (action) {
 					case "get": {
 						const result = await new Promise((done, fail) => {

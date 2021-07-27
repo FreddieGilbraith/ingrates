@@ -1,4 +1,4 @@
-import { createActorSystem, createDefaultRAMRealizer } from "../../../../../src/index.js";
+import { createActorSystem, } from "../../../../../src/index.js";
 import acquireEnhancer from "@little-bonsai/ingrates-acquire-enhancer";
 import assertEnhancer from "@little-bonsai/ingrates-assert-enhancer";
 import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";

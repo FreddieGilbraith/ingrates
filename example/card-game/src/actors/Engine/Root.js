@@ -35,8 +35,9 @@ export default function Root({ children, log, spawn, self, msg, dispatch }, conf
 			break;
 		}
 
-		case "RenderCampaignsList":
-		case "CreateNewCampaign": {
+		case "CreateNewCampaign":
+		case "MountCampaign":
+		case "RenderCampaignsList": {
 			dispatch(children.campaignManager, msg);
 			break;
 		}

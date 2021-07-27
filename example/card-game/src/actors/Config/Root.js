@@ -9,6 +9,7 @@ export default function Root({ log, msg, dispatch }) {
 			break;
 		}
 
+
 		default: {
 			log(msg);
 			break;
