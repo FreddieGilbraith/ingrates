@@ -7,11 +7,18 @@ import { register } from "./system";
 
 register(Root);
 
-export default function Root({ children, log, spawn, self, msg, dispatch }, configAddr) {
+export default function Root(
+	{ children, log, spawn, self, msg, dispatch },
+	configAddr,
+	createDynamicSystemTransport,
+) {
 	switch (msg.type) {
 		case "Mount": {
 			const renderAddr = spawn.render(RenderGraph);
-			const campaignManagerAddr = spawn.campaignManager(CampaignManager);
+			const campaignManagerAddr = spawn.campaignManager(
+				CampaignManager,
+				createDynamicSystemTransport,
+			);
 
 			dispatch(configAddr, { type: "IntroEngine" });
 			dispatch(renderAddr, { type: "IntroEngine" });

@@ -2,7 +2,7 @@ import Root from "./Root";
 
 export default async function bootCampaignActorSystem(db, system) {
 	try {
-		const rootAddr = await new Promise((done, fail) => {
+		const rootBundle = await new Promise((done, fail) => {
 			const transaction = db.transaction(["actorBundles"], "readwrite");
 			transaction.onerror = fail;
 
@@ -14,8 +14,10 @@ export default async function bootCampaignActorSystem(db, system) {
 			request.onerror = fail;
 		});
 
-		system.dispatch(rootAddr.self, { type: "Begin" });
+		system.dispatch(rootBundle.self, { type: "Begin" });
+
+		return rootBundle.self;
 	} catch (e) {
-		system.spawn.root(Root);
+		return system.spawn.root(Root);
 	}
 }

@@ -8,21 +8,15 @@ import Button from "./Button";
 
 export default function CampaignDashboard({
 	match: {
-		params: { campaign: campaignAddr },
+		params: { campaign },
 	},
 }) {
-	const campaignInfo = useGameState((s) => s.campaign?.[campaignAddr]);
+	const campaignAddr = useGameState((s) => s.campaign?.addr);
+	const campaignTimestamp = useGameState((s) => s.campaign?.timestamp);
 	const dispatch = useGameDispatch();
 
-	React.useEffect(() => {
-		dispatch(campaignAddr, { type: "RequestRender" });
-	}, [dispatch, campaignAddr]);
-
 	return (
-		<Wrapper
-			title="Campaign Dashboard"
-			subtitle={<div>last update: {campaignInfo?.timestamp}</div>}
-		>
+		<Wrapper title="Campaign Dashboard" subtitle={<div>last update: {campaignTimestamp}</div>}>
 			<div className="flex-1 flex flex-row self-stretch items-stretch">
 				<div className="flex-1 flex flex-col items-center justify-center">
 					<Button color="green" move="wild">
@@ -36,7 +30,7 @@ export default function CampaignDashboard({
 							move="wild"
 							color="blue"
 							as={Link}
-							to={`/campaign/${campaignAddr}/config/party`}
+							to={`/campaign/${campaign}/config/party`}
 						>
 							Parties
 						</Button>
@@ -45,6 +39,16 @@ export default function CampaignDashboard({
 					<div className="flex-1 flex flex-col items-center justify-center">
 						<Button color="blue" move="wild">
 							Config
+						</Button>
+					</div>
+
+					<div className="flex-1 flex flex-col items-center justify-center">
+						<Button
+							color="blue"
+							move="wild"
+							onClick={dispatch.bind(null, campaignAddr, { type: "UpdateTimestamp" })}
+						>
+							Poke
 						</Button>
 					</div>
 				</div>

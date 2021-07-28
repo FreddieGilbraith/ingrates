@@ -13,7 +13,7 @@ export const register = (x) => actorDefinitions.push(x);
 
 register(QueryActor);
 
-export default async function createCampaignActorSystem(db) {
+export default async function createCampaignActorSystem(db, id, createDynamicSystemTransport) {
 	const campaignActorSystem = createActorSystem({
 		enhancers: [
 			createLogEnhancer("campaign", {
@@ -30,6 +30,7 @@ export default async function createCampaignActorSystem(db) {
 		],
 
 		transports: [
+			createDynamicSystemTransport(`Campaign(${id})`),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};
@@ -50,4 +51,3 @@ export default async function createCampaignActorSystem(db) {
 
 	return campaignActorSystem;
 }
-

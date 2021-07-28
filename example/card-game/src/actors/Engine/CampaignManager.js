@@ -43,7 +43,10 @@ async function getSpecificCampaignDb(id) {
 	return db;
 }
 
-export default async function CampaignManager({ self, msg, log, state, dispatch }) {
+export default async function CampaignManager(
+	{ self, msg, log, state, dispatch },
+	createDynamicSystemTransport,
+) {
 	switch (msg.type) {
 		case "RenderCampaignsList": {
 			const knownCampaignsDb = await getKnownCampaignsDb();
@@ -93,15 +96,18 @@ export default async function CampaignManager({ self, msg, log, state, dispatch 
 
 		case "MountCampaign": {
 			const campaignDb = await getSpecificCampaignDb(msg.campaign);
-			const campaignActorSystem = await createCampaignActorSystem(campaignDb);
-			await bootCampaignActorSystem(campaignDb, campaignActorSystem);
+			const campaignActorSystem = await createCampaignActorSystem(
+				campaignDb,
+				msg.campaign,
+				createDynamicSystemTransport,
+			);
 
-			dispatch("DynamicSystemTransport", {
-				type: "RegisterNewSubSystem",
-				system: campaignActorSystem,
-				namespace: "Campaign",
-			});
-			break;
+			const campaignRootAddr = await bootCampaignActorSystem(campaignDb, campaignActorSystem);
+			const campaignRootAddrNamespaced = `Campaign(${msg.campaign}):${campaignRootAddr}`;
+
+			dispatch("render", { path: ["campaign"], value: { addr: campaignRootAddrNamespaced } });
+
+			return R.assocPath(["campaignRootAddrs", msg.campaign], campaignRootAddrNamespaced);
 		}
 
 		default: {

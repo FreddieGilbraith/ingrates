@@ -5,7 +5,6 @@ import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";
 import { createQueryEnhancer, QueryActor } from "@little-bonsai/ingrates-query-enhancer";
 
 import createSignpostTransport from "../../actorSystemTools/createSignpostTransport";
-import createDynamicSystemTransport from "../../actorSystemTools/createDynamicSystemTransport";
 
 const actorDefinitions = [];
 
@@ -13,7 +12,7 @@ export const register = (x) => actorDefinitions.push(x);
 
 register(QueryActor);
 
-export default function createEngineActorSystem(staticSystemTransport) {
+export default function createEngineActorSystem(createDynamicSystemTransport) {
 	const engineActorSystem = createActorSystem({
 		enhancers: [
 			createLogEnhancer("engine", {
@@ -30,8 +29,7 @@ export default function createEngineActorSystem(staticSystemTransport) {
 		],
 
 		transports: [
-			staticSystemTransport,
-			createDynamicSystemTransport(),
+			createDynamicSystemTransport("Engine"),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};

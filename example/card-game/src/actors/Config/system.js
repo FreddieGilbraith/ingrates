@@ -12,7 +12,7 @@ export const register = (x) => actorDefinitions.push(x);
 
 register(QueryActor);
 
-export default function createConfigActorSystem(staticSystemTransport) {
+export default function createConfigActorSystem(createDynamicSystemTransport) {
 	const configActorSystem = createActorSystem({
 		enhancers: [
 			createLogEnhancer("config", {
@@ -29,7 +29,7 @@ export default function createConfigActorSystem(staticSystemTransport) {
 		],
 
 		transports: [
-			staticSystemTransport,
+			createDynamicSystemTransport("Config"),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};

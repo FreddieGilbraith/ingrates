@@ -20,9 +20,9 @@ export default function App({ state, dispatch }) {
 		<Router>
 			<GameStateProvider value={{ dispatch, state }}>
 				<Routes />
-				{/*
 				<div style={{ whiteSpace: "pre" }}>{JSON.stringify(state, null, 2)}</div>
-				*/}
+				{/*
+				 */}
 			</GameStateProvider>
 		</Router>
 	);
