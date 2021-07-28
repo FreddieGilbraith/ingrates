@@ -94,9 +94,6 @@
 		"size-limit": "^4.10.2",
 		"tailwindcss": "^2.0.4"
 	},
-	"dependencies": {
-		"fixed-id": "^1.0.0"
-	},
 	"ava": {
 		"files": [
 			"test/**/*.test.js"
@@ -124,5 +121,8 @@
 			"limit": "2.5 kB",
 			"path": "./dist/index.js"
 		}
-	]
+	],
+	"dependencies": {
+		"nanoid": "^3.1.23"
+	}
 }
