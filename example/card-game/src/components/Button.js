@@ -5,8 +5,17 @@ function getRandom(xs) {
 	return xs[Math.floor(Math.random() * xs.length)];
 }
 
-export default function Button({ color, move, as = "button", className, ...props }) {
+export default function Button({ color, move, as = "button", className, onClick, ...props }) {
 	const Component = as;
+
+	const [interactionFlag, setInteractionFlag] = React.useState(false);
+
+	React.useEffect(() => {
+		if (interactionFlag) {
+			const id = setTimeout(setInteractionFlag, 64 + 32, false);
+			return () => clearTimeout(id);
+		}
+	}, [interactionFlag]);
 
 	const [wildFocusTransform] = React.useState(
 		(() => {
@@ -47,6 +56,8 @@ export default function Button({ color, move, as = "button", className, ...props
 				"focus:shadow-2xl",
 
 				{
+					"scale-90": interactionFlag,
+
 					"focus:-translate-y-1 hover:-translate-y-1": move === "up",
 					"focus:translate-y-1 hover:translate-y-1": move === "down",
 					[wildFocusTransform.map((x) => `focus:${x} hover:${x}`).join(" ")]:
@@ -61,6 +72,10 @@ export default function Button({ color, move, as = "button", className, ...props
 						color === "red",
 				},
 			)}
+			onClick={() => {
+				setInteractionFlag(true);
+				onClick();
+			}}
 			{...props}
 		/>
 	);
