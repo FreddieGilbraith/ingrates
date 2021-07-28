@@ -20,5 +20,3 @@ const engineAddr = engineActorSystem.spawn.root(
 	`Config:${configAddr}`,
 	createDynamicSystemTransport,
 );
-
-console.log({ configAddr, engineAddr });

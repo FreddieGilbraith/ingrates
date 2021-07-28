@@ -3,7 +3,10 @@ import { customAlphabet } from "nanoid";
 import createDefaultRAMRealizer from "./defaultRAMRealizer.js";
 export { createDefaultRAMRealizer };
 
-const nanoid = customAlphabet("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz", 14);
+export const makeAddress = customAlphabet(
+	"23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz",
+	14,
+);
 
 function noop() {}
 
@@ -41,7 +44,7 @@ export function createActorSystem({
 			return null;
 		}
 
-		const self = nanoid();
+		const self = makeAddress();
 		(msgQueue[parent] || []).unshift({
 			special: "ADD_CHILD",
 			nickname,
@@ -206,7 +209,7 @@ export function createActorSystem({
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
 			function nakedSpawn() {
-				return doSpawn(self, nanoid(), ...arguments);
+				return doSpawn(self, makeAddress(), ...arguments);
 			},
 			{
 				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),

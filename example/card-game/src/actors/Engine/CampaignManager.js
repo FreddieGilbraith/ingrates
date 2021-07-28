@@ -1,5 +1,5 @@
 import * as R from "ramda";
-import fixedId from "fixed-id";
+import { makeAddress } from "../../../../../src/index.js";
 
 import { register } from "./system";
 import createCampaignActorSystem from "../Campaign/system";
@@ -74,7 +74,7 @@ export default async function CampaignManager(
 		case "CreateNewCampaign": {
 			const knownCampaignsDb = await getKnownCampaignsDb();
 
-			const newCampaignId = fixedId();
+			const newCampaignId = makeAddress();
 			await getSpecificCampaignDb(newCampaignId);
 
 			await new Promise((done, fail) => {

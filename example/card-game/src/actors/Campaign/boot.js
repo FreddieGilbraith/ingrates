@@ -14,7 +14,7 @@ export default async function bootCampaignActorSystem(db, system) {
 			request.onerror = fail;
 		});
 
-		system.dispatch(rootBundle.self, { type: "Begin" });
+		system.mount(rootBundle.self);
 
 		return rootBundle.self;
 	} catch (e) {
