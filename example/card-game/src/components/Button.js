@@ -74,7 +74,9 @@ export default function Button({ color, move, as = "button", className, onClick,
 			)}
 			onClick={() => {
 				setInteractionFlag(true);
-				onClick();
+				if (onClick) {
+					onClick();
+				}
 			}}
 			{...props}
 		/>

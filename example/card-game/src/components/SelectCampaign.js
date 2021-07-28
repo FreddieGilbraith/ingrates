@@ -39,7 +39,7 @@ export default function SelectCampaign() {
 
 							<Button
 								color="red"
-								move="down"
+								move="wild"
 								onClick={dispatch.bind(null, engineAddr, {
 									type: "DeleteCampaign",
 									campaignAddr,
