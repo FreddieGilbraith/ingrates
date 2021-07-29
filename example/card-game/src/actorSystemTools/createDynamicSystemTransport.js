@@ -10,6 +10,10 @@ export default function createDynamicSystemTransportSet() {
 					return false;
 				}
 
+				if (snk.startsWith(myName)) {
+					return false;
+				}
+
 				for (const systemName of Object.keys(doDispatchTo)) {
 					if (snk.startsWith(systemName)) {
 						const [theirName, snkAddr] = snk.split(":");

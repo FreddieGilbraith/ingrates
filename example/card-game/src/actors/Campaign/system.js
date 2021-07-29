@@ -1,4 +1,8 @@
-import { createActorSystem, createDefaultRAMRealizer } from "../../../../../src/index.js";
+import {
+	makeAddress,
+	createActorSystem,
+	createDefaultRAMRealizer,
+} from "../../../../../src/index.js";
 import acquireEnhancer from "@little-bonsai/ingrates-acquire-enhancer";
 import assertEnhancer from "@little-bonsai/ingrates-assert-enhancer";
 import createLogEnhancer from "@little-bonsai/ingrates-log-enhancer";
@@ -14,7 +18,10 @@ export const register = (x) => actorDefinitions.push(x);
 register(QueryActor);
 
 export default async function createCampaignActorSystem(db, id, createDynamicSystemTransport) {
+	const namespace = `Campaign(${id})`;
+
 	const campaignActorSystem = createActorSystem({
+		addressFn: () => `${namespace}:${makeAddress()}`,
 		enhancers: [
 			createLogEnhancer("campaign", {
 				log: (...args) =>
@@ -30,7 +37,7 @@ export default async function createCampaignActorSystem(db, id, createDynamicSys
 		],
 
 		transports: [
-			createDynamicSystemTransport(`Campaign(${id})`),
+			createDynamicSystemTransport(namespace),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};

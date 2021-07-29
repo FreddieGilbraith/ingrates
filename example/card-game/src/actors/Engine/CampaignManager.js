@@ -103,11 +103,10 @@ export default async function CampaignManager(
 			);
 
 			const campaignRootAddr = await bootCampaignActorSystem(campaignDb, campaignActorSystem);
-			const campaignRootAddrNamespaced = `Campaign(${msg.campaign}):${campaignRootAddr}`;
 
-			dispatch("render", { path: ["campaign"], value: { addr: campaignRootAddrNamespaced } });
+			dispatch("render", { path: ["campaign"], value: { addr: campaignRootAddr } });
 
-			return R.assocPath(["campaignRootAddrs", msg.campaign], campaignRootAddrNamespaced);
+			return R.assocPath(["campaignRootAddrs", msg.campaign], campaignRootAddr);
 		}
 
 		default: {

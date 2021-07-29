@@ -19,9 +19,9 @@ export default function App({ state, dispatch }) {
 	return (
 		<Router>
 			<GameStateProvider value={{ dispatch, state }}>
+				<div style={{ whiteSpace: "pre" }}>{JSON.stringify(state, null, 2)}</div>
 				<Routes />
 				{/*
-				<div style={{ whiteSpace: "pre" }}>{JSON.stringify(state, null, 2)}</div>
 				 */}
 			</GameStateProvider>
 		</Router>

@@ -24,6 +24,7 @@ export function createActorSystem({
 	realizers = [createDefaultRAMRealizer],
 	transports = [],
 
+	addressFn = makeAddress,
 	onErr = console.error,
 } = {}) {
 	let draining = {};
@@ -44,7 +45,7 @@ export function createActorSystem({
 			return null;
 		}
 
-		const self = makeAddress();
+		const self = addressFn();
 		(msgQueue[parent] || []).unshift({
 			special: "ADD_CHILD",
 			nickname,
@@ -209,7 +210,7 @@ export function createActorSystem({
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
 			function nakedSpawn() {
-				return doSpawn(self, makeAddress(), ...arguments);
+				return doSpawn(self, addressFn(), ...arguments);
 			},
 			{
 				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),
