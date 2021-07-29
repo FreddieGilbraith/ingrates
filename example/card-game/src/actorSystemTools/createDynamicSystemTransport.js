@@ -1,33 +1,33 @@
 export default function createDynamicSystemTransportSet() {
-	const doDispatchTo = {};
+	const configs = [];
+	const doDispatchTo = new Map();
 
-	return function createDynamicSystemTransport(myName) {
+	return function createDynamicSystemTransport(fromConfig) {
+		configs.push(fromConfig);
+
 		return function dynamicTransport(doDispatch) {
-			doDispatchTo[myName] = doDispatch;
+			doDispatchTo.set(fromConfig, doDispatch);
 
 			return function handle(snk, msg) {
 				if (!msg.src) {
 					return false;
 				}
 
-				if (snk.startsWith(myName)) {
-					return false;
-				}
-
-				for (const systemName of Object.keys(doDispatchTo)) {
-					if (snk.startsWith(systemName)) {
-						const [theirName, snkAddr] = snk.split(":");
-
-						const namespacedSrc = [myName, msg.src].join(":");
-
-						doDispatchTo[theirName](namespacedSrc, snkAddr, {
-							...msg,
-							src: namespacedSrc,
-						});
-
-						return true;
+				for (const toConfig of configs) {
+					if (toConfig === fromConfig) {
+						continue;
 					}
+					if (!toConfig.accept(snk, msg)) {
+						continue;
+					}
+					const transformed = toConfig.transformIncoming(
+						...fromConfig.transformOutgoing(snk, msg),
+					);
+
+					const dispatch = doDispatchTo.get(toConfig);
+					dispatch(transformed[1].src, transformed[0], transformed[1]);
 				}
+				return false;
 			};
 		};
 	};

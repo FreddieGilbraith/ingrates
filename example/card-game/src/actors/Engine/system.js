@@ -29,7 +29,11 @@ export default function createEngineActorSystem(createDynamicSystemTransport) {
 		],
 
 		transports: [
-			createDynamicSystemTransport("Engine"),
+			createDynamicSystemTransport({
+				accept: (snk) => snk.startsWith("Engine:"),
+				transformIncoming: (snk, msg) => [snk.replace("Engine:", ""), msg],
+				transformOutgoing: (snk, msg) => [snk, { ...msg, src: `Engine:${msg.src}` }],
+			}),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};

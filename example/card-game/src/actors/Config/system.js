@@ -29,7 +29,11 @@ export default function createConfigActorSystem(createDynamicSystemTransport) {
 		],
 
 		transports: [
-			createDynamicSystemTransport("Config"),
+			createDynamicSystemTransport({
+				accept: (snk, ) => snk.startsWith("Config:"),
+				transformIncoming: (snk, msg) => [snk.replace("Config:", ""), msg],
+				transformOutgoing: (snk, msg) => [snk, { ...msg, src: `Config:${msg.src}` }],
+			}),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};

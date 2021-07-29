@@ -5,9 +5,12 @@ import { register } from "./system";
 register(Root);
 
 export default function Root({ self, dispatch, msg, state, log }) {
+	log(msg);
+
 	switch (msg.type) {
 		case "Mount": {
 			dispatch(self, { type: "UpdateTimestamp" });
+			break;
 		}
 
 		case "UpdateTimestamp": {

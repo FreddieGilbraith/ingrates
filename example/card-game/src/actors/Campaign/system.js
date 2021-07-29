@@ -37,7 +37,11 @@ export default async function createCampaignActorSystem(db, id, createDynamicSys
 		],
 
 		transports: [
-			createDynamicSystemTransport(namespace),
+			createDynamicSystemTransport({
+				accept: (snk, ) => snk.startsWith(namespace),
+				transformIncoming: (snk, msg) => [snk, msg],
+				transformOutgoing: (snk, msg) => [snk, msg],
+			}),
 			createSignpostTransport(
 				(() => {
 					let signpostContainer = {};

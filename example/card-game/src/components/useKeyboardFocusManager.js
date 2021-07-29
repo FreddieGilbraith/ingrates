@@ -4,7 +4,7 @@ import { nanoid } from "nanoid";
 function getCenterCoordsOfElement(el) {
 	const { offsetLeft, offsetTop, clientHeight, clientWidth } = el;
 
-	return;
+	return [offsetLeft + clientWidth / 2, offsetTop + clientHeight / 2];
 }
 
 function getCornerCoordsOfElement(el) {
@@ -46,7 +46,9 @@ export default function useKeyboardFocusManager() {
 	React.useLayoutEffect(() => {
 		const currentlyFocused = document.activeElement;
 		if (!currentlyFocused.dataset.keyboardFocusable) {
-			document.querySelector("[data-keyboard-focusable]").focus();
+			if (document.querySelector("[data-keyboard-focusable]")) {
+				document.querySelector("[data-keyboard-focusable]").focus();
+			}
 		}
 	});
 
@@ -59,6 +61,10 @@ export default function useKeyboardFocusManager() {
 				e.key === "ArrowRight"
 			) {
 				const currentlyFocused = document.activeElement;
+				if (!currentlyFocused.dataset.keyboardFocusable) {
+					return document.querySelector("[data-keyboard-focusable]").focus();
+				}
+
 				const start = getCenterCoordsOfElement(currentlyFocused);
 
 				let minDistance = Infinity;
