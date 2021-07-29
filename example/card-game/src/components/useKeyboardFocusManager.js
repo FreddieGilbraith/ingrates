@@ -1,42 +1,26 @@
 import React from "react";
+import { nanoid } from "nanoid";
 
 function getCenterCoordsOfElement(el) {
 	const { offsetLeft, offsetTop, clientHeight, clientWidth } = el;
 
-	return [offsetLeft + clientWidth / 2, offsetTop + clientHeight / 2];
+	return;
+}
+
+function getCornerCoordsOfElement(el) {
+	const { offsetLeft, offsetTop, clientHeight, clientWidth } = el;
+
+	return [
+		[offsetLeft + clientWidth * 0, offsetTop + clientHeight * 0],
+		[offsetLeft + clientWidth * 0, offsetTop + clientHeight * 1],
+		[offsetLeft + clientWidth * 1, offsetTop + clientHeight * 0],
+		[offsetLeft + clientWidth * 1, offsetTop + clientHeight * 1],
+		[offsetLeft + clientWidth / 2, offsetTop + clientHeight / 2],
+	];
 }
 
 function calculatePointDistance([x1, y1], [x2, y2]) {
 	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
-}
-
-function calculatePointTheta([x1, y1], [x2, y2]) {
-	return Math.atan2(y2 - y1, x2 - x1);
-}
-
-function calculateSquareDistance(el1, el2) {
-	const c1 = getCenterCoordsOfElement(el1);
-	const c2 = getCenterCoordsOfElement(el2);
-
-	const theta = calculatePointTheta(c1, c2);
-
-	if ((Math.PI * 3) / 4 <= theta && theta <= (Math.PI * 1) / 4) {
-		//Up
-		return el2.offsetTop + el2.clientHeight - el1.offsetTop;
-	}
-
-	if ((Math.PI * 1) / 4 <= theta && theta <= (-Math.PI * 1) / 4) {
-		//Left
-		return el2.offsetLeft + el2.clientWidth - el1.offsetLeft;
-	}
-
-	if ((-Math.PI * 1) / 4 <= theta && theta <= (-Math.PI * 3) / 4) {
-		//Down
-		return el2.offsetTop - (el1.offsetTop + el1.clientHeight);
-	}
-
-	//Right
-	return el2.offsetLeft - (el1.offsetLeft + el1.clientWidth);
 }
 
 function calculateDirection([x1, y1], [x2, y2]) {
@@ -59,6 +43,13 @@ function calculateDirection([x1, y1], [x2, y2]) {
 }
 
 export default function useKeyboardFocusManager() {
+	React.useLayoutEffect(() => {
+		const currentlyFocused = document.activeElement;
+		if (!currentlyFocused.dataset.keyboardFocusable) {
+			document.querySelector("[data-keyboard-focusable]").focus();
+		}
+	});
+
 	React.useEffect(() => {
 		function onKeyDown(e) {
 			if (
@@ -68,38 +59,30 @@ export default function useKeyboardFocusManager() {
 				e.key === "ArrowRight"
 			) {
 				const currentlyFocused = document.activeElement;
-				const myCenter = getCenterCoordsOfElement(currentlyFocused);
-
-				const getSquareDistance = calculateSquareDistance.bind(null, currentlyFocused);
-				const getDirection = calculateDirection.bind(null, myCenter);
+				const start = getCenterCoordsOfElement(currentlyFocused);
 
 				let minDistance = Infinity;
-				let acc = null;
+				let elToFocus = null;
+
 				for (const el of document.querySelectorAll("[data-keyboard-focusable]")) {
 					if (el === currentlyFocused) {
 						continue;
 					}
 
-					const theirCenter = getCenterCoordsOfElement(el);
-
-					const direction = getDirection(theirCenter);
-
-					console.log(el.textContent, direction);
-
-					if (direction === e.key.replace("Arrow", "")) {
-						const distance = getSquareDistance(el);
-
-						console.log(el.textContent, distance);
-
-						if (distance < minDistance) {
-							minDistance = distance;
-							acc = el;
+					for (const corner2 of getCornerCoordsOfElement(el)) {
+						const direction = calculateDirection(start, corner2);
+						if (direction === e.key.replace("Arrow", "")) {
+							const distance = calculatePointDistance(start, corner2);
+							if (distance < minDistance) {
+								minDistance = distance;
+								elToFocus = el;
+							}
 						}
 					}
 				}
 
-				if (acc) {
-					acc.focus();
+				if (elToFocus) {
+					elToFocus.focus();
 				}
 			}
 			return;
