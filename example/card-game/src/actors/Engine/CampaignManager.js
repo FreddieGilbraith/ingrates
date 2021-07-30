@@ -44,7 +44,7 @@ async function getSpecificCampaignDb(id) {
 }
 
 export default async function CampaignManager(
-	{ self, parent, msg, log, dispatch },
+	{ state, self, parent, msg, log, dispatch },
 	createDynamicSystemTransport,
 ) {
 	switch (msg.type) {
@@ -100,6 +100,9 @@ export default async function CampaignManager(
 		}
 
 		case "MountCampaign": {
+			if (state && state.campaignSystems && state.campaignSystems[msg.campaign]) {
+				break;
+			}
 			const campaignDb = await getSpecificCampaignDb(msg.campaign);
 			const campaignActorSystem = await createCampaignActorSystem(
 				campaignDb,
@@ -111,7 +114,10 @@ export default async function CampaignManager(
 
 			dispatch("render", { path: ["campaign"], value: { addr: campaignRootAddr } });
 
-			return R.assocPath(["campaignRootAddrs", msg.campaign], campaignRootAddr);
+			return R.pipe(
+				R.assocPath(["campaignRootAddrs", msg.campaign], campaignRootAddr),
+				R.assocPath(["campaignSystems", msg.campaign], campaignActorSystem),
+			);
 		}
 
 		default: {

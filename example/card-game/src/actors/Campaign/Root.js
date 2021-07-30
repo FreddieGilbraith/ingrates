@@ -6,10 +6,15 @@ register(Root);
 
 export default function Root({ self, dispatch, msg, state, log }) {
 	log(msg);
-	debugger;
+
 	switch (msg.type) {
 		case "Mount": {
 			dispatch(self, { type: "UpdateTimestamp" });
+			break;
+		}
+
+		case "Ping": {
+			dispatch(msg.src, { type: "Pong" });
 			break;
 		}
 
