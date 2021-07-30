@@ -23,7 +23,7 @@ export default async function createCampaignActorSystem(db, id, createDynamicSys
 	const campaignActorSystem = createActorSystem({
 		addressFn: () => `${namespace}:${makeAddress()}`,
 		enhancers: [
-			createLogEnhancer("campaign", {
+			createLogEnhancer("campgn", {
 				log: (...args) =>
 					postMessage({
 						id: "_console_",
@@ -38,7 +38,7 @@ export default async function createCampaignActorSystem(db, id, createDynamicSys
 
 		transports: [
 			createDynamicSystemTransport({
-				accept: (snk, ) => snk.startsWith(namespace),
+				accept: (snk) => snk.startsWith(namespace),
 				transformIncoming: (snk, msg) => [snk, msg],
 				transformOutgoing: (snk, msg) => [snk, msg],
 			}),

@@ -6,7 +6,7 @@ register(Root);
 
 export default function Root({ self, dispatch, msg, state, log }) {
 	log(msg);
-
+	debugger;
 	switch (msg.type) {
 		case "Mount": {
 			dispatch(self, { type: "UpdateTimestamp" });
@@ -24,7 +24,7 @@ export default function Root({ self, dispatch, msg, state, log }) {
 		}
 
 		default: {
-			log(msg);
+			if (msg.type !== "Start" && msg.type !== "Mount") log(msg);
 			break;
 		}
 	}

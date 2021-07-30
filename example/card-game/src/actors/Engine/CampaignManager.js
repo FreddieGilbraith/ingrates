@@ -44,10 +44,15 @@ async function getSpecificCampaignDb(id) {
 }
 
 export default async function CampaignManager(
-	{ self, msg, log, state, dispatch },
+	{ self, parent, msg, log, dispatch },
 	createDynamicSystemTransport,
 ) {
 	switch (msg.type) {
+		case "IntroEngine": {
+			dispatch(parent, { type: "ConfirmStartup" });
+			break;
+		}
+
 		case "RenderCampaignsList": {
 			const knownCampaignsDb = await getKnownCampaignsDb();
 
@@ -110,7 +115,7 @@ export default async function CampaignManager(
 		}
 
 		default: {
-			log(msg);
+			if (msg.type !== "Start" && msg.type !== "Mount") log(msg);
 			break;
 		}
 	}

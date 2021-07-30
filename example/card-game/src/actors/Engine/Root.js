@@ -8,7 +8,7 @@ import { register } from "./system";
 register(Root);
 
 export default function Root(
-	{ children, log, spawn, self, msg, dispatch },
+	{ state, children, log, spawn, self, msg, dispatch },
 	configAddr,
 	createDynamicSystemTransport,
 ) {
@@ -37,8 +37,14 @@ export default function Root(
 		}
 
 		case "CheckStartup": {
-			dispatch("render", { path: ["engine", "addr"], value: self });
-			dispatch("render", { path: ["engine", "status"], value: "Running" });
+			if (Object.keys(state.startup.waitingFor).length === 0) {
+				log("EngineStartup!");
+				dispatch("render", { path: ["engine", "addr"], value: self });
+				dispatch("render", { path: ["engine", "status"], value: "Running" });
+			} else {
+				log("CheckStartup", state.startup.waitingFor);
+			}
+
 			break;
 		}
 
@@ -50,7 +56,7 @@ export default function Root(
 		}
 
 		default: {
-			log(msg);
+			if (msg.type !== "Start" && msg.type !== "Mount") log(msg);
 			break;
 		}
 	}

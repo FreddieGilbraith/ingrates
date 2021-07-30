@@ -9,9 +9,8 @@ export default function Root({ log, msg, dispatch }) {
 			break;
 		}
 
-
 		default: {
-			log(msg);
+			if(msg.type !== "Start" && msg.type !== "Mount") log(msg);
 			break;
 		}
 	}

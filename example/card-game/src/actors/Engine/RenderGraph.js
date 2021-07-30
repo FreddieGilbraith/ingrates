@@ -7,8 +7,6 @@ register(RenderGraph);
 export default function RenderGraph({ parent, msg, log, dispatch, self, state = {} }) {
 	switch (msg.type) {
 		case "Mount": {
-			dispatch(parent, { type: "IsReady" });
-
 			dispatch("singletonSignpost", {
 				type: "register",
 				name: "render",
@@ -23,6 +21,11 @@ export default function RenderGraph({ parent, msg, log, dispatch, self, state = 
 			};
 
 			return R.identity;
+		}
+
+		case "IntroEngine": {
+			dispatch(parent, { type: "ConfirmStartup" });
+			break;
 		}
 
 		case "flushDiffBuffer": {
@@ -53,7 +56,7 @@ export default function RenderGraph({ parent, msg, log, dispatch, self, state = 
 		}
 
 		default: {
-			if (msg.type !== "Noop") log(msg);
+			if (msg.type !== "Start" && msg.type !== "Mount") log(msg);
 			break;
 		}
 	}

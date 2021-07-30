@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import { useGameDispatch, useGameState } from "./useGameState";
-import Wrapper from "./Wrapper";
+import { CampaignWrapper } from "./Wrapper";
 import Button from "./Button";
 
 export default function CampaignDashboard({
@@ -12,24 +12,10 @@ export default function CampaignDashboard({
 	},
 }) {
 	const campaignAddr = useGameState((s) => s.campaign?.addr);
-	const campaignTimestamp = useGameState((s) => s.campaign?.timestamp);
 	const dispatch = useGameDispatch();
 
 	return (
-		<Wrapper title="Campaign Dashboard" subtitle={<div>last update: {campaignTimestamp}</div>}>
-			<div className="self-start">
-				<Button
-					data-keyboard-focusable="esc"
-					move="up"
-					color="red"
-					as={Link}
-					to="campaign"
-					className="px-3"
-				>
-					&#9668;
-				</Button>
-			</div>
-
+		<CampaignWrapper>
 			<div className="flex-1 flex flex-row self-stretch items-stretch">
 				<div className="flex-1 flex flex-col items-center justify-center">
 					<Button color="green" move="wild">
@@ -67,6 +53,6 @@ export default function CampaignDashboard({
 					</div>
 				</div>
 			</div>
-		</Wrapper>
+		</CampaignWrapper>
 	);
 }

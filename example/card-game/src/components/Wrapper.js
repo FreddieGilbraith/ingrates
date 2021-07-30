@@ -1,4 +1,8 @@
 import React from "react";
+import { useHistory } from "react-router-dom";
+
+import { useGameState } from "./useGameState";
+import Button from "./Button";
 
 export default function Wrapper({ title, subtitle, children }) {
 	return (
@@ -15,3 +19,24 @@ export default function Wrapper({ title, subtitle, children }) {
 	);
 }
 
+export function CampaignWrapper({ children }) {
+	const history = useHistory();
+	const campaignTimestamp = useGameState((s) => s.campaign?.timestamp);
+
+	return (
+		<Wrapper title="Campaign Dashboard" subtitle={<div>last update: {campaignTimestamp}</div>}>
+			<div className="self-start">
+				<Button
+					data-keyboard-focusable="esc"
+					move="up"
+					color="red"
+					to="campaign"
+					onClick={history.goBack}
+				>
+					&#9668;
+				</Button>
+			</div>
+			{children}
+		</Wrapper>
+	);
+}

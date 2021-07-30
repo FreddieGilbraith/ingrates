@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 
 import { useGameDispatch, useGameState } from "./useGameState";
-import Wrapper from "./Wrapper";
+import { CampaignWrapper } from "./Wrapper";
 import Button from "./Button";
 
 function PartyListItem({ partyAddr, campaignAddr }) {
@@ -41,10 +41,7 @@ export default function CampaignPartyConfig({
 	}, [dispatch, campaignAddr]);
 
 	return (
-		<Wrapper
-			title="Campaign Dashboard"
-			subtitle={<div>last update: {campaignInfo?.timestamp}</div>}
-		>
+		<CampaignWrapper>
 			<h2 className="text-xl">Parties</h2>
 
 			<ol className="p-2">
@@ -69,6 +66,6 @@ export default function CampaignPartyConfig({
 			<Button color="red" move="down" as={Link} to={`/campaign/${campaignAddr}`}>
 				Back
 			</Button>
-		</Wrapper>
+		</CampaignWrapper>
 	);
 }
