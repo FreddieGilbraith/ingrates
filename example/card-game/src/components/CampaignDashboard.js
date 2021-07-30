@@ -17,6 +17,19 @@ export default function CampaignDashboard({
 
 	return (
 		<Wrapper title="Campaign Dashboard" subtitle={<div>last update: {campaignTimestamp}</div>}>
+			<div className="self-start">
+				<Button
+					data-keyboard-focusable="esc"
+					move="up"
+					color="red"
+					as={Link}
+					to="campaign"
+					className="px-3"
+				>
+					&#9668;
+				</Button>
+			</div>
+
 			<div className="flex-1 flex flex-row self-stretch items-stretch">
 				<div className="flex-1 flex flex-col items-center justify-center">
 					<Button color="green" move="wild">
@@ -44,6 +57,7 @@ export default function CampaignDashboard({
 
 					<div className="flex-1 flex flex-col items-center justify-center">
 						<Button
+							data-keyboard-focusable="entry"
 							color="blue"
 							move="wild"
 							onClick={dispatch.bind(null, campaignAddr, { type: "UpdateTimestamp" })}

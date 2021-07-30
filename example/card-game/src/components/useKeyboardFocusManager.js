@@ -1,5 +1,4 @@
 import React from "react";
-import { nanoid } from "nanoid";
 
 function getCenterCoordsOfElement(el) {
 	const { offsetLeft, offsetTop, clientHeight, clientWidth } = el;
@@ -42,28 +41,42 @@ function calculateDirection([x1, y1], [x2, y2]) {
 	}
 }
 
+function youGottaFocusOnSOMETHING() {
+	const currentlyFocused = document.activeElement;
+
+	if (!currentlyFocused.dataset.keyboardFocusable) {
+		if (document.querySelector("[data-keyboard-focusable=entry]")) {
+			return document.querySelector("[data-keyboard-focusable=entry]").focus();
+		}
+
+		if (document.querySelector("[data-keyboard-focusable]")) {
+			return document.querySelector("[data-keyboard-focusable]").focus();
+		}
+	}
+}
+
 export default function useKeyboardFocusManager() {
 	React.useLayoutEffect(() => {
-		const currentlyFocused = document.activeElement;
-		if (!currentlyFocused.dataset.keyboardFocusable) {
-			if (document.querySelector("[data-keyboard-focusable]")) {
-				document.querySelector("[data-keyboard-focusable]").focus();
-			}
-		}
+		youGottaFocusOnSOMETHING();
 	});
 
 	React.useEffect(() => {
 		function onKeyDown(e) {
+			if (e.key === "Escape") {
+				if (document.querySelector("[data-keyboard-focusable=esc]")) {
+					document.querySelector("[data-keyboard-focusable=esc]").focus();
+				}
+			}
+
 			if (
 				e.key === "ArrowDown" ||
 				e.key === "ArrowUp" ||
 				e.key === "ArrowLeft" ||
 				e.key === "ArrowRight"
 			) {
+				youGottaFocusOnSOMETHING();
+
 				const currentlyFocused = document.activeElement;
-				if (!currentlyFocused.dataset.keyboardFocusable) {
-					return document.querySelector("[data-keyboard-focusable]").focus();
-				}
 
 				const start = getCenterCoordsOfElement(currentlyFocused);
 

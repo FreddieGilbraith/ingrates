@@ -38,9 +38,8 @@ export default function Button({ color, move, as = "button", className, onClick,
 			data-keyboard-focusable
 			className={cn(
 				className,
+				"block",
 				"bold",
-				"px-6",
-				"py-3",
 				"rounded",
 				"shadow",
 				"text-3xl",
@@ -54,6 +53,10 @@ export default function Button({ color, move, as = "button", className, onClick,
 
 				"hover:shadow-2xl",
 				"focus:shadow-2xl",
+
+				typeof props.children === "string" && props.children.length === 1
+					? "px-3 py-2"
+					: "px-6 py-3",
 
 				{
 					"scale-90": interactionFlag,
