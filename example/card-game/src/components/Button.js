@@ -29,6 +29,16 @@ export default function Button({ color, move, as = "button", className, onClick,
 					"rotate-3",
 					"rotate-6",
 				]),
+				getRandom([
+					"origin-top",
+					"origin-top-right",
+					"origin-right",
+					"origin-bottom-right",
+					"origin-bottom",
+					"origin-bottom-left",
+					"origin-left",
+					"origin-top-left",
+				]),
 			];
 		})(),
 	);
