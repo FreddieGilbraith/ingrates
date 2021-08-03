@@ -3,9 +3,8 @@
 	"type": "module",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
 	"scripts": {
-		"start": "parcel index.html",
+		"start": "parcel serve index.html",
 		"build": "parcel build index.html"
 	},
 	"prettier": {
@@ -15,9 +14,7 @@
 		"useTabs": true,
 		"overrides": [
 			{
-				"files": [
-					"**/*.md"
-				],
+				"files": ["**/*.md"],
 				"options": {
 					"printWidth": 60,
 					"useTabs": false,
@@ -28,9 +25,7 @@
 	},
 	"author": "",
 	"license": "ISC",
-	"browserslist": [
-		"last 2 versions"
-	],
+	"browserslist": ["last 2 versions"],
 	"dependencies": {
 		"@babel/runtime": "^7.14.6",
 		"@little-bonsai/ingrates": "^0.8.0",
@@ -53,6 +48,7 @@
 	},
 	"devDependencies": {
 		"fixed-id": "^1.0.0",
+		"parcel": "^2.0.0-rc.0",
 		"parcel-bundler": "^1.12.5"
 	}
 }
