@@ -1,3 +1,5 @@
+import "../index.css";
+
 import "babel-polyfill";
 import { mergeDeepRight } from "ramda";
 import React from "react";
