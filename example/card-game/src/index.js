@@ -1,4 +1,4 @@
-import "../index.css";
+import * as style from "../index.css";
 
 import "babel-polyfill";
 import { mergeDeepRight } from "ramda";
@@ -8,6 +8,10 @@ import ReactDOM from "react-dom";
 import App from "./components/App";
 
 function main() {
+	console.log({ style });
+
+	document.getElementById("app").className = style.app;
+
 	let state = {};
 
 	const logicWorker = new Worker(new URL("./actors/start.js", import.meta.url), {
