@@ -1,4 +1,4 @@
-import * as style from "../index.css";
+import * as style from "./index.css";
 
 import "babel-polyfill";
 import { mergeDeepRight } from "ramda";

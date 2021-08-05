@@ -3,8 +3,9 @@
 	"version": "1.0.0",
 	"description": "",
 	"scripts": {
-		"start": "parcel serve index.html",
-		"build": "parcel build index.html"
+		"analyse": "parcel build src/index.html --reporter @parcel/reporter-bundle-buddy",
+		"build": "parcel build src/index.html",
+		"start": "parcel serve src/index.html"
 	},
 	"prettier": {
 		"printWidth": 100,
@@ -50,6 +51,7 @@
 		"@little-bonsai/ingrates": "../../src/index.js"
 	},
 	"devDependencies": {
+		"@parcel/reporter-bundle-analyzer": "^2.0.0-nightly.1694",
 		"autoprefixer": "^10.3.1",
 		"fixed-id": "^1.0.0",
 		"parcel": "^2.0.0-rc.0",
