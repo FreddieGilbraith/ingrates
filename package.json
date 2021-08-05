@@ -1,6 +1,6 @@
 {
 	"name": "@little-bonsai/ingrates",
-	"version": "0.10.0",
+	"version": "0.10.1",
 	"sideEffects": false,
 	"description": "An isomorphic actor system",
 	"homepage": "https://ingrates.littlebonsai.co.uk/",
