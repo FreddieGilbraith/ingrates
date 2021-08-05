@@ -6,6 +6,7 @@ import { useGameDispatch, useGameState } from "./useGameState";
 import SelectCampaign from "./SelectCampaign";
 import CampaignDashboard from "./CampaignDashboard";
 import CampaignPartyConfig from "./CampaignPartyConfig";
+import Playground from "./Playground";
 
 function Loading() {
 	const history = useHistory();
@@ -53,6 +54,7 @@ export default function Routes() {
 				<Route path="/campaign/:campaign/skirmish" component={Noop} />
 				<Route path="/campaign/:campaign" component={CampaignDashboard} />
 				<Route path="/campaign" component={SelectCampaign} />
+				<Route path="/playground" component={Playground} />
 
 				<Route component={Loading} />
 			</Switch>

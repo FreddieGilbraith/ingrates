@@ -7,10 +7,10 @@ import ReactDOM from "react-dom";
 
 import App from "./components/App";
 
+("min-h-full");
+
 function main() {
 	console.log({ style });
-
-	document.getElementById("app").className = style.app;
 
 	let state = {};
 
