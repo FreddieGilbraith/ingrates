@@ -27,6 +27,7 @@
 	"browserslist": ["last 2 versions"],
 	"dependencies": {
 		"@babel/runtime": "^7.14.6",
+		"@little-bonsai/ingrates": "^0.10.2",
 		"@little-bonsai/ingrates-acquire-enhancer": "^0.1.2",
 		"@little-bonsai/ingrates-assert-enhancer": "^0.0.1",
 		"@little-bonsai/ingrates-log-enhancer": "^0.0.2",
@@ -45,7 +46,7 @@
 		"react-router-dom": "^5.2.0"
 	},
 	"alias": {
-		"@little-bonsai/ingrates": "../../src/index.js",
+		"//@little-bonsai/ingrates": "../../src/index.js",
 		"nanoid": "nanoid"
 	},
 	"devDependencies": {
