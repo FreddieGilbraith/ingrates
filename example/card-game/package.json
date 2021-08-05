@@ -3,7 +3,6 @@
 	"version": "1.0.0",
 	"description": "",
 	"scripts": {
-		"analyse": "parcel build src/index.html --reporter @parcel/reporter-bundle-buddy",
 		"build": "parcel build src/index.html",
 		"start": "parcel serve src/index.html"
 	},
@@ -39,23 +38,21 @@
 		"cn": "^0.1.1",
 		"iter-tools": "^7.1.3",
 		"nanoid": "^3.1.23",
-		"prompts": "^2.4.1",
 		"ramda": "^0.27.1",
 		"react": "^17.0.2",
 		"react-dom": "^17.0.2",
 		"react-router": "^5.2.0",
-		"react-router-dom": "^5.2.0",
-		"websocket": "^1.0.34"
+		"react-router-dom": "^5.2.0"
 	},
 	"alias": {
-		"@little-bonsai/ingrates": "../../src/index.js"
+		"@little-bonsai/ingrates": "../../src/index.js",
+		"nanoid": "nanoid"
 	},
 	"devDependencies": {
-		"@parcel/reporter-bundle-analyzer": "^2.0.0-nightly.1694",
 		"autoprefixer": "^10.3.1",
-		"fixed-id": "^1.0.0",
 		"parcel": "^2.0.0-rc.0",
 		"parcel-bundler": "^1.12.5",
+		"prettier": "^2.3.2",
 		"tailwindcss": "^2.2.7"
 	}
 }
