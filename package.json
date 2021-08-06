@@ -31,10 +31,6 @@
 		"size": "size-limit",
 		"bench": "node --enable-source-maps benchmark.js",
 		"build": "microbundle",
-		"docs:build": "mkdirp docs/build && run-p docs:build:**",
-		"docs:build:css": "postcss docs/src/index.css -o docs/build/index.css",
-		"docs:build:pages": "./docs/src/build.js",
-		"docs:watch": "watch 'npm run docs:build' 'docs/src'",
 		"format": "prettier --write src/**/*",
 		"lint": "eslint . && prettier --check src/**/*",
 		"prepublishOnly": "npm run build && npm run size",
@@ -83,16 +79,10 @@
 		"c8": "^7.8.0",
 		"eslint": "^7.32.0",
 		"jest-cli": "^27.0.6",
-		"marked": "^2.1.3",
 		"microbundle": "0.13.0",
-		"mkdirp": "^1.0.4",
-		"npm-run-all": "^4.1.5",
-		"postcss": "^8.3.6",
-		"postcss-cli": "^8.3.1",
 		"prettier": "^2.3.2",
 		"ramda": "^0.27.1",
-		"size-limit": "^5.0.2",
-		"tailwindcss": "^2.2.7"
+		"size-limit": "^5.0.2"
 	},
 	"ava": {
 		"files": [

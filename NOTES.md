@@ -1,3 +1,7 @@
+## Examples
+### Client-Server Todo app
+Create both the client and server for a todo app. The server will persist to the file system, the client will drive the DOM, there will be a transport layer on each side to enable communication
+
 ## Messages in Realizers
 
 ### First, we need to review the ordering in which realizers should be placed:
