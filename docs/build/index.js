@@ -6,6 +6,7 @@ const path = require("path");
 const marked = require("marked");
 
 const writeFile = promisify(fs.writeFile);
+const mkdir = promisify(fs.mkdir);
 const readFile = promisify(fs.readFile);
 
 const H = require("./H");
@@ -48,10 +49,7 @@ const Header = H`
 
 const Footer = H`
 <footer class="p-2 bg-pink-800 text-white text-sm md:text-lg shadow text-right self-stretch">
-	Created and maintained by${ExternalLink(
-		"https://littlebonsai.co.uk",
-		"little bonsai",
-	)}
+	Created and maintained by${ExternalLink("https://littlebonsai.co.uk", "little bonsai")}
 </footer>
 `;
 
@@ -88,8 +86,8 @@ const Markdowned = H`
 
 async function convertMDToHTML(name) {
 	try {
-		const inPath = path.join(__dirname, `${name}.md`);
-		const outPath = path.join(__dirname, "..", "build", `${name}.html`);
+		const inPath = path.join(__dirname, "..", "src", `${name}.md`);
+		const outPath = path.join(__dirname, "..", "dest", `${name}.html`);
 		const markdown = await readFile(inPath, "utf8");
 		const html = App(Markdowned(marked(markdown)));
 		await writeFile(outPath, html);
@@ -99,11 +97,13 @@ async function convertMDToHTML(name) {
 }
 
 async function writeToBuild(writePath, content) {
-	const fullPath = path.join(__dirname, "..", "build", writePath);
+	const fullPath = path.join(__dirname, "..", "dest", writePath);
 	await writeFile(fullPath, content);
 }
 
 (async function main() {
+	await mkdir(path.join(__dirname, "..", "dest"));
+
 	await writeToBuild("index.html", App(HomePage()));
 	await convertMDToHTML("api");
 	await convertMDToHTML("guide");
