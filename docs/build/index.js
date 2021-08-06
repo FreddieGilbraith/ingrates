@@ -102,7 +102,9 @@ async function writeToBuild(writePath, content) {
 }
 
 (async function main() {
-	await mkdir(path.join(__dirname, "..", "dest"));
+	try {
+		await mkdir(path.join(__dirname, "..", "dest"));
+	} catch (_) {}
 
 	await writeToBuild("index.html", App(HomePage()));
 	await convertMDToHTML("api");
