@@ -87,7 +87,7 @@ const Markdowned = H`
 async function convertMDToHTML(name) {
 	try {
 		const inPath = path.join(__dirname, "..", "src", `${name}.md`);
-		const outPath = path.join(__dirname, "..", "dest", `${name}.html`);
+		const outPath = path.join(__dirname, "..", "out", `${name}.html`);
 		const markdown = await readFile(inPath, "utf8");
 		const html = App(Markdowned(marked(markdown)));
 		await writeFile(outPath, html);
@@ -97,13 +97,13 @@ async function convertMDToHTML(name) {
 }
 
 async function writeToBuild(writePath, content) {
-	const fullPath = path.join(__dirname, "..", "dest", writePath);
+	const fullPath = path.join(__dirname, "..", "out", writePath);
 	await writeFile(fullPath, content);
 }
 
 (async function main() {
 	try {
-		await mkdir(path.join(__dirname, "..", "dest"));
+		await mkdir(path.join(__dirname, "..", "out"));
 	} catch (_) {}
 
 	await writeToBuild("index.html", App(HomePage()));

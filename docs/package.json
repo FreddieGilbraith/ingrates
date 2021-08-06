@@ -1,7 +1,7 @@
 {
 	"scripts": {
 		"build": "mkdirp build && run-p build:**",
-		"build:css": "postcss src/index.css -o dist/index.css",
+		"build:css": "postcss src/index.css -o out/index.css",
 		"build:pages": "./build/index.js",
 		"watch": "watch 'npm run build' 'src'"
 	},
@@ -15,9 +15,7 @@
 		"printWidth": 100,
 		"overrides": [
 			{
-				"files": [
-					"**/*.md"
-				],
+				"files": ["**/*.md"],
 				"options": {
 					"printWidth": 60,
 					"useTabs": false,
