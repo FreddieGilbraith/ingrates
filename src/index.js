@@ -169,7 +169,16 @@ export function createActorSystem({
 		});
 
 		try {
-			const newState = await knownActors[name](provisions, ...args);
+			const knownActor = knownActors[name];
+			const actorRunner =
+				typeof knownActor === "function" ? knownActor : knownActor[msg.type];
+
+			if (!actorRunner) {
+				return;
+			}
+
+			const newState = await actorRunner(provisions, ...args);
+
 			if (typeof newState === "function") {
 				return newState(state);
 			} else {
