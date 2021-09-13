@@ -20,6 +20,8 @@
    * [realizers](#realizers)
       * [systemUpdateListener](#systemupdatelistener)
       * [Stateful Actors Note](#stateful-actors-note)
+* [createDefaultRAMRealizer](#createdefaultramrealizer)
+* [makeAddress](#makeaddress)
 
 <!-- vim-markdown-toc -->
 
@@ -346,3 +348,7 @@ These changes can be used by a realizer to persist all the information about a s
 #### Stateful Actors Note
 
 Please note, not every actor needs to be stateful, and there's no requirement that a `realizer` do something for every change it's informed of. It should in fact be very common to have an actor system where only some of the actors persist their state to storage.
+
+## createDefaultRAMRealizer
+
+## makeAddress
