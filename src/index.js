@@ -207,7 +207,9 @@ export function createActorSystem({
 			case restart: {
 				return null;
 			}
-			case resume:
+			case resume: {
+				return undefined;
+			}
 			case retry:
 			case stop:
 			default:
