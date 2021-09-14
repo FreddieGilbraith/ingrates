@@ -8,6 +8,12 @@ export const makeAddress = customAlphabet(
 	14,
 );
 
+const escalate = 1;
+const restart = 2;
+const resume = 3;
+const retry = 4;
+const stop = 5;
+
 function noop() {}
 
 async function promiseChain(ps) {
@@ -185,36 +191,36 @@ export function createActorSystem({
 				return newState;
 			}
 		} catch (error) {
-			onErr("RunError", error, { self, name, msg, state, parent });
-			const escalate = 1;
-			const restart = 2;
-			const resume = 3;
-			const retry = 4;
-			const stop = 5;
-
-			const supervisionResponse = (knownActors[name].supervision || noop)(error, meta, {
-				escalate,
-				restart,
-				resume,
-				retry,
-				stop,
-			});
-
-			switch (supervisionResponse) {
-				case escalate:
-					doDispatch(self, parent, { error, msg });
-				//eslint-disable-next-line
-				case stop:
-					doKill(parent, self);
-					break;
-				default:
-				//onErr("RunError (unhandled)", error, { self, name, msg, state, parent });
-			}
+			await handleActorError(meta, error);
 		}
 	}
 
-	function getProvisionsForActor(inputs) {
-		const { self } = inputs;
+	async function handleActorError(meta, error) {
+		const { msg, name, parent, self, state } = meta;
+
+		onErr("RunError", error, { self, name, msg, state, parent });
+
+		const supervisionResponse = (knownActors[name].supervision || noop)(error, meta, {
+			escalate,
+			restart,
+			resume,
+			retry,
+			stop,
+		});
+
+		switch (supervisionResponse) {
+			case escalate:
+			case restart:
+			case resume:
+			case retry:
+			case stop:
+			default:
+			//onErr("RunError (unhandled)", error, { self, name, msg, state, parent });
+		}
+	}
+
+	function getProvisionsForActor(inputProvisions) {
+		const { self } = inputProvisions;
 		const kill = doKill.bind(null, self);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
@@ -226,9 +232,10 @@ export function createActorSystem({
 			},
 		);
 
-		const baseProvisions = Object.assign(inputs, { dispatch, spawn, kill });
+		const baseProvisions = Object.assign(inputProvisions, { dispatch, spawn, kill });
+
 		return Object.assign(
-			inputs,
+			inputProvisions,
 			enhancers.reduce((acc, val) => Object.assign(val(acc), acc), baseProvisions),
 		);
 	}
