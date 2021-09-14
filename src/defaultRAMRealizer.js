@@ -15,7 +15,15 @@ export default function createDefaultRAMRealizer() {
 	}
 
 	async function set(bundle) {
-		bundles[bundle.self] = Object.assign({}, bundles[bundle.self], bundle);
+		const bundleWithProperlyUndefinedState = Object.assign({}, bundle, {
+			state: bundle.state === null ? undefined : bundle.state,
+		});
+
+		bundles[bundle.self] = Object.assign(
+			{},
+			bundles[bundle.self],
+			bundleWithProperlyUndefinedState,
+		);
 		return true;
 	}
 

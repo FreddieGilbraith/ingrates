@@ -65,22 +65,15 @@ export function createActorSystem({
 		];
 		mountingActors[self] = true;
 
-		Promise.all(
-			realizerInstances.map((realizer) =>
-				realizer.set(
-					{
-						children: {},
-						name,
-						parent,
-						nickname,
-						self,
-						args,
-						state: undefined,
-					},
-					knownActors,
-				),
-			),
-		)
+		setMetaInRealizers({
+			children: {},
+			name,
+			parent,
+			nickname,
+			self,
+			args,
+			state: null,
+		})
 			.then(() => {
 				mountingActors[self] = false;
 				setTimeout(doDrain, 0, self);
@@ -88,6 +81,21 @@ export function createActorSystem({
 			.catch((e) => onErr("StartError", e, { self, name }));
 
 		return self;
+	}
+
+	function getMetaFromRealizers(addr) {
+		return promiseChain(
+			realizerInstances.map((realizer) => () => realizer.get(addr, knownActors)),
+		);
+	}
+
+	function setMetaInRealizers(meta) {
+		const { children, name, parent, nickname, self, args, state } = meta;
+		return Promise.all(
+			realizerInstances.map((realizer) =>
+				realizer.set({ children, name, parent, nickname, self, args, state }, knownActors),
+			),
+		);
 	}
 
 	function doDispatch(src, snk, rawMessage) {
@@ -114,27 +122,19 @@ export function createActorSystem({
 		const msg = msgQueue[self].shift();
 
 		if (msg.special === "ADD_CHILD") {
-			await promiseChain(
-				realizerInstances.map((realizer) => () => realizer.get(self, knownActors)),
-			).then((bundle) =>
-				Promise.all(
-					realizerInstances.map((realizer) =>
-						realizer.set(
-							Object.assign({}, bundle, {
-								children: Object.assign({}, bundle.children, {
-									[msg.nickname]: msg.child,
-								}),
-							}),
-						),
-					),
+			getMetaFromRealizers(self).then((bundle) =>
+				setMetaInRealizers(
+					Object.assign({}, bundle, {
+						children: Object.assign({}, bundle.children, {
+							[msg.nickname]: msg.child,
+						}),
+					}),
 				),
 			);
 		} else {
 			await Promise.resolve(
 				transporters.some((x) => x(self, msg)) ||
-					promiseChain(
-						realizerInstances.map((realizer) => () => realizer.get(self, knownActors)),
-					).then((bundle) =>
+					getMetaFromRealizers(self).then((bundle) =>
 						bundle
 							? runActor(Object.assign({ msg }, bundle))
 									.then((output) =>
@@ -142,13 +142,7 @@ export function createActorSystem({
 											state: output === undefined ? bundle.state : output,
 										}),
 									)
-									.then((bundle) =>
-										Promise.all(
-											realizerInstances.map((realizer) =>
-												realizer.set(bundle),
-											),
-										),
-									)
+									.then(setMetaInRealizers)
 							: null,
 					),
 			);
@@ -191,7 +185,7 @@ export function createActorSystem({
 				return newState;
 			}
 		} catch (error) {
-			await handleActorError(meta, error);
+			return handleActorError(meta, error);
 		}
 	}
 
@@ -210,7 +204,9 @@ export function createActorSystem({
 
 		switch (supervisionResponse) {
 			case escalate:
-			case restart:
+			case restart: {
+				return null;
+			}
 			case resume:
 			case retry:
 			case stop:
