@@ -158,7 +158,7 @@ export function createActorSystem({
 	}
 
 	async function runActor(meta) {
-		const { args, children, msg, name, parent, self, state } = meta;
+		const { args, children, msg, name, parent, self, state, retry } = meta;
 		const provisions = getProvisionsForActor({
 			children,
 			msg,
@@ -166,6 +166,7 @@ export function createActorSystem({
 			parent,
 			self,
 			state,
+			retry,
 		});
 
 		try {
@@ -210,7 +211,10 @@ export function createActorSystem({
 			case resume: {
 				return undefined;
 			}
-			case retry:
+			case retry: {
+				return runActor(Object.assign({}, meta, { retry: (meta.retry || 0) + 1 }));
+			}
+
 			case stop:
 			default:
 			//onErr("RunError (unhandled)", error, { self, name, msg, state, parent });
