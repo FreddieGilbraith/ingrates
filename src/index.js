@@ -33,16 +33,84 @@ export function createActorSystem({
 	addressFn = makeAddress,
 	onErr = console.error,
 } = {}) {
-	let draining = {};
+	///////////
+	// setup //
+	///////////
+
+	const draining = {};
 	const knownActors = {};
 	const mountingActors = {};
 	const msgQueue = {};
 
-	const transporters = transports.map((x) => x(doDispatch, createActorSystem));
 	const realizerInstances = realizers.map((x) => x(createActorSystem));
+	const transporters = transports.map((x) => x(doDispatch, createActorSystem));
+
+	//////////////////////
+	// helper functions //
+	//////////////////////
 
 	function register(actorDefinition) {
 		knownActors[actorDefinition.name] = actorDefinition;
+	}
+
+	function getMetaFromRealizers(addr) {
+		return promiseChain(
+			realizerInstances.map((realizer) => () => realizer.get(addr, knownActors)),
+		);
+	}
+
+	function setMetaInRealizers(meta) {
+		const { children, name, parent, nickname, self, args, state } = meta;
+		return Promise.all(
+			realizerInstances.map((realizer) =>
+				realizer.set({ children, name, parent, nickname, self, args, state }, knownActors),
+			),
+		);
+	}
+
+	function getProvisionsForActor(inputProvisions) {
+		const { self } = inputProvisions;
+		const kill = doKill.bind(null, self);
+		const dispatch = doDispatch.bind(null, self);
+		const spawn = new Proxy(
+			function nakedSpawn() {
+				return doSpawn(self, addressFn(), ...arguments);
+			},
+			{
+				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),
+			},
+		);
+
+		const baseProvisions = Object.assign(inputProvisions, { dispatch, spawn, kill });
+
+		return Object.assign(
+			inputProvisions,
+			enhancers.reduce((acc, val) => Object.assign(val(acc), acc), baseProvisions),
+		);
+	}
+
+	////////////////////////
+	// effector functions //
+	////////////////////////
+
+	function doKill(parent, self) {
+		// TODO change the parent param to callerBundle. Detect if it's a valid call here
+		realizerInstances.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
+	}
+
+	function doDispatch(src, snk, rawMessage) {
+		const msg = Object.assign({ src }, rawMessage);
+		if (msgQueue[snk]) {
+			msgQueue[snk].push(msg);
+		} else {
+			// TODO test that Mount is being called when first dispatching to an actor that
+			// existed in a persisted realizer
+			msgQueue[snk] = [{ type: "Mount", src: null }, msg];
+		}
+
+		setTimeout(doDrain, 0, snk);
+
+		return snk;
 	}
 
 	function doSpawn(parent, nickname, { name }, ...args) {
@@ -81,36 +149,6 @@ export function createActorSystem({
 			.catch((e) => onErr("StartError", e, { self, name }));
 
 		return self;
-	}
-
-	function getMetaFromRealizers(addr) {
-		return promiseChain(
-			realizerInstances.map((realizer) => () => realizer.get(addr, knownActors)),
-		);
-	}
-
-	function setMetaInRealizers(meta) {
-		const { children, name, parent, nickname, self, args, state } = meta;
-		return Promise.all(
-			realizerInstances.map((realizer) =>
-				realizer.set({ children, name, parent, nickname, self, args, state }, knownActors),
-			),
-		);
-	}
-
-	function doDispatch(src, snk, rawMessage) {
-		const msg = Object.assign({ src }, rawMessage);
-		if (msgQueue[snk]) {
-			msgQueue[snk].push(msg);
-		} else {
-			// TODO test that Mount is being called when first dispatching to an actor that
-			// existed in a persisted realizer
-			msgQueue[snk] = [{ type: "Mount", src: null }, msg];
-		}
-
-		setTimeout(doDrain, 0, snk);
-
-		return snk;
 	}
 
 	async function doDrain(self) {
@@ -152,10 +190,9 @@ export function createActorSystem({
 		draining[self] = false;
 	}
 
-	function doKill(parent, self) {
-		// TODO change the parent param to callerBundle. Detect if it's a valid call here
-		realizerInstances.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
-	}
+	///////////////////////
+	// Running Functions //
+	///////////////////////
 
 	async function runActor(meta) {
 		const { args, children, msg, name, parent, self, state, retry } = meta;
@@ -221,26 +258,9 @@ export function createActorSystem({
 		}
 	}
 
-	function getProvisionsForActor(inputProvisions) {
-		const { self } = inputProvisions;
-		const kill = doKill.bind(null, self);
-		const dispatch = doDispatch.bind(null, self);
-		const spawn = new Proxy(
-			function nakedSpawn() {
-				return doSpawn(self, addressFn(), ...arguments);
-			},
-			{
-				get: (_, nickname, __) => doSpawn.bind(null, self, nickname),
-			},
-		);
-
-		const baseProvisions = Object.assign(inputProvisions, { dispatch, spawn, kill });
-
-		return Object.assign(
-			inputProvisions,
-			enhancers.reduce((acc, val) => Object.assign(val(acc), acc), baseProvisions),
-		);
-	}
+	////////////
+	// Output //
+	////////////
 
 	return getProvisionsForActor({
 		register,
