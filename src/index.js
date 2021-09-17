@@ -16,15 +16,6 @@ const stop = 5;
 
 function noop() {}
 
-async function promiseChain(ps) {
-	for (const p of ps) {
-		const x = await p();
-		if (x) {
-			return x;
-		}
-	}
-}
-
 export function createActorSystem({
 	enhancers = [],
 	realizers = [createDefaultRAMRealizer],
@@ -53,10 +44,13 @@ export function createActorSystem({
 		knownActors[actorDefinition.name] = actorDefinition;
 	}
 
-	function getMetaFromRealizers(addr) {
-		return promiseChain(
-			realizerInstances.map((realizer) => () => realizer.get(addr, knownActors)),
-		);
+	async function getMetaFromRealizers(addr) {
+		for (const realizerInstance of realizerInstances) {
+			const resolvedBundle = await realizerInstance.get(addr, knownActors);
+			if (resolvedBundle) {
+				return resolvedBundle;
+			}
+		}
 	}
 
 	function setMetaInRealizers(meta) {
