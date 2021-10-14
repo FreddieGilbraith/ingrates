@@ -1,8 +1,8 @@
 export default function createDefaultRAMRealizer() {
 	const bundles = {};
 
-	async function kill({ self, parent }) {
-		const { nickname } = bundles[self];
+	async function kill(self) {
+		const { nickname, parent } = bundles[self];
 		delete bundles[self];
 		delete bundles[parent].children[nickname];
 		return true;

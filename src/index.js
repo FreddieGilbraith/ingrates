@@ -64,7 +64,7 @@ export function createActorSystem({
 
 	function getProvisionsForActor(inputProvisions) {
 		const { self } = inputProvisions;
-		const kill = doKill.bind(null, self);
+		const kill = doKill.bind(null, inputProvisions);
 		const dispatch = doDispatch.bind(null, self);
 		const spawn = new Proxy(
 			function nakedSpawn() {
@@ -87,9 +87,19 @@ export function createActorSystem({
 	// effector functions //
 	////////////////////////
 
-	function doKill(parent, self) {
-		// TODO change the parent param to callerBundle. Detect if it's a valid call here
-		realizerInstances.forEach((realizer) => realizer.kill({ self, parent }, knownActors));
+	async function doKill(callerBundle, addressToKill) {
+		if (Object.values(callerBundle.children).includes(addressToKill)) {
+			const childMeta = await getMetaFromRealizers(addressToKill);
+
+			await Promise.all(Object.values(childMeta.children).map(doKill.bind(null, childMeta)));
+
+			await Promise.all(
+				realizerInstances.map((realizer) => realizer.kill(addressToKill, knownActors)),
+			);
+
+			delete mountingActors[addressToKill];
+			delete msgQueue[addressToKill];
+		}
 	}
 
 	function doDispatch(src, snk, rawMessage) {
@@ -146,7 +156,12 @@ export function createActorSystem({
 	}
 
 	async function doDrain(self) {
-		if (draining[self] || msgQueue[self].length === 0 || mountingActors[self]) {
+		if (
+			draining[self] ||
+			!msgQueue[self] ||
+			msgQueue[self].length === 0 ||
+			mountingActors[self]
+		) {
 			return;
 		}
 		draining[self] = true;

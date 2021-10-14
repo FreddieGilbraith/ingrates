@@ -6,20 +6,24 @@ function GrandChildActor({ dispatch, msg }) {
 	}
 }
 
-function ChildActor() {}
-
-ChildActor.startup = ({ spawn, parent, dispatch }) => {
-	const myChild = spawn.myChild(GrandChildActor);
-	dispatch(parent, { type: "INTRO", myChild });
-};
+function ChildActor({ msg, spawn, dispatch, parent }) {
+	if (msg.type === "Start") {
+		const myChild = spawn.myChild(GrandChildActor);
+		dispatch(parent, { type: "INTRO", myChild });
+	}
+}
 
 const test = createTestSystem({ actors: [ChildActor, GrandChildActor] });
 
-test.skip(function WillKillChildrenOfShutdownActor(
+test.only(function WillKillChildrenOfShutdownActor(
 	{ self, spawn, msg, dispatch, kill, children },
 	{ t, done, fail },
 ) {
 	switch (msg.type) {
+		case "Start": {
+			return;
+		}
+
 		case "Mount": {
 			spawn.myChild(ChildActor);
 			break;
@@ -48,3 +52,5 @@ test.skip(function WillKillChildrenOfShutdownActor(
 			fail(msg);
 	}
 });
+
+test.todo("kill returns a promise that resolves once all children have been shutdown");
