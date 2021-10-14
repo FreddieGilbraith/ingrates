@@ -82,5 +82,7 @@ test(function SendMsgsToDeadActor({ kill, self, dispatch, msg, spawn }, { t, don
 	}
 });
 
-// this will require a change to the realizer interface
-test.todo("an actor should not be able to shutdown an actor that is not their own child");
+test.todo("an actor should not be able to shutdown an actor that is not their own direct child");
+test.todo(
+	"onErr should be called if an actor tries to kill an actor that is not their own direct child",
+);

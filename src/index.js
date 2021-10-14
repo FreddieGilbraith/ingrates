@@ -99,6 +99,8 @@ export function createActorSystem({
 
 			delete mountingActors[addressToKill];
 			delete msgQueue[addressToKill];
+		} else {
+			onErr("KillErr", callerBundle.self, addressToKill);
 		}
 	}
 
